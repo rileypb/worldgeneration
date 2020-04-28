@@ -32,8 +32,8 @@ public class OutlineDrawLayer implements DrawLayer {
 			for (int y = 0; y < terrain.numVerticalSamples; y++) {
 				elevation = Math.min(1, Math.max(-1, terrain.getElevation(x, y) - sealevel));
 				if (elevation < 0) {
-					graphics.setColor(Color.LIGHT_GRAY);
-					graphics.setColor(new Color(128, 128, 255));
+//					graphics.setColor(new Color(128, 128, 255));
+					graphics.setColor(Color.blue);
 					//					graphics.setColor(new Color(0,0,(float)(1-Math.min(1, -elevation))));
 				} else {
 					boolean coast = false;
@@ -57,10 +57,11 @@ public class OutlineDrawLayer implements DrawLayer {
 					} else if (coast) {
 						graphics.setColor(Color.black);
 					} else {
-						//						graphics.setColor(Color.lightGray);
-						//						graphics.setColor(new Color(64,128,64));
-						graphics.setColor(new Color((128 - contourNumber * 16), (192 - contourNumber * 16),
-								(128 - contourNumber * 16)));
+//												graphics.setColor(Color.lightGray);
+//												graphics.setColor(new Color(64,128,64));
+//						graphics.setColor(new Color((128 - contourNumber * 16), (192 - contourNumber * 16),
+//								(128 - contourNumber * 16)));
+						graphics.setColor(terrain.getBiome(x, y).color);
 					}
 				}
 				graphics.drawRect(x, y, 1, 1);

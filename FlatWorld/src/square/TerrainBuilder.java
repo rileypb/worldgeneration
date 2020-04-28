@@ -4,6 +4,8 @@ import java.util.Random;
 
 import com.flowpowered.noise.module.source.Perlin;
 
+import voronoi.Biome;
+import voronoi.MapperMain;
 import voronoi.PerlinHelper;
 
 public class TerrainBuilder {
@@ -127,6 +129,89 @@ public class TerrainBuilder {
 					terrain.setContourNumber(x, y, rih / 10);
 				}
 			}
+			
+			Perlin calmMoisturePerlin = new Perlin();
+			calmMoisturePerlin.setFrequency(1);
+			calmMoisturePerlin.setOctaveCount(4);
+			//		calmPerlin.setLacunarity(1.9);
+			//		calmPerlin.setPersistence(0.4);
+			calmMoisturePerlin.setSeed(r.nextInt());
+			Perlin wildMoisturePerlin = new Perlin();
+			wildMoisturePerlin.setFrequency(4);
+			wildMoisturePerlin.setOctaveCount(4);
+			wildMoisturePerlin.setSeed(r.nextInt());
+
+			for (int x = 0; x < numHorizontalSamples; x++) {
+				for (int y = 0; y < numVerticalSamples; y++) {
+
+//					double cylindricalNoise = PerlinHelper.getCylindricalNoise(perlin, x0 + x * xRatio, width,
+//							y0 + y * yRatio, 2 * height);
+//					double wildness = Math.min(1, Math.max(0, cylindricalNoise));
+//					
+//					double calmValue = PerlinHelper.getCylindricalNoise(calmMoisturePerlin, x0 + x * xRatio, width,
+//							y0 + y * yRatio, 2 * height);
+//					double wildValue = PerlinHelper.getCylindricalNoise(wildMoisturePerlin, x0 + x * xRatio, width,
+//							y0 + y * yRatio, 2 * height);
+//					
+//
+//					double wildness4 = Math.pow(wildness, POW);
+//					double moisture = (1 - wildness4) * calmValue + wildness4 * wildValue;
+					
+					perlin.setFrequency(0.25);
+					perlin.setOctaveCount(4);
+					double cylindricalNoise = PerlinHelper.getCylindricalNoise(perlin, x0 + x * xRatio, width,
+							y0 + y * yRatio, 2 * height);
+					double moisture = Math.min(1, Math.max(0, cylindricalNoise));
+					terrain.setMoisture(x, y, moisture);
+					cylindricalNoise = PerlinHelper.getCylindricalNoise(perlin, x0 + x * xRatio, width, y0 + y * yRatio,
+							2 * height);
+					double temperatureVariation = Math.min(1, Math.max(0, cylindricalNoise));
+					terrain.setTemperatureVariation(x, y, temperatureVariation);
+
+					double globalY = y0 + (double) y / numVerticalSamples * windowHeight;
+					double latitude = 300 - globalY;
+					double distanceFromEquator = Math.abs(latitude);
+					double angleFromEquator = Math.PI * distanceFromEquator/600;
+					double baseTemperature = Math.cos(angleFromEquator);
+					double adjustedTemperature = baseTemperature
+							- (terrain.getElevation(x, y) - MapperMain.SEALEVEL)
+									* (terrain.getElevation(x, y) - MapperMain.SEALEVEL)
+							+ 0.1 * temperatureVariation;
+//					System.out.println(loc.y + ", " + adjustedTemperature);
+					double temperature = adjustedTemperature;
+					terrain.setTemperature(x, y, temperature);
+					
+					Biome biome;
+					if (moisture < 0.2) {
+						if (temperature < 0.2) {
+							biome = Biome.TUNDRA;
+						} else if (temperature < 0.8) {
+							biome = Biome.TEMPERATE_DESERT;
+						} else {
+							biome = Biome.SUBTROPICAL_DESERT;
+						}
+					} else if (moisture < 0.66) {
+						if (temperature < 0.2) {
+							biome = Biome.TAIGA;
+						} else if (temperature < 0.8) {
+							biome = Biome.GRASSLAND;
+						} else {
+							biome = Biome.SAVANNA;
+						}
+					} else {
+						if (temperature < 0.2) {
+							biome = Biome.SNOW;
+						} else if (temperature < 0.8) {
+							biome = Biome.TEMPERATE_DECIDUOUS_FOREST;
+						} else {
+							biome = Biome.TROPICAL_RAIN_FOREST;
+						}
+					}
+					
+					terrain.setBiome(x, y, biome);
+				}
+			}
+
 		}
 
 		return terrain;

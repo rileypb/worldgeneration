@@ -1,5 +1,9 @@
 package square;
 
+import java.awt.Color;
+
+import voronoi.Biome;
+
 public class Terrain {
 
 	public final double width;
@@ -14,6 +18,10 @@ public class Terrain {
 	private int[][] relativeIntegerHeight;
 	private int[][] contourNumber;
 	private boolean[][] drawContour;
+	private double[][] moisture;
+	private double[][] temperatureVariation;
+	private double[][] temperature;
+	private Biome[][] biome;
 
 	public Terrain(double width, double height, int numHorizontalSamples, int numVerticalSamples) {
 		this.width = width;
@@ -28,6 +36,10 @@ public class Terrain {
 		relativeIntegerHeight = new int[numHorizontalSamples][numVerticalSamples];
 		contourNumber = new int[numHorizontalSamples][numVerticalSamples];
 		drawContour = new boolean[numHorizontalSamples][numVerticalSamples];
+		moisture = new double[numHorizontalSamples][numVerticalSamples];
+		temperatureVariation = new double[numHorizontalSamples][numVerticalSamples];
+		temperature = new double[numHorizontalSamples][numVerticalSamples];
+		biome = new Biome[numHorizontalSamples][numVerticalSamples];
 	}
 
 	public void setWildness(int x, int y, double wildness) {
@@ -97,6 +109,26 @@ public class Terrain {
 
 	public boolean getDrawContour(int x, int y) {
 		return this.drawContour[x][y];
+	}
+
+	public void setMoisture(int x, int y, double moisture) {
+		this.moisture[x][y] = moisture;
+	}
+
+	public void setTemperatureVariation(int x, int y, double tempvar) {
+		this.temperatureVariation[x][y] = tempvar;
+	}
+
+	public void setTemperature(int x, int y, double temperature) {
+		this.temperature[x][y] = temperature;
+	}
+
+	public void setBiome(int x, int y, Biome biome) {
+		this.biome[x][y] = biome;
+	}
+
+	public Biome getBiome(int x, int y) {
+		return this.biome[x][y];
 	}
 
 }
