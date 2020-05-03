@@ -1,4 +1,5 @@
-package voronoi;
+package voronoinew;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -9,34 +10,22 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-public class GraphDrawLayer implements DrawLayer {
+
+public class SeaLandDrawLayer implements DrawLayer {
 
 	@Override
 	public void draw(Graphics2D g, Graphs graphs) {
-		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-		g.setBackground(Color.white);
-		g.setColor(Color.white);
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
-		g.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
 
 		double x0 = clipBounds.x - 0;
 		double y0 = clipBounds.y - 0;
 		double xWidth = clipBounds.width + 0;
 		double yHeight = clipBounds.height + 0;
 
-
-		Color parchment = new Color(144, 126, 96);
-		Color seaBlue = new Color(19,18,52);
-		
-		//		g.setColor(Color.black);
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		//		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setStroke(new BasicStroke(1));
 
-		//				graphs.dualVertices.forEach((loc) -> {
-		//					g.drawOval((int)(xWidth*loc.x), (int)(yHeight*loc.y), 1, 1);
-		//				});
-
-		g.setColor(Color.blue);
+		g.setColor(Color.BLACK);
 		graphs.dualVertices.forEach((loc) -> {
 			List<MapEdge> edgeList = graphs.dualGraph.edgesOf(loc).stream().map((dualEdge) -> {
 				return graphs.dualToVoronoi.get(dualEdge);
@@ -50,25 +39,13 @@ public class GraphDrawLayer implements DrawLayer {
 					p.lineTo(x0 + xWidth * e.loc2.x, y0 + yHeight * minmax(0, 1, e.loc2.y));
 					p.closePath();
 
-					//				if (loc.elevation >= -10) {
-					//					g.setColor(new Color((float) loc.red, (float) loc.green, (float) loc.blue));
-					//				} else {
-					//					g.setColor(Color.blue);
-					//				}
 					if (loc.elevation <= MapperMain.SEALEVEL) {
-						g.setColor(seaBlue);
+						g.setColor(Color.blue);
 					} else {
-						//g.setColor(loc.biome.color);
-						g.setColor(parchment);
+						g.setColor(Color.green);
 					}
 					g.fill(p);
-					if (loc.elevation > MapperMain.MOUNTAIN_THRESHOLD) {
-						g.setColor(Color.black);
-					}
-//					if (loc.elevation > MapperMain.SEALEVEL) {
-//						g.setColor(Color.LIGHT_GRAY);
-						g.draw(p);
-//					}
+
 				}
 			});
 		});

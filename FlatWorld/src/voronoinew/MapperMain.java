@@ -1,4 +1,5 @@
-package voronoi;
+package voronoinew;
+
 import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
@@ -22,7 +23,7 @@ import com.flowpowered.noise.module.source.Perlin;
 
 public class MapperMain {
 
-	public static final double SEALEVEL = 0.3;
+	public static final double SEALEVEL = 0;
 	public static final double MOUNTAIN_THRESHOLD = 0.9;
 	private static int screenWidth;
 	private static int screenHeight;
@@ -37,50 +38,23 @@ public class MapperMain {
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r);
 
-		//		for (int i = 0; i < 20; i++) {
-		//			builder.addRandomLine(buildResult, r);
-		//		}
-		//				lotsOfGentleLines(builder, r, buildResult);
-
-		//		Perlin elevationPerlin = new Perlin();
-		//		elevationPerlin.setSeed(r.nextInt());
-		//		elevationPerlin.setFrequency(1.3);
-		//		elevationPerlin.setOctaveCount(3);
-		//		elevationPerlin.setLacunarity(0.4);
-		//		builder.generateValues(buildResult, r, elevationPerlin, (target, value) -> {
-		//			target.elevation = value;
-		//		});
-		//
-		//		Perlin biomePerlin = new Perlin();
-		//		biomePerlin.setSeed(r.nextInt());
-		//		biomePerlin.setFrequency(0.5);
-		//		biomePerlin.setOctaveCount(1);
-		//		builder.generateValues(buildResult, r, biomePerlin, (target, value) -> {
-		//			target.moisture = value;
-		//		});
-		//
-		//		biomePerlin.setFrequency(0.25);
-		//		biomePerlin.setOctaveCount(1);
-		//		builder.generateValues(buildResult, r, biomePerlin, (target, value) -> {
-		//			target.temperatureVariance = value;
-		//		});
-		//		
-		//		builder.calculateTemperatures(buildResult);
-		//		
-		//		builder.setBiomes(buildResult);
 
 		Perlin perlin = new Perlin();
-		perlin.setFrequency(2);
-		perlin.setOctaveCount(16);
+		perlin.setFrequency(.25);
+		perlin.setOctaveCount(2);
 		perlin.setSeed(r.nextInt());
 		Perlin calmPerlin = new Perlin();
-		calmPerlin.setFrequency(1);
+		calmPerlin.setFrequency(.125);
 		calmPerlin.setOctaveCount(4);
 		calmPerlin.setSeed(r.nextInt());
 		Perlin wildPerlin = new Perlin();
-		wildPerlin.setFrequency(4);
+		wildPerlin.setFrequency(1);
 		wildPerlin.setOctaveCount(8);
 		wildPerlin.setSeed(r.nextInt());
+
+//		builder.forEachLocation(buildResult, (x) -> {
+//			System.out.println(x.x);
+//		});
 
 		builder.generateValues(buildResult, r, perlin, (target, value) -> {
 			target.wildness = value;
@@ -95,47 +69,37 @@ public class MapperMain {
 			target.elevation = (1 - target.wildness * target.wildness * target.wildness) * target.calmValue
 					+ target.wildness * target.wildness * target.wildness * target.wildValue;
 		});
+		builder.normalizeElevations(buildResult);
 
+		builder.fillDepressions(buildResult);
+		
+		builder.runRivers(buildResult);
+		
 		System.out.println("drawing...");
 
 		List<DrawLayer> drawLayers = new ArrayList<>();
-		drawLayers.add(new GraphDrawLayer());
+		drawLayers.add(new SeaLandDrawLayer());
+//		drawLayers.add(new BoundaryCellDrawLayer());
+//		drawLayers.add(new GraphDrawLayer());
+//		drawLayers.add(new DualGraphDrawLayer());
 
 		BufferedImage img = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g = img.createGraphics();
-		g.setColor(Color.black);
-		g.fillRect(0, 0, screenWidth, screenHeight);
-		g.setColor(Color.gray);
-		g.fillRect(20, 20, screenWidth - 40, screenHeight - 40);
-		g.setClip(25, 25, screenWidth - 50, screenHeight - 50);
+		//		g.setColor(Color.black);
+		//		g.fillRect(0, 0, screenWidth, screenHeight);
+		//		g.setColor(Color.gray);
+		//		g.fillRect(20, 20, screenWidth - 40, screenHeight - 40);
+		//		g.setClip(25, 25, screenWidth - 50, screenHeight - 50);
+
+		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		g.setBackground(Color.white);
+		g.setColor(Color.white);
 
 		drawLayers.forEach((layer) -> {
 			layer.draw((Graphics2D) img.getGraphics(), buildResult);
 		});
 
 		display(img, builder, g);
-	}
-
-	private static void lotsOfGentleLines(TerrainBuilder builder, Random r, Graphs buildResult) {
-		for (int i = 0; i < 100; i++) {
-
-			Location startingPoint = buildResult.voronoiVertices.get(r.nextInt(buildResult.voronoiVertices.size()));
-			if (startingPoint.visited) {
-				continue;
-			}
-
-			Set<MapEdge> edges = buildResult.voronoiGraph.edgesOf(startingPoint);
-			Iterator<MapEdge> iterator = edges.iterator();
-			int clicks = r.nextInt(edges.size());
-			for (int j = 0; j < clicks; j++) {
-				iterator.next();
-			}
-			MapEdge startingEdge = iterator.next();
-
-			builder.addGentleLine(buildResult, startingPoint, startingEdge,
-					new Color(0.5f + 0.5f * r.nextFloat(), r.nextFloat(), r.nextFloat()));
-			//			builder.addRandomLine(buildResult, r);
-		}
 	}
 
 	private static void display(BufferedImage img, TerrainBuilder builder, Graphics2D g) {

@@ -2,10 +2,12 @@ package square;
 
 import java.awt.BorderLayout;
 import java.awt.Canvas;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -55,6 +57,10 @@ public class MapperMain {
 		List<DrawLayer> drawLayers = new ArrayList<>();
 		//		drawLayers.add(new ElevationDrawLayer(SEALEVEL));
 		drawLayers.add(new OutlineDrawLayer(SEALEVEL));
+//		drawLayers.add(new BiomeDrawLayer(SEALEVEL));
+//		drawLayers.add(new GreeneryDrawLayer(SEALEVEL));
+//		drawLayers.add(new SnowDrawLayer(SEALEVEL));
+//		drawLayers.add(new CoastalShadingDrawLayer(SEALEVEL));
 
 		if (img == null) {
 			img = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
@@ -66,8 +72,20 @@ public class MapperMain {
 		//		g.fillRect(20, 20, screenWidth - 40, screenHeight - 40);
 		//		g.setClip(25, 25, screenWidth - 50, screenHeight - 50);
 
+
+		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		g.setBackground(Color.white);
+		g.setColor(Color.white);
+		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
+		g.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+		
+		double x0 = clipBounds.x - 0;
+		double y0 = clipBounds.y - 0;
+		double xWidth = clipBounds.width + 0;
+		double yHeight = clipBounds.height + 0;
+		
 		drawLayers.forEach((layer) -> {
-			layer.draw((Graphics2D) g, terrain);
+			layer.draw((Graphics2D) g, terrain, x0, y0, xWidth, yHeight);
 		});
 		return img;
 

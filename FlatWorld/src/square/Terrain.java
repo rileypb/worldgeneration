@@ -1,8 +1,10 @@
 package square;
 
-import java.awt.Color;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 
-import voronoi.Biome;
 
 public class Terrain {
 
@@ -22,6 +24,10 @@ public class Terrain {
 	private double[][] temperatureVariation;
 	private double[][] temperature;
 	private Biome[][] biome;
+	private List<Point2D.Double> roads;
+	private List<Point2D.Double> populationCenters;
+	private double[][] popFactor;
+	private int[][] distanceFromCoast;
 
 	public Terrain(double width, double height, int numHorizontalSamples, int numVerticalSamples) {
 		this.width = width;
@@ -40,6 +46,17 @@ public class Terrain {
 		temperatureVariation = new double[numHorizontalSamples][numVerticalSamples];
 		temperature = new double[numHorizontalSamples][numVerticalSamples];
 		biome = new Biome[numHorizontalSamples][numVerticalSamples];
+		popFactor = new double[numHorizontalSamples][numVerticalSamples];
+		distanceFromCoast = new int[numHorizontalSamples][numVerticalSamples];
+		
+		for (int x = 0; x < numHorizontalSamples; x++) {
+			for (int y = 0; y < numVerticalSamples; y++) {
+				distanceFromCoast[x][y] = Integer.MAX_VALUE;
+			}
+		}
+		
+		roads = new ArrayList<Point2D.Double>();
+		populationCenters = new ArrayList<Point2D.Double>();
 	}
 
 	public void setWildness(int x, int y, double wildness) {
@@ -129,6 +146,54 @@ public class Terrain {
 
 	public Biome getBiome(int x, int y) {
 		return this.biome[x][y];
+	}
+
+	public void markRoad(int roadX, int roadY) {
+		roads.add(new Point2D.Double(roadX, roadY));
+	}
+	
+	public Stream<Point2D.Double> roadPoints() {
+		return roads.stream();
+	}
+
+	public void setPopFactor(int x, int y, double popFactor) {
+		this.popFactor[x][y] = popFactor;
+	}
+	
+	public double getPopFactor(int x, int y) {
+		return this.popFactor[x][y];
+	}
+
+	public void addPopulationCenter(int x, int y) {
+		this.populationCenters.add(new Point2D.Double(x, y));
+	}
+
+	public Stream<Point2D.Double> popCenterPoints() {
+		return populationCenters.stream();
+	}
+
+	public double getMoisture(int x, int y) {
+		return moisture[x][y];
+	}
+
+	public void setDistanceFromCoast(int x, int y, int distance) {
+		this.distanceFromCoast[fixX(x)][fixY(y)] = distance;
+	}
+
+	private int fixX(int x) {
+		if (x < 0) return numHorizontalSamples - 1;
+		if (x >= numHorizontalSamples) return 0;
+		return x;
+	}
+
+	private int fixY(int y) {
+		if (y < 0) return numVerticalSamples - 1;
+		if (y >= numVerticalSamples) return 0;
+		return y;
+	}
+
+	public int getDistanceFromCoast(int x, int y) {
+		return this.distanceFromCoast[fixX(x)][fixY(y)];
 	}
 
 }

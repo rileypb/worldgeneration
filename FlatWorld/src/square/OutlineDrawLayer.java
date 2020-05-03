@@ -15,25 +15,22 @@ public class OutlineDrawLayer implements DrawLayer {
 	}
 
 	@Override
-	public void draw(Graphics2D graphics, Terrain terrain) {
+	public void draw(Graphics2D graphics, Terrain terrain, double x0, double y0, double xWidth, double yHeight) {
 		graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		graphics.setBackground(Color.white);
 		graphics.setColor(Color.white);
 		Rectangle clipBounds = graphics.getDeviceConfiguration().getBounds();
 		graphics.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
 
-		double x0 = clipBounds.x - 0;
-		double y0 = clipBounds.y - 0;
-		double xWidth = clipBounds.width + 0;
-		double yHeight = clipBounds.height + 0;
+		Color seaBlue = new Color(19, 18, 52);
 
 		double elevation = 0;
 		for (int x = 0; x < terrain.numHorizontalSamples; x++) {
 			for (int y = 0; y < terrain.numVerticalSamples; y++) {
 				elevation = Math.min(1, Math.max(-1, terrain.getElevation(x, y) - sealevel));
 				if (elevation < 0) {
-//					graphics.setColor(new Color(128, 128, 255));
-					graphics.setColor(Color.blue);
+					//					graphics.setColor(new Color(128, 128, 255));
+					graphics.setColor(seaBlue);
 					//					graphics.setColor(new Color(0,0,(float)(1-Math.min(1, -elevation))));
 				} else {
 					boolean coast = false;
@@ -57,16 +54,23 @@ public class OutlineDrawLayer implements DrawLayer {
 					} else if (coast) {
 						graphics.setColor(Color.black);
 					} else {
-//												graphics.setColor(Color.lightGray);
-//												graphics.setColor(new Color(64,128,64));
-//						graphics.setColor(new Color((128 - contourNumber * 16), (192 - contourNumber * 16),
-//								(128 - contourNumber * 16)));
-						graphics.setColor(terrain.getBiome(x, y).color);
+						graphics.setColor(new Color(0.5f + contourNumber / 12f, 0.5f + contourNumber / 12f,
+								0.5f + contourNumber / 12f));
+						//						graphics.setColor(Color.lightGray);
 					}
 				}
 				graphics.drawRect(x, y, 1, 1);
 			}
 		}
+
+		//		graphics.setColor(Color.black);
+		//		terrain.roadPoints().forEach((pt) -> {
+		//			graphics.drawRect((int) pt.x, (int) pt.y, 1,1);
+		//		});
+		//		graphics.setColor(Color.red);
+		//		terrain.popCenterPoints().forEach((pt) -> {
+		//			graphics.fillRect((int) pt.x, (int) pt.y, 5, 5);
+		//		});
 	}
 
 }

@@ -14,18 +14,7 @@ public class ElevationDrawLayer implements DrawLayer {
 	}
 
 	@Override
-	public void draw(Graphics2D graphics, Terrain terrain) {
-
-		graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-		graphics.setBackground(Color.white);
-		graphics.setColor(Color.white);
-		Rectangle clipBounds = graphics.getDeviceConfiguration().getBounds();
-		graphics.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
-
-		double x0 = clipBounds.x - 0;
-		double y0 = clipBounds.y - 0;
-		double xWidth = clipBounds.width + 0;
-		double yHeight = clipBounds.height + 0;
+	public void draw(Graphics2D graphics, Terrain terrain, double x0, double y0, double xWidth, double yHeight) {
 
 		double elevation = 0;
 		for (int x = 0; x < terrain.width; x++) {
