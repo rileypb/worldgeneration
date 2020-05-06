@@ -6,23 +6,26 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultUndirectedGraph;
 
 public class Graphs {
 
 	public final DefaultUndirectedGraph<Location, MapEdge> voronoiGraph;
 	public final DefaultUndirectedGraph<Location, MapEdge> dualGraph;
-	public final List<Location> dualVertices;
-	public final List<Location> voronoiVertices;
-	public final List<MapEdge> dualEdges;
-	public final List<MapEdge> voronoiEdges;
+	public final Set<Location> dualVertices;
+	public final Set<Location> voronoiVertices;
+	public final Set<MapEdge> dualEdges;
+	public final Set<MapEdge> voronoiEdges;
 	public final Map<MapEdge, MapEdge> dualToVoronoi;
 	public final Map<MapEdge, MapEdge> voronoiToDual;
 	public List<Location> subdivisionSeeds;
+	public DefaultDirectedGraph<Location, MapEdge> riverGraph;
+	public List<Path> riverPaths;
 
 	public Graphs(DefaultUndirectedGraph<Location, MapEdge> voronoiGraph,
-			DefaultUndirectedGraph<Location, MapEdge> dualGraph, List<Location> dualVertices,
-			List<Location> voronoiVertices, List<MapEdge> dualEdges, List<MapEdge> voronoiEdges,
+			DefaultUndirectedGraph<Location, MapEdge> dualGraph, Set<Location> dualVertices,
+			Set<Location> voronoiVertices, Set<MapEdge> dualEdges, Set<MapEdge> voronoiEdges,
 			Map<MapEdge, MapEdge> dualToVoronoi, Map<MapEdge, MapEdge> voronoiToDual) {
 		this.voronoiGraph = voronoiGraph;
 		this.dualGraph = dualGraph;

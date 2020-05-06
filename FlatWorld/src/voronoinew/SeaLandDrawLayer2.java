@@ -11,7 +11,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class SeaLandDrawLayer implements DrawLayer {
+public class SeaLandDrawLayer2 implements DrawLayer {
 
 	@Override
 	public void draw(Graphics2D g, Graphs graphs) {
@@ -26,9 +26,9 @@ public class SeaLandDrawLayer implements DrawLayer {
 		g.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 
 		g.setColor(Color.BLACK);
-		graphs.dualVertices.forEach((loc) -> {
-			List<MapEdge> edgeList = graphs.dualGraph.edgesOf(loc).stream().map((dualEdge) -> {
-				return graphs.dualToVoronoi.get(dualEdge);
+		graphs.voronoiVertices.forEach((loc) -> {
+			List<MapEdge> edgeList = graphs.voronoiGraph.edgesOf(loc).stream().map((dualEdge) -> {
+				return graphs.voronoiToDual.get(dualEdge);
 			}).collect(Collectors.toList());
 
 			edgeList.forEach((e) -> {
@@ -43,13 +43,14 @@ public class SeaLandDrawLayer implements DrawLayer {
 						g.setColor(Color.lightGray);
 					} else {
 						g.setColor(Color.white);
-						if (loc.elevation > 0.5) {
-							g.setColor(Color.red);
-						} else if (loc.elevation > 0.25) {
-							g.setColor(Color.PINK);
-						}
-//						float c = (float) Math.max(0, Math.min(1, 0.5+loc.elevation));
-//						g.setColor(new Color(c,c,c));
+						//						g.setColor(Color.cyan);
+						//						if (loc.elevation > 0.5) {
+						//							g.setColor(Color.red);
+						//						} else if (loc.elevation > 0.25) {
+						//							g.setColor(Color.PINK);
+						//						}
+						//						float c = (float) Math.pow(Math.max(0, Math.min(1, 0.25+loc.elevation)),2);
+						//						g.setColor(new Color(c,c,c));
 					}
 					g.fill(p);
 				}
@@ -100,8 +101,8 @@ public class SeaLandDrawLayer implements DrawLayer {
 				Path2D.Double p = new Path2D.Double();
 				boolean drawn = false;
 				for (int i = 0; i < path.size(); i++) {
-					System.out.println(">>> " + path.getScore(i) + ", " + path.getElevation(i));
-					if (path.getScore(i) > 25) {
+					//					System.out.println(">>> " + path.getScore(i) + ", " + path.getElevation(i));
+					if (path.getScore(i) > 50) {
 						if (!drawn) {
 							p.moveTo(x0 + path.getX(i) * xWidth, y0 + path.getY(i) * yHeight);
 							drawn = true;
@@ -115,6 +116,19 @@ public class SeaLandDrawLayer implements DrawLayer {
 				}
 			});
 		}
+
+		graphs.dualEdges.forEach((e) -> {
+			g.setStroke(new BasicStroke(1.5f));
+			MapEdge voronoiEdge = graphs.dualToVoronoi.get(e);
+			if (voronoiEdge != null) {
+				if (voronoiEdge.loc1.water != voronoiEdge.loc2.water) {
+//					System.out.println("draw");
+					g.setColor(Color.black);
+					g.drawLine((int) (x0 + e.loc1.x * xWidth), (int) (y0 + e.loc1.y * yHeight), (int) (x0 + e.loc2.x * xWidth),
+							(int) (y0 + e.loc2.y*yHeight));
+				}
+			}
+		});
 
 		//		g.setColor(Color.lightGray);
 		//		graphs.voronoiVertices.forEach((loc) -> {

@@ -29,19 +29,19 @@ import de.alsclo.voronoi.graph.Graph;
 import de.alsclo.voronoi.graph.Point;
 import de.alsclo.voronoi.graph.Vertex;
 
-public class TerrainBuilder {
+public class TerrainBuilder2 {
 	private static final double CONSTANT_FLUX = 1;
 	private int numberOfPoints;
 	private CellType cellType;
 	private ArrayList<Location> depressions;
 
-	public TerrainBuilder(int numberOfPoints, CellType cellType) {
+	public TerrainBuilder2(int numberOfPoints, CellType cellType) {
 		this.numberOfPoints = numberOfPoints;
 		this.cellType = cellType;
 	}
 
 	public enum CellType {
-		VORONOI, BASE_MODIFIERS
+		VORONOI
 	}
 
 	public Graphs run(Random r, int relaxations) {
@@ -51,19 +51,17 @@ public class TerrainBuilder {
 		case VORONOI:
 			generatePoints(initialSites, r, numberOfPoints);
 			break;
-		case BASE_MODIFIERS:
-			generateBaseModifiersPoints(initialSites, r);
-			break;
 		}
 
 		System.out.println("creating voronoi diagram...");
 		Voronoi voronoi = new Voronoi(initialSites);
 
 		for (int i = 0; i < relaxations; i++) {
-			voronoi.relax();
+			voronoi = voronoi.relax();
 		}
 
 		Graph graph = voronoi.getGraph();
+
 		Graphs graphs = generateGraphs(graph);
 
 		return graphs;
@@ -118,16 +116,16 @@ public class TerrainBuilder {
 		DefaultUndirectedGraph<Location, MapEdge> voronoiGraph = new DefaultUndirectedGraph<>(MapEdge.class);
 		DefaultUndirectedGraph<Location, MapEdge> dualGraph = new DefaultUndirectedGraph<>(MapEdge.class);
 
-		HashSet<Location> dualVertices = new HashSet<>();
+		Set<Location> dualVertices = new HashSet<>();
 		Map<Point, Location> pointsToLocations = new HashMap<>();
-		HashSet<MapEdge> dualEdges = new HashSet<>();
-		HashSet<Location> voronoiVertices = new HashSet<>();
-		HashSet<MapEdge> voronoiEdges = new HashSet<>();
+		Set<MapEdge> dualEdges = new HashSet<>();
+		Set<Location> voronoiVertices = new HashSet<>();
+		Set<MapEdge> voronoiEdges = new HashSet<>();
 		Map<MapEdge, MapEdge> voronoiToDual = new HashMap<>();
 		Map<MapEdge, MapEdge> dualToVoronoi = new HashMap<>();
 
 		for (Point p : graph.getSitePoints()) {
-			System.out.println(p);
+//			System.out.println(p);
 			Location loc = new Location(p.x, p.y);
 			dualGraph.addVertex(loc);
 			dualVertices.add(loc);
@@ -176,6 +174,8 @@ public class TerrainBuilder {
 					}
 				} else {
 					edge.boundaryEdge = true;
+					edge.loc1.boundaryLocation = true;
+					edge.loc2.boundaryLocation = true;
 				}
 			}
 		});
@@ -211,115 +211,6 @@ public class TerrainBuilder {
 		return graphs;
 	}
 
-	public void addGentleLine(Graphs graphs, Location startingPoint, MapEdge startingEdge, Color color) {
-		Set<Location> visitedPoints = new HashSet<Location>();
-		visitedPoints.add(startingPoint);
-
-		Location currentPoint = startingPoint;
-		MapEdge currentEdge = startingEdge;
-
-		currentEdge.river = true;
-		currentEdge.riverColor = color;
-		currentPoint.visited = true;
-		currentEdge.oppositeLocation(currentPoint).visited = true;
-
-		//		System.out.println("start: " + currentPoint + ", " + currentEdge);
-
-		boolean done = false;
-		while (!done) {
-			Vector2D cv = createVector(currentEdge, currentPoint);
-			if (cv.getNorm() == 0) {
-				return;
-			}
-			Vector2D enteringVector = cv.normalize();
-			//			System.out.println("enteringVector = " + enteringVector);
-			//currentPoint = currentEdge.oppositeLocation(currentPoint);
-
-			MapEdge bestEdge = null;
-			double maxDot = -100;
-			for (MapEdge edge : graphs.voronoiGraph.edgesOf(currentPoint)) {
-				//				System.out.println("edge: " + edge);
-				Vector2D createVector = createVector(edge, currentPoint);
-				if (createVector.getNorm() == 0) {
-					continue;
-				}
-				Vector2D leavingVector = createVector.normalize();
-				//				System.out.println("leavingVector = " + leavingVector);
-				double dotProduct = -enteringVector.dotProduct(leavingVector);
-				//				System.out.println("dotProduct: " + dotProduct);
-				Location oppositeLocation = edge.oppositeLocation(currentPoint);
-				if (dotProduct > maxDot && !oppositeLocation.visited && !edge.river) {
-					maxDot = dotProduct;
-					bestEdge = edge;
-				}
-			}
-			if (bestEdge == null) {
-				done = true;
-			} else {
-				currentEdge = bestEdge;
-				if (currentEdge.river) {
-					return;
-				}
-				currentPoint = currentEdge.oppositeLocation(currentPoint);
-				currentPoint.visited = true;
-				if (visitedPoints.contains(currentPoint)) {
-					done = true;
-				}
-				visitedPoints.add(currentPoint);
-				currentEdge.river = true;
-				currentEdge.riverColor = color;
-
-				//				System.out.println(currentPoint + ", " + currentEdge);
-			}
-		}
-	}
-
-	private Vector2D createVector(MapEdge edge, Location startPoint) {
-		Location oppositeLocation = edge.oppositeLocation(startPoint);
-		double diffX = oppositeLocation.x - startPoint.x;
-		double diffY = oppositeLocation.y - startPoint.y;
-		if (diffX == 0 || diffY == 0) {
-			int a = 0;
-		}
-		return new Vector2D(diffX, diffY);
-	}
-
-//	public void addRandomLine(Graphs graphs, Random rnd) {
-//		Set<Location> visitedPoints = new HashSet<Location>();
-//		Location point = graphs.voronoiVertices.get(rnd.nextInt(graphs.voronoiVertices.size()));
-//		point.visited = true;
-//		MapEdge lastEdge = null;
-//		for (int i = 0; i < 100; i++) {
-//			int count = 100;
-//			visitedPoints.add(point);
-//			Location newPoint = point;
-//			MapEdge newEdge = lastEdge;
-//			while ((newPoint == point || visitedPoints.contains(newPoint) || newPoint.visited) & count > 0) {
-//				count--;
-//				Set<MapEdge> edges = graphs.voronoiGraph.edgesOf(point);
-//				while (newEdge == lastEdge) {
-//					Iterator<MapEdge> iterator = edges.iterator();
-//					int clicks = rnd.nextInt(edges.size());
-//					for (int j = 0; j < clicks; j++) {
-//						iterator.next();
-//					}
-//					newEdge = iterator.next();
-//				}
-//				newPoint = newEdge.oppositeLocation(point);
-//			}
-//			if (count == 0) {
-//				return;
-//			}
-//			newEdge.river = true;
-//			if (newPoint == null) {
-//				return;
-//			}
-//			point = newPoint;
-//			point.visited = true;
-//			lastEdge = newEdge;
-//		}
-//	}
-
 	public void generateValues(Graphs graphs, Random r, Perlin perlin, Setter setter) {
 		double x0 = r.nextDouble();
 		double y0 = r.nextDouble();
@@ -330,7 +221,7 @@ public class TerrainBuilder {
 	}
 
 	public void calculateTemperatures(Graphs graphs) {
-		graphs.dualVertices.forEach((loc) -> {
+		graphs.voronoiVertices.forEach((loc) -> {
 			double latitude = 0.5 - loc.y;
 			double distanceFromEquator = Math.abs(latitude);
 			double angleFromEquator = Math.PI * distanceFromEquator;
@@ -338,13 +229,13 @@ public class TerrainBuilder {
 			double adjustedTemperature = baseTemperature
 					- (loc.elevation - MapperMain.SEALEVEL) * (loc.elevation - MapperMain.SEALEVEL)
 					+ 0.1 * loc.temperatureVariance;
-			System.out.println(loc.y + ", " + adjustedTemperature);
+//			System.out.println(loc.y + ", " + adjustedTemperature);
 			loc.temperature = adjustedTemperature;
 		});
 	}
 
 	public void setBiomes(Graphs graphs) {
-		graphs.dualVertices.forEach((loc) -> {
+		graphs.voronoiVertices.forEach((loc) -> {
 			double temperature = loc.temperature;
 			double moisture = loc.moisture;
 			if (moisture < 0.2) {
@@ -380,22 +271,55 @@ public class TerrainBuilder {
 	}
 
 	public void normalizeElevations(Graphs buildResult) {
-		OptionalDouble average = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
+		double average = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
 			return v.elevation;
-		}).average();
-		double averageElevation = average.orElse(0);
-		buildResult.dualVertices.forEach((v) -> {
-			v.elevation -= averageElevation;
-		});
+		}).average().getAsDouble();
+		double min = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
+//			System.out.println(v.elevation);
+			return v.elevation;
+		}).min().getAsDouble();
+		double max = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
+			return v.elevation;
+		}).max().getAsDouble();
+
+		System.out.println(average + ", " + min + ", " + max);
+
+		double shift = (max + min) / 2;
+		double scale = 2 / (max - min);
+
 		buildResult.voronoiVertices.forEach((v) -> {
-			v.elevation -= averageElevation;
+			if (v.elevation < min) {
+				System.out.println(v.elevation + " < " + min);
+				throw new IllegalStateException();
+			}
+//			v.elevation = -1;
+//			System.out.print("-1 + 2 * (" + v.elevation + " - " + min + ")/(" + max + " - " + min +") = ");
+			v.elevation = -1 + 2*(v.elevation - min)/(max - min);
+//			System.out.println(v.elevation);
+//			v.elevation = 2*Math.random() - 4;
+//			v.elevation -= shift;
+//			v.elevation *= scale;
 		});
-		buildResult.dualEdges.forEach((e) -> {
-			e.elevation -= averageElevation;
+		buildResult.dualVertices.forEach((v) -> {
+			v.elevation = -1 + 2*(v.elevation - min)/(max - min);
 		});
 		buildResult.voronoiEdges.forEach((e) -> {
-			e.elevation -= averageElevation;
+			e.elevation = -1 + 2*(e.elevation - min)/(max - min);
 		});
+		buildResult.dualEdges.forEach((e) -> {
+			e.elevation = -1 + 2*(e.elevation - min)/(max - min);
+		});
+
+		double average2 = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
+			return v.elevation;
+		}).average().getAsDouble();
+		double min2 = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
+			return v.elevation;
+		}).min().getAsDouble();
+		double max2 = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
+			return v.elevation;
+		}).max().getAsDouble();
+		System.out.println(average2 + ", " + min2 + ", " + max2);
 	}
 
 	//	public void fillDepressions(Graphs graphs) {
@@ -452,8 +376,8 @@ public class TerrainBuilder {
 
 	public void fillDepressions(Graphs graphs) {
 		this.depressions = new ArrayList<>();
-		graphs.voronoiVertices.forEach((v) -> {
-			List<Location> neighbors = graphs.voronoiGraph.edgesOf(v).stream().map((e) -> {
+		graphs.dualVertices.forEach((v) -> {
+			List<Location> neighbors = graphs.dualGraph.edgesOf(v).stream().map((e) -> {
 				return e.oppositeLocation(v);
 			}).collect(Collectors.toList());
 			double min = neighbors.stream().mapToDouble((n) -> {
@@ -461,12 +385,17 @@ public class TerrainBuilder {
 			}).min().orElse(Double.POSITIVE_INFINITY);
 			if (min > v.elevation) {
 				depressions.add(v);
-				System.out.println("depression: " + v.hashCode());
+//				System.out.println("depression: " + v.hashCode());
 			}
 		});
 
-		graphs.voronoiVertices.forEach((v) -> {
-			if (v.boundaryLocation) {
+		Iterator<Location> iterator = graphs.dualVertices.iterator();
+		iterator.next().foo = true;
+		iterator.next().foo = true;
+		iterator.next().foo = true;
+		
+		graphs.dualVertices.forEach((v) -> {
+			if (v.foo) {
 				v.pdElevation = v.elevation;
 			} else {
 				v.pdElevation = Double.POSITIVE_INFINITY;
@@ -477,12 +406,12 @@ public class TerrainBuilder {
 		boolean somethingDone = true;
 		while (somethingDone) {
 			somethingDone = false;
-			for (Location c : graphs.voronoiVertices) {
-//				if (c.boundaryLocation) {
-//					continue;
-//				}
+			for (Location c : graphs.dualVertices) {
+				//				if (c.boundaryLocation) {
+				//					continue;
+				//				}
 				if (c.pdElevation > c.elevation) {
-					List<Location> neighbors = graphs.voronoiGraph.edgesOf(c).stream().map((e) -> {
+					List<Location> neighbors = graphs.dualGraph.edgesOf(c).stream().map((e) -> {
 						return e.oppositeLocation(c);
 					}).collect(Collectors.toList());
 
@@ -490,7 +419,7 @@ public class TerrainBuilder {
 						if (c.elevation >= n.pdElevation + epsilon) {
 							c.pdElevation = c.elevation;
 							somethingDone = true;
-						//	break;
+							//	break;
 						}
 						if (c.pdElevation > n.pdElevation + epsilon) {
 							c.pdElevation = n.pdElevation + epsilon;
@@ -501,7 +430,8 @@ public class TerrainBuilder {
 			}
 		}
 
-		graphs.voronoiVertices.forEach((v) -> {
+		graphs.dualVertices.forEach((v) -> {
+//			System.out.println(v.elevation + " -> " + v.pdElevation);
 			v.elevation = v.pdElevation;
 		});
 	}
@@ -512,12 +442,12 @@ public class TerrainBuilder {
 		Map<Location, Location> originalLocation = new HashMap<>();
 		Map<MapEdge, MapEdge> originalEdge = new HashMap<>();
 
-		graphs.voronoiVertices.forEach((loc) -> {
+		graphs.dualVertices.forEach((loc) -> {
 			auxGraph.addVertex(loc);
 		});
 
-		graphs.voronoiVertices.forEach((loc) -> {
-			Set<MapEdge> neighborEdges = graphs.voronoiGraph.edgesOf(loc);
+		graphs.dualVertices.forEach((loc) -> {
+			Set<MapEdge> neighborEdges = graphs.dualGraph.edgesOf(loc);
 
 			MapEdge newEdge = null;
 			double minHeight = Double.POSITIVE_INFINITY;
@@ -531,17 +461,18 @@ public class TerrainBuilder {
 
 			if (minHeight >= loc.elevation && !loc.boundaryLocation) {
 				System.out.println("error: " + loc.hashCode());
-				if (depressions.contains(loc)) {
-					System.out.println("contained");
-				}
-//				throw new IllegalStateException();
+				//				if (depressions.contains(loc)) {
+				//					System.out.println("contained");
+				//				}
+				//				throw new IllegalStateException();
 
 				//				newEdge.river = true;
 				//				auxGraph.addEdge(loc, newEdge.oppositeLocation(loc), newEdge);
 			} else {
-
-				newEdge.river = true;
-				auxGraph.addEdge(loc, newEdge.oppositeLocation(loc), newEdge);
+				if (newEdge != null) {
+					newEdge.river = true;
+					auxGraph.addEdge(loc, newEdge.oppositeLocation(loc), newEdge);
+				}
 			}
 		});
 
@@ -550,8 +481,8 @@ public class TerrainBuilder {
 		// now label vertices in river graph with height
 		boolean changed = true;
 		while (changed) {
-			System.out.println("labeling...");
-			changed = graphs.voronoiVertices.stream().reduce(Boolean.FALSE, (c, v) -> {
+			//			System.out.println("labeling...");
+			changed = graphs.dualVertices.stream().reduce(Boolean.FALSE, (c, v) -> {
 				if (v.graphHeight == -1) {
 					Set<MapEdge> outgoingEdges = auxGraph.outgoingEdgesOf(v);
 					if (outgoingEdges.size() > 1) {
@@ -575,7 +506,7 @@ public class TerrainBuilder {
 		}
 
 		// now calculate flux
-		ArrayList<Location> vertices = new ArrayList<Location>(graphs.voronoiVertices);
+		ArrayList<Location> vertices = new ArrayList<Location>(graphs.dualVertices);
 		vertices.sort((v1, v2) -> {
 			return v2.graphHeight - v1.graphHeight;
 		});
@@ -633,6 +564,7 @@ public class TerrainBuilder {
 	public void setVoronoiCornerElevations(Graphs graphs) {
 		graphs.dualEdges.forEach((edge) -> {
 			edge.elevation = (edge.loc1.elevation + edge.loc2.elevation) / 2.0;
+//			System.out.println("!!! " + edge.elevation);
 			MapEdge voronoiEdge = graphs.dualToVoronoi.get(edge);
 			if (voronoiEdge != null) {
 				voronoiEdge.elevation = edge.elevation;
@@ -645,7 +577,7 @@ public class TerrainBuilder {
 				elevationSum += edge.elevation;
 			}
 			loc.elevation = elevationSum / neighborEdges.size();
-			System.out.println(loc.elevation);
+//			System.out.println("+++ " + loc.elevation);
 		});
 	}
 
@@ -668,18 +600,27 @@ public class TerrainBuilder {
 	}
 
 	public void markWater(Graphs graphs, double sealevel) {
-		graphs.dualVertices.forEach((loc) -> {
-			loc.water = (loc.elevation < sealevel);
-		});
 		graphs.voronoiVertices.forEach((loc) -> {
 			loc.water = (loc.elevation < sealevel);
-//			loc.water = graphs.voronoiGraph.edgesOf(loc).stream().map((edge) -> {
-//				return graphs.voronoiToDual.get(edge);
-//			}).flatMap((edge) -> {
-//				return Arrays.stream(new Location[] { edge.loc1, edge.loc2 });
-//			}).allMatch((dualVertex) -> {
-//				return dualVertex.water;
-//			});
+			//			if (loc.water) {
+			//				System.out.println("water!");
+			//			} else {
+			//				System.out.println("not water!");
+			//			}
+		});
+		graphs.dualVertices.forEach((loc) -> {
+//			System.out.println("marking water: " + loc.elevation);
+			loc.water = (loc.elevation < sealevel);
+			if (loc.water) {
+				//				System.out.println("water!");
+			}
+			//			loc.water = graphs.voronoiGraph.edgesOf(loc).stream().map((edge) -> {
+			//				return graphs.voronoiToDual.get(edge);
+			//			}).flatMap((edge) -> {
+			//				return Arrays.stream(new Location[] { edge.loc1, edge.loc2 });
+			//			}).allMatch((dualVertex) -> {
+			//				return dualVertex.water;
+			//			});
 		});
 	}
 

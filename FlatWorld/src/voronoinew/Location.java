@@ -31,6 +31,11 @@ public class Location {
 	public double wildValue;
 	public boolean boundaryLocation;
 	public double pdElevation;
+	public int graphHeight = -1;
+	public boolean riverJuncture;
+	public double flux;
+	public boolean riverHead;
+	public boolean foo;
 
 	public Location(double x, double y) {
 		this.x = x;
@@ -51,8 +56,8 @@ public class Location {
 //        return abs(x - point.x) <= EPSILON && abs(y - point.y) <= EPSILON;
 //    }
 
-    @Override
-    public int hashCode() {
-        return (int) (x * PRECISION * 31) + (int) (y * PRECISION);
-    }
+//    @Override
+//    public int hashCode() {
+//        return (int) (x * PRECISION * 31) + (int) (y * PRECISION);
+//    }
 }

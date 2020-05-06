@@ -32,56 +32,72 @@ public class MapperMain {
 		screenWidth = 800;
 		screenHeight = 800;
 
-		TerrainBuilder builder = new TerrainBuilder(4000, TerrainBuilder.CellType.VORONOI);
+		TerrainBuilder2 builder = new TerrainBuilder2(18000, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
+		//				seed = 1431251105;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
-		Graphs buildResult = builder.run(r);
-
+		Graphs buildResult = builder.run(r, 1);
 
 		Perlin perlin = new Perlin();
-		perlin.setFrequency(.25);
-		perlin.setOctaveCount(2);
+		perlin.setFrequency(4);
+		perlin.setOctaveCount(16);
 		perlin.setSeed(r.nextInt());
 		Perlin calmPerlin = new Perlin();
 		calmPerlin.setFrequency(.125);
-		calmPerlin.setOctaveCount(4);
+		calmPerlin.setOctaveCount(16);
 		calmPerlin.setSeed(r.nextInt());
 		Perlin wildPerlin = new Perlin();
-		wildPerlin.setFrequency(1);
-		wildPerlin.setOctaveCount(8);
+		wildPerlin.setFrequency(2);
+		wildPerlin.setOctaveCount(30);
 		wildPerlin.setSeed(r.nextInt());
 
-//		builder.forEachLocation(buildResult, (x) -> {
-//			System.out.println(x.x);
+		//		builder.forEachLocation(buildResult, (x) -> {
+		//			System.out.println(x.x);
+		//		});
+
+//		builder.generateValues(buildResult, r, perlin, (target, value) -> {
+//			target.elevation = value;
 //		});
 
-		builder.generateValues(buildResult, r, perlin, (target, value) -> {
-			target.wildness = value;
-		});
-		builder.generateValues(buildResult, r, calmPerlin, (target, value) -> {
-			target.calmValue = value;
-		});
-		builder.generateValues(buildResult, r, wildPerlin, (target, value) -> {
-			target.wildValue = value;
-		});
-		builder.forEachLocation(buildResult, (target) -> {
-			target.elevation = (1 - target.wildness * target.wildness * target.wildness) * target.calmValue
-					+ target.wildness * target.wildness * target.wildness * target.wildValue;
-		});
-		builder.normalizeElevations(buildResult);
+				builder.generateValues(buildResult, r, perlin, (target, value) -> {
+					target.wildness = value;
+				});
+				builder.generateValues(buildResult, r, calmPerlin, (target, value) -> {
+					target.calmValue = value;
+				});
+				builder.generateValues(buildResult, r, wildPerlin, (target, value) -> {
+					target.wildValue = value;
+				});
+				builder.forEachLocation(buildResult, (target) -> {
+					target.elevation = (1 - target.wildness * target.wildness * target.wildness) * target.calmValue
+							+ target.wildness * target.wildness * target.wildness * target.wildValue;
+//					System.out.println(target.elevation);
+				});
+				
+				
+				builder.setVoronoiCornerElevations(buildResult);
+				builder.normalizeElevations(buildResult);
 
+		builder.setDualCornerElevations(buildResult);
 		builder.fillDepressions(buildResult);
+//		System.exit(0);
 		
+		builder.setVoronoiCornerElevations(buildResult);
+		builder.normalizeElevations(buildResult);
+		builder.markWater(buildResult, SEALEVEL);
+		//		builder.setDualCornerElevations(buildResult);
+
+//		builder.normalizeElevations(buildResult);
 		builder.runRivers(buildResult);
-		
+
 		System.out.println("drawing...");
 
 		List<DrawLayer> drawLayers = new ArrayList<>();
-		drawLayers.add(new SeaLandDrawLayer());
-//		drawLayers.add(new BoundaryCellDrawLayer());
-//		drawLayers.add(new GraphDrawLayer());
-//		drawLayers.add(new DualGraphDrawLayer());
+		drawLayers.add(new SeaLandDrawLayer2());
+		//		drawLayers.add(new BoundaryCellDrawLayer());
+		//				drawLayers.add(new GraphDrawLayer());
+//				drawLayers.add(new DualGraphDrawLayer());
 
 		BufferedImage img = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g = img.createGraphics();
@@ -102,7 +118,7 @@ public class MapperMain {
 		display(img, builder, g);
 	}
 
-	private static void display(BufferedImage img, TerrainBuilder builder, Graphics2D g) {
+	private static void display(BufferedImage img, TerrainBuilder2 builder, Graphics2D g) {
 		JFrame frame = new JFrame();
 		@SuppressWarnings("serial")
 		Canvas canvas = new Canvas() {

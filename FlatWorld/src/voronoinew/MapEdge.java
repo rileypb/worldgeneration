@@ -16,6 +16,8 @@ public class MapEdge {
 	public float lighting;
 	public Color riverColor;
 	public boolean boundaryEdge;
+	public double elevation;
+	public double flux;
 	
 	public MapEdge(Location loc1, Location loc2) {
 		this.loc1 = loc1;
