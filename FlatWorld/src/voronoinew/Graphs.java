@@ -1,4 +1,5 @@
 package voronoinew;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ public class Graphs {
 	public List<Location> subdivisionSeeds;
 	public DefaultDirectedGraph<Location, MapEdge> riverGraph;
 	public List<Path> riverPaths;
+	public ArrayList<Lake> lakes;
 
 	public Graphs(DefaultUndirectedGraph<Location, MapEdge> voronoiGraph,
 			DefaultUndirectedGraph<Location, MapEdge> dualGraph, Set<Location> dualVertices,

@@ -36,6 +36,8 @@ public class Location {
 	public double flux;
 	public boolean riverHead;
 	public boolean foo;
+	public boolean mountain;
+	public boolean hill;
 
 	public Location(double x, double y) {
 		this.x = x;

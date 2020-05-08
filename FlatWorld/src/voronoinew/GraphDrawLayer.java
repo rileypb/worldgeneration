@@ -26,7 +26,7 @@ public class GraphDrawLayer implements DrawLayer {
 		//		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setStroke(new BasicStroke(1));
 
-		g.setColor(Color.BLACK);
+		g.setColor(Color.red);
 		graphs.voronoiEdges.forEach((e) -> {
 			g.drawLine((int) (x0 + xWidth * e.loc1.x), (int) (y0 + yHeight * e.loc1.y), (int) (x0 + xWidth * e.loc2.x),
 					(int) (y0 + yHeight * e.loc2.y));

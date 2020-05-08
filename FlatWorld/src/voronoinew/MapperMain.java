@@ -10,20 +10,17 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-import com.flowpowered.noise.NoiseQuality;
 import com.flowpowered.noise.module.source.Perlin;
 
 public class MapperMain {
 
-	public static final double SEALEVEL = 0;
+	public static final double SEALEVEL = 0.1;
 	public static final double MOUNTAIN_THRESHOLD = 0.9;
 	private static int screenWidth;
 	private static int screenHeight;
@@ -32,23 +29,23 @@ public class MapperMain {
 		screenWidth = 800;
 		screenHeight = 800;
 
-		TerrainBuilder2 builder = new TerrainBuilder2(18000, TerrainBuilder2.CellType.VORONOI);
+		TerrainBuilder2 builder = new TerrainBuilder2(5000, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
-		//				seed = 1431251105;
+//								seed = 1425845856;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
 
 		Perlin perlin = new Perlin();
-		perlin.setFrequency(4);
+		perlin.setFrequency(1);
 		perlin.setOctaveCount(16);
 		perlin.setSeed(r.nextInt());
 		Perlin calmPerlin = new Perlin();
-		calmPerlin.setFrequency(.125);
+		calmPerlin.setFrequency(.25);
 		calmPerlin.setOctaveCount(16);
 		calmPerlin.setSeed(r.nextInt());
 		Perlin wildPerlin = new Perlin();
-		wildPerlin.setFrequency(2);
+		wildPerlin.setFrequency(4);
 		wildPerlin.setOctaveCount(30);
 		wildPerlin.setSeed(r.nextInt());
 
@@ -56,48 +53,55 @@ public class MapperMain {
 		//			System.out.println(x.x);
 		//		});
 
-//		builder.generateValues(buildResult, r, perlin, (target, value) -> {
-//			target.elevation = value;
-//		});
+		//		builder.generateValues(buildResult, r, perlin, (target, value) -> {
+		//			target.elevation = value;
+		//		});
 
-				builder.generateValues(buildResult, r, perlin, (target, value) -> {
-					target.wildness = value;
-				});
-				builder.generateValues(buildResult, r, calmPerlin, (target, value) -> {
-					target.calmValue = value;
-				});
-				builder.generateValues(buildResult, r, wildPerlin, (target, value) -> {
-					target.wildValue = value;
-				});
-				builder.forEachLocation(buildResult, (target) -> {
-					target.elevation = (1 - target.wildness * target.wildness * target.wildness) * target.calmValue
-							+ target.wildness * target.wildness * target.wildness * target.wildValue;
-//					System.out.println(target.elevation);
-				});
-				
-				
-				builder.setVoronoiCornerElevations(buildResult);
-				builder.normalizeElevations(buildResult);
-
-		builder.setDualCornerElevations(buildResult);
-		builder.fillDepressions(buildResult);
-//		System.exit(0);
+		builder.generateValues(buildResult, r, perlin, (target, value) -> {
+			target.wildness = value;
+		});
+		builder.generateValues(buildResult, r, calmPerlin, (target, value) -> {
+			target.calmValue = value;
+		});
+		builder.generateValues(buildResult, r, wildPerlin, (target, value) -> {
+			target.wildValue = value;
+		});
+		builder.forEachLocation(buildResult, (target) -> {
+			target.elevation = (1 - target.wildness * target.wildness * target.wildness) * target.calmValue
+					+ target.wildness * target.wildness * target.wildness * target.wildValue;
+			//					System.out.println(target.elevation);
+		});
 		
-		builder.setVoronoiCornerElevations(buildResult);
-		builder.normalizeElevations(buildResult);
-		builder.markWater(buildResult, SEALEVEL);
-		//		builder.setDualCornerElevations(buildResult);
+		builder.smoothElevations(buildResult);
+		builder.smoothElevations(buildResult);
+		builder.smoothElevations(buildResult);
 
-//		builder.normalizeElevations(buildResult);
+		builder.setVoronoiCornerElevations(buildResult);
+		
+		builder.setDualCornerElevations(buildResult);
+		
+		builder.normalizeElevations(buildResult);
+		
+		builder.markWater(buildResult, SEALEVEL);
+		
+		builder.raiseMountains(buildResult);
+		
+		builder.fillDepressions(buildResult);
+
+		builder.setVoronoiCornerElevations(buildResult);
+		
+		builder.normalizeElevations(buildResult);
+
 		builder.runRivers(buildResult);
+		
 
 		System.out.println("drawing...");
 
 		List<DrawLayer> drawLayers = new ArrayList<>();
-		drawLayers.add(new SeaLandDrawLayer2());
+		drawLayers.add(new SeaLandDrawLayer3());
 		//		drawLayers.add(new BoundaryCellDrawLayer());
-		//				drawLayers.add(new GraphDrawLayer());
-//				drawLayers.add(new DualGraphDrawLayer());
+		//						drawLayers.add(new GraphDrawLayer());
+		//				drawLayers.add(new DualGraphDrawLayer());
 
 		BufferedImage img = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g = img.createGraphics();
