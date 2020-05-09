@@ -31,7 +31,7 @@ public class MapperMain {
 
 		TerrainBuilder2 builder = new TerrainBuilder2(5000, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
-//								seed = 1425845856;
+//								seed = -1437776370;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
@@ -48,6 +48,11 @@ public class MapperMain {
 		wildPerlin.setFrequency(4);
 		wildPerlin.setOctaveCount(30);
 		wildPerlin.setSeed(r.nextInt());
+
+		Perlin moisturePerlin = new Perlin();
+		moisturePerlin.setFrequency(.125);
+		moisturePerlin.setOctaveCount(8);
+		moisturePerlin.setSeed(r.nextInt());
 
 		//		builder.forEachLocation(buildResult, (x) -> {
 		//			System.out.println(x.x);
@@ -82,9 +87,13 @@ public class MapperMain {
 		
 		builder.normalizeElevations(buildResult);
 		
+		builder.setBaseMoisture(buildResult, r, moisturePerlin);
+		builder.normalizeBaseMoisture(buildResult);
+		
 		builder.markWater(buildResult, SEALEVEL);
 		
 		builder.raiseMountains(buildResult);
+		builder.fillInMountainGaps(buildResult);
 		
 		builder.fillDepressions(buildResult);
 
@@ -94,15 +103,18 @@ public class MapperMain {
 
 		builder.runRivers(buildResult);
 		
+		builder.calculateFinalMoisture(buildResult);
+		
 
 		System.out.println("drawing...");
 
 		List<DrawLayer> drawLayers = new ArrayList<>();
-		drawLayers.add(new SeaLandDrawLayer3());
+//		drawLayers.add(new SeaLandDrawLayer3(r));
 		//		drawLayers.add(new BoundaryCellDrawLayer());
 		//						drawLayers.add(new GraphDrawLayer());
 		//				drawLayers.add(new DualGraphDrawLayer());
-
+		drawLayers.add(new GreeneryDrawLayer(r));
+		
 		BufferedImage img = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g = img.createGraphics();
 		//		g.setColor(Color.black);

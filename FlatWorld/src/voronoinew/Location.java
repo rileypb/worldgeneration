@@ -3,6 +3,8 @@ import static de.alsclo.voronoi.Math.EPSILON;
 import static de.alsclo.voronoi.Math.PRECISION;
 import static java.lang.Math.abs;
 
+import java.awt.Color;
+
 public class Location {
 
 	public final double x;
@@ -38,6 +40,10 @@ public class Location {
 	public boolean foo;
 	public boolean mountain;
 	public boolean hill;
+	public double baseMoisture;
+	public boolean tmpMountain;
+	public Color baseColor;
+	public Color color;
 
 	public Location(double x, double y) {
 		this.x = x;

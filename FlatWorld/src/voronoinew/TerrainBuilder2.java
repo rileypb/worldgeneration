@@ -537,7 +537,7 @@ public class TerrainBuilder2 {
 
 		for (Location v : vertices) {
 			Set<MapEdge> incomingEdges = auxGraph.incomingEdgesOf(v);
-			double flux = CONSTANT_FLUX;
+			double flux = Math.max(0, Math.min(2, 1 + v.baseMoisture));
 			for (MapEdge edge : incomingEdges) {
 				flux += edge.flux;
 			}
@@ -675,14 +675,81 @@ public class TerrainBuilder2 {
 			double min = neighbors.stream().mapToDouble((n) -> {
 				return n.elevation;
 			}).min().getAsDouble();
-			
+
 			double diff = loc.elevation - min;
-			
+
 			if (diff > 0.12) {
 				loc.mountain = true;
 			} else if (diff > 0.08) {
 				loc.hill = true;
 			}
+		});
+	}
+
+	public void setBaseMoisture(Graphs graphs, Random r, Perlin perlin) {
+		generateValues(graphs, r, perlin, (target, value) -> {
+			target.baseMoisture = value;
+		});
+	}
+
+	public void normalizeBaseMoisture(Graphs buildResult) {
+		double average = buildResult.dualVertices.stream().mapToDouble((v) -> {
+			return v.baseMoisture;
+		}).average().getAsDouble();
+		double min = buildResult.dualVertices.stream().mapToDouble((v) -> {
+			return v.baseMoisture;
+		}).min().getAsDouble();
+		double max = buildResult.dualVertices.stream().mapToDouble((v) -> {
+			return v.baseMoisture;
+		}).max().getAsDouble();
+
+		buildResult.dualVertices.forEach((v) -> {
+			v.baseMoisture = -1 + 2 * (v.baseMoisture - min) / (max - min);
+		});
+
+		double average2 = buildResult.dualVertices.stream().mapToDouble((v) -> {
+			return v.baseMoisture;
+		}).average().getAsDouble();
+		double min2 = buildResult.dualVertices.stream().mapToDouble((v) -> {
+			return v.baseMoisture;
+		}).min().getAsDouble();
+		double max2 = buildResult.dualVertices.stream().mapToDouble((v) -> {
+			return v.baseMoisture;
+		}).max().getAsDouble();
+
+		System.out.println(average2 + " - " + min2 + " - " + max2);
+	}
+
+	public void calculateFinalMoisture(Graphs graphs) {
+		graphs.dualVertices.forEach((loc) -> {
+			double sum = graphs.dualGraph.edgesOf(loc).stream().map((e) -> {
+				return e.oppositeLocation(loc);
+			}).mapToDouble((v) -> {
+				return v.flux / 100;
+			}).average().getAsDouble();
+			loc.moisture = loc.baseMoisture + loc.flux / 100 + sum;
+		});
+	}
+
+	public void fillInMountainGaps(Graphs graphs) {
+		graphs.dualVertices.stream().filter((loc) -> {
+			return !loc.mountain;
+		}).forEach((loc) -> {
+			boolean surroundedByMountains = graphs.dualGraph.edgesOf(loc).stream().map((edge) -> {
+				return edge.oppositeLocation(loc);
+			}).allMatch((v) -> {
+				return v.mountain;
+			});
+			if (surroundedByMountains) {
+				loc.tmpMountain = true;
+				loc.hill = false;
+			}
+		});
+
+		graphs.dualVertices.stream().filter((loc) -> {
+			return loc.tmpMountain;
+		}).forEach((loc) -> {
+			loc.mountain = true;
 		});
 	}
 
