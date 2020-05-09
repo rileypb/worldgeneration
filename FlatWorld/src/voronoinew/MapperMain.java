@@ -31,7 +31,7 @@ public class MapperMain {
 
 		TerrainBuilder2 builder = new TerrainBuilder2(5000, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
-//								seed = -1437776370;
+								seed = 547996639;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
@@ -88,7 +88,7 @@ public class MapperMain {
 		builder.normalizeElevations(buildResult);
 		
 		builder.setBaseMoisture(buildResult, r, moisturePerlin);
-		builder.normalizeBaseMoisture(buildResult);
+//		builder.normalizeBaseMoisture(buildResult);
 		
 		builder.markWater(buildResult, SEALEVEL);
 		
@@ -109,11 +109,11 @@ public class MapperMain {
 		System.out.println("drawing...");
 
 		List<DrawLayer> drawLayers = new ArrayList<>();
-//		drawLayers.add(new SeaLandDrawLayer3(r));
+		drawLayers.add(new SeaLandDrawLayer3(r));
 		//		drawLayers.add(new BoundaryCellDrawLayer());
 		//						drawLayers.add(new GraphDrawLayer());
 		//				drawLayers.add(new DualGraphDrawLayer());
-		drawLayers.add(new GreeneryDrawLayer(r));
+//		drawLayers.add(new GreeneryDrawLayer(r));
 		
 		BufferedImage img = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g = img.createGraphics();

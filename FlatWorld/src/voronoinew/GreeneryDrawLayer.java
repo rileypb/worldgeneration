@@ -2,9 +2,12 @@ package voronoinew;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -58,20 +61,25 @@ public class GreeneryDrawLayer implements DrawLayer {
 				}
 
 			}
-//			if (loc.elevation > 0.99 && loc.mountain) {
-//				loc.baseColor = Color.white;
-//			}
+			//			if (loc.elevation > 0.99 && loc.mountain) {
+			//				loc.baseColor = Color.white;
+			//			}
 		});
 
 		graphs.dualVertices.forEach((loc) -> {
 			Set<Color> neighborColors = graphs.dualGraph.edgesOf(loc).stream().map((edge) -> {
 				return edge.oppositeLocation(loc);
+			}).filter((v) -> {
+				return !v.water;
 			}).map((v) -> {
 				return v.baseColor;
 			}).collect(Collectors.toSet());
 
 			if (loc.water) {
 				loc.color = seaBlue;
+			}
+			if (neighborColors.size() == 0) {
+				loc.color = loc.baseColor;
 			} else {
 
 				int numNeighbors = neighborColors.size();
@@ -87,6 +95,7 @@ public class GreeneryDrawLayer implements DrawLayer {
 				green = (green + 2 * numNeighbors * loc.baseColor.getGreen()) / (3 * numNeighbors);
 				blue = (blue + 2 * numNeighbors * loc.baseColor.getBlue()) / (3 * numNeighbors);
 				loc.color = new Color((int) red, (int) green, (int) blue);
+				//				loc.color = loc.baseColor;
 			}
 		});
 
@@ -98,6 +107,41 @@ public class GreeneryDrawLayer implements DrawLayer {
 			int green = (int) minmax(0, 255, loc.color.getGreen() + r.nextInt(20) - 10);
 			int blue = (int) minmax(0, 255, loc.color.getBlue() + r.nextInt(20) - 10);
 			loc.color = new Color(red, green, blue);
+		});
+
+		graphs.voronoiVertices.forEach((loc) -> {
+			Set<Location> nearbySites = graphs.voronoiGraph.edgesOf(loc).stream().map((e) -> {
+				return graphs.voronoiToDual.get(e);
+			}).flatMap((dualEdge) -> {
+				return Arrays.stream(new Location[] { dualEdge.loc1, dualEdge.loc2 });
+			}).filter((s) -> {
+				return !s.water;
+			}).collect(Collectors.toSet());
+
+			int numNeighbors = nearbySites.size();
+
+			if (numNeighbors < 3) {
+				int a = 0;
+			}
+
+			if (numNeighbors == 0) {
+				loc.color = seaBlue;
+			} else {
+				int aAll = 0;
+				int rAll = 0;
+				int gAll = 0;
+				int bAll = 0;
+				for (Location site : nearbySites) {
+					Color c = site.color;
+					aAll += c.getAlpha();
+					rAll += c.getRed();
+					gAll += c.getGreen();
+					bAll += c.getBlue();
+				}
+				Color newColor = new Color(rAll / numNeighbors, gAll / numNeighbors, bAll / numNeighbors,
+						aAll / numNeighbors);
+				loc.color = newColor;
+			}
 		});
 
 		graphs.dualVertices.forEach((loc) -> {
@@ -112,7 +156,19 @@ public class GreeneryDrawLayer implements DrawLayer {
 					p.lineTo(x0 + xWidth * e.loc1.x, y0 + yHeight * minmax(0, 1, e.loc1.y));
 					p.lineTo(x0 + xWidth * e.loc2.x, y0 + yHeight * minmax(0, 1, e.loc2.y));
 					p.closePath();
-					g.setColor(loc.color);
+					//					g.setColor(loc.color);
+					Point2D.Double pt1 = new Point2D.Double(x0 + xWidth * loc.x, y0 + yHeight * minmax(0, 1, loc.y));
+					Point2D.Double pt2 = new Point2D.Double(x0 + xWidth * e.loc1.x,
+							y0 + yHeight * minmax(0, 1, e.loc1.y));
+					Point2D.Double pt3 = new Point2D.Double(x0 + xWidth * e.loc2.x,
+							y0 + yHeight * minmax(0, 1, e.loc2.y));
+					if (loc.water) {
+						g.setColor(seaBlue);
+					} else {
+						g.setPaint(
+								new TriangleGradientPaint(pt1, loc.color, pt2, e.loc1.color, pt3, e.loc2.color, false));
+						//					g.setColor(loc.color);
+					}
 					g.fill(p);
 				}
 			});
