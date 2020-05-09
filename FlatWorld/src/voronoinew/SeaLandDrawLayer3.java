@@ -22,13 +22,16 @@ import javax.imageio.ImageIO;
 public class SeaLandDrawLayer3 implements DrawLayer {
 
 	private Random r;
+	private int sizeFactor;
+	private static final int BASE_SIZE_FACTOR = 70;
 
-	public SeaLandDrawLayer3(Random r) {
+	public SeaLandDrawLayer3(Random r, int sizeFactor) {
 		this.r = r;
+		this.sizeFactor = sizeFactor;
 	}
 
 	@Override
-	public void draw(Graphics2D g, Graphs graphs) {
+	public void draw(Graphics2D g, Graphs graphs, BufferedImage im) {
 		boolean prettyMountains = true;
 
 		InputStream imgStream = this.getClass().getResourceAsStream("mountain.png");
@@ -74,7 +77,7 @@ public class SeaLandDrawLayer3 implements DrawLayer {
 			}).map((v) -> {
 				return v.baseColor;
 			}).collect(Collectors.toSet());
-			
+
 			int numNeigbors = neighborColors.size();
 			double red = 0;
 			double green = 0;
@@ -84,10 +87,10 @@ public class SeaLandDrawLayer3 implements DrawLayer {
 				green += c.getGreen();
 				blue += c.getBlue();
 			}
-			red = (red + numNeigbors * loc.baseColor.getRed()) / (2*numNeigbors);
-			green = (green + numNeigbors * loc.baseColor.getGreen()) / (2*numNeigbors);
-			blue = (blue + numNeigbors * loc.baseColor.getBlue()) / (2*numNeigbors);
-			loc.color = new Color((int)red, (int)green, (int)blue);
+			red = (red + numNeigbors * loc.baseColor.getRed()) / (2 * numNeigbors);
+			green = (green + numNeigbors * loc.baseColor.getGreen()) / (2 * numNeigbors);
+			blue = (blue + numNeigbors * loc.baseColor.getBlue()) / (2 * numNeigbors);
+			loc.color = new Color((int) red, (int) green, (int) blue);
 		});
 
 		graphs.dualVertices.forEach((loc) -> {
@@ -106,20 +109,20 @@ public class SeaLandDrawLayer3 implements DrawLayer {
 					//					System.out.println(loc.elevation);
 
 					//					System.out.println(e.elevation + ": " + e.loc1.water);
-//					if (loc.water) {
-//						g.setColor(Color.lightGray);
-//					} else {
-						g.setColor(loc.color);
+					//					if (loc.water) {
+					//						g.setColor(Color.lightGray);
+					//					} else {
+					g.setColor(loc.color);
 
-						//						g.setColor(Color.cyan);
-						//						if (loc.elevation > 0.5) {
-						//							g.setColor(Color.red);
-						//						} else if (loc.elevation > 0.25) {
-						//							g.setColor(Color.PINK);
-						//						}
-						//												float c = (float) Math.max(0, Math.min(1, loc.elevation));
-						//												g.setColor(new Color(c,c,c));
-//					}
+					//						g.setColor(Color.cyan);
+					//						if (loc.elevation > 0.5) {
+					//							g.setColor(Color.red);
+					//						} else if (loc.elevation > 0.25) {
+					//							g.setColor(Color.PINK);
+					//						}
+					//												float c = (float) Math.max(0, Math.min(1, loc.elevation));
+					//												g.setColor(new Color(c,c,c));
+					//					}
 					g.fill(p);
 				}
 			});
@@ -170,7 +173,7 @@ public class SeaLandDrawLayer3 implements DrawLayer {
 				boolean drawn = false;
 				for (int i = 0; i < path.size(); i++) {
 					//					System.out.println(">>> " + path.getScore(i) + ", " + path.getElevation(i));
-					if (path.getScore(i) > 10) {
+					if (path.getScore(i) > 10 * sizeFactor / BASE_SIZE_FACTOR) {
 						if (!drawn) {
 							p.moveTo(x0 + path.getX(i) * xWidth, y0 + path.getY(i) * yHeight);
 							drawn = true;

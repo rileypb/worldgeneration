@@ -2,11 +2,11 @@ package voronoinew;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -23,13 +23,16 @@ public class GreeneryDrawLayer implements DrawLayer {
 	private Color medBrown = new Color(183, 142, 100);
 	private Color brownest = new Color(252, 248, 190);
 	private Random r;
+	private int sizeFactor;
+	private static final int BASE_SIZE_FACTOR = 70;
 
-	public GreeneryDrawLayer(Random r) {
+	public GreeneryDrawLayer(Random r, int sizeFactor) {
 		this.r = r;
+		this.sizeFactor = sizeFactor;
 	}
 
 	@Override
-	public void draw(Graphics2D g, Graphs graphs) {
+	public void draw(Graphics2D g, Graphs graphs, BufferedImage im) {
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
 		double x0 = clipBounds.x - 20;
@@ -50,12 +53,12 @@ public class GreeneryDrawLayer implements DrawLayer {
 			} else {
 				if (loc.moisture > 0) {
 					loc.baseColor = greenest;
-					if (loc.flux > 50) {
+					if (loc.flux > 50*sizeFactor/BASE_SIZE_FACTOR) {
 						loc.baseColor = medGreen;
 					}
 				} else {
 					loc.baseColor = medBrown;
-					if (loc.flux > 25) {
+					if (loc.flux > 25*sizeFactor/BASE_SIZE_FACTOR) {
 						loc.baseColor = medGreen;
 					}
 				}
@@ -174,6 +177,12 @@ public class GreeneryDrawLayer implements DrawLayer {
 			});
 		});
 
+//		Kernel kernel = new Kernel(3, 3, new float[] { -1, -1, -1, -1, 9, -1, -1, -1, -1 });
+//		ConvolveOp op = new ConvolveOp(kernel);
+//		BufferedImage im2 = new BufferedImage(im.getWidth(), im.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+//		op.filter(im, im2);
+//		g.drawImage(im2, 0, 0, im.getWidth(), im.getHeight(), null);
+
 		g.setColor(seaBlue);
 		if (graphs.riverPaths != null) {
 			graphs.riverPaths.forEach((path) -> {
@@ -182,9 +191,9 @@ public class GreeneryDrawLayer implements DrawLayer {
 				for (int i = 0; i < path.size() - 1; i++) {
 					//					System.out.println(">>> " + path.getScore(i) + ", " + path.getElevation(i));
 
-					g.setStroke(new BasicStroke((float) (path.getScore(i) / 25), BasicStroke.CAP_ROUND,
+					g.setStroke(new BasicStroke((float) (path.getScore(i) / 25*BASE_SIZE_FACTOR/sizeFactor), BasicStroke.CAP_ROUND,
 							BasicStroke.JOIN_ROUND));
-					if (path.getScore(i) > 10) {
+					if (path.getScore(i) > 10*sizeFactor/BASE_SIZE_FACTOR) {
 						g.drawLine((int) (x0 + path.getX(i) * xWidth), (int) (y0 + path.getY(i) * yHeight),
 								(int) (x0 + path.getX(i + 1) * xWidth), (int) (y0 + path.getY(i + 1) * yHeight));
 					}

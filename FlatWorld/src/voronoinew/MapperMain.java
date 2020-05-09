@@ -25,13 +25,15 @@ public class MapperMain {
 	private static int screenWidth;
 	private static int screenHeight;
 
+	public static final int POINTS = 24000;
+
 	public static void main(String[] args) {
 		screenWidth = 800;
 		screenHeight = 800;
 
-		TerrainBuilder2 builder = new TerrainBuilder2(5000, TerrainBuilder2.CellType.VORONOI);
+		TerrainBuilder2 builder = new TerrainBuilder2(POINTS, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
-								seed = 547996639;
+		//								seed = 547996639;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
@@ -76,45 +78,44 @@ public class MapperMain {
 					+ target.wildness * target.wildness * target.wildness * target.wildValue;
 			//					System.out.println(target.elevation);
 		});
-		
+
 		builder.smoothElevations(buildResult);
 		builder.smoothElevations(buildResult);
 		builder.smoothElevations(buildResult);
 
 		builder.setVoronoiCornerElevations(buildResult);
-		
+
 		builder.setDualCornerElevations(buildResult);
-		
+
 		builder.normalizeElevations(buildResult);
-		
+
 		builder.setBaseMoisture(buildResult, r, moisturePerlin);
-//		builder.normalizeBaseMoisture(buildResult);
-		
+		//		builder.normalizeBaseMoisture(buildResult);
+
 		builder.markWater(buildResult, SEALEVEL);
-		
+
 		builder.raiseMountains(buildResult);
 		builder.fillInMountainGaps(buildResult);
-		
+
 		builder.fillDepressions(buildResult);
 
 		builder.setVoronoiCornerElevations(buildResult);
-		
+
 		builder.normalizeElevations(buildResult);
 
 		builder.runRivers(buildResult);
-		
+
 		builder.calculateFinalMoisture(buildResult);
-		
 
 		System.out.println("drawing...");
 
 		List<DrawLayer> drawLayers = new ArrayList<>();
-		drawLayers.add(new SeaLandDrawLayer3(r));
+		//		drawLayers.add(new SeaLandDrawLayer3(r));
 		//		drawLayers.add(new BoundaryCellDrawLayer());
 		//						drawLayers.add(new GraphDrawLayer());
 		//				drawLayers.add(new DualGraphDrawLayer());
-//		drawLayers.add(new GreeneryDrawLayer(r));
-		
+		drawLayers.add(new GreeneryDrawLayer(r, (int) Math.sqrt(POINTS)));
+
 		BufferedImage img = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g = img.createGraphics();
 		//		g.setColor(Color.black);
@@ -128,10 +129,15 @@ public class MapperMain {
 		g.setColor(Color.white);
 
 		drawLayers.forEach((layer) -> {
-			layer.draw((Graphics2D) img.getGraphics(), buildResult);
+			layer.draw((Graphics2D) img.getGraphics(), buildResult, img);
 		});
 
 		display(img, builder, g);
+
+		BufferedImage img2 = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
+		Graphics2D g2 = img2.createGraphics();
+		new SeaLandDrawLayer3(r, (int) Math.sqrt(POINTS)).draw(g2, buildResult, img2);
+		display(img2, builder, g2);
 	}
 
 	private static void display(BufferedImage img, TerrainBuilder2 builder, Graphics2D g) {

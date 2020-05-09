@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.Path2D;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,7 +12,7 @@ import java.util.stream.Collectors;
 public class BoundaryCellDrawLayer implements DrawLayer {
 
 	@Override
-	public void draw(Graphics2D g, Graphs graphs) {
+	public void draw(Graphics2D g, Graphs graphs, BufferedImage im) {
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
 		double x0 = clipBounds.x + 20;
