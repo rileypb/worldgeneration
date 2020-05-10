@@ -9,6 +9,7 @@ import java.awt.image.ColorModel;
 import java.awt.image.DirectColorModel;
 import java.awt.image.Raster;
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 
 import sun.awt.image.IntegerComponentRaster;
 
@@ -249,6 +250,8 @@ public class TriangleGradientPaintContext implements PaintContext {
 		int adjust = irast.getScanlineStride() - w;
 		int[] pixels = irast.getDataStorage();
 
+		Arrays.fill(pixels, 0xFFFFFFFF);
+		
 		//	        if (cyclic) {
 		//	            cycleFillRaster(pixels, off, adjust, w, h, rowrel, dx, dy);
 		//	        } else {
@@ -261,14 +264,35 @@ public class TriangleGradientPaintContext implements PaintContext {
 						+ (p3.getX() - p2.getX()) * (y + v - p3.getY())) * denominator;
 				double w2 = ((p3.getY() - p1.getY()) * (x + u - p3.getX())
 						+ (p1.getX() - p3.getX()) * (y + v - p3.getY())) * denominator;
+				
+				if (w1 < 0) {
+					w1 = 0;
+				}
+				if (w1 > 1) {
+					w1 = 1;
+				}
+				if (w2 < 0) {
+					w2 = 0;
+				}
+				if (w2 > 1) {
+					w2 = 1;
+				}
+				
+				if (w1 + w2 > 1) {
+					w1 = w1/(w1+w2);
+					w2 = w2/(w1+w2);
+				}
+				
+				
 				double w3 = 1 - w1 - w2;
 
 				int a = (int) (w1 * a1 + w2 * a2 + w3 * a3);
 				int r = (int) (w1 * r1 + w2 * r2 + w3 * r3);
 				int g = (int) (w1 * g1 + w2 * g2 + w3 * g3);
 				int b = (int) (w1 * b1 + w2 * b2 + w3 * b3);
-				
+
 				int argb = b + (g << 8) + (r << 16) + (a << 24);
+				
 				
 				pixels[off++] = argb;
 			}

@@ -51,7 +51,8 @@ public class TerrainBuilder2 {
 
 		switch (cellType) {
 		case VORONOI:
-			generatePoints(initialSites, r, numberOfPoints);
+//			generateHaltonSequencePoints(initialSites, r, numberOfPoints);
+			generateRandomPoints(initialSites, r, numberOfPoints);
 			break;
 		}
 
@@ -70,42 +71,7 @@ public class TerrainBuilder2 {
 
 	}
 
-	private void generateBaseModifiersPoints(ArrayList<Point> initialSites, Random r) {
-		Perlin perlin = new Perlin();
-		perlin.setSeed(r.nextInt(10000));
-		perlin.setFrequency(2);
-		perlin.setOctaveCount(1);
-		Perlin perlin2 = new Perlin();
-		perlin2.setSeed(r.nextInt(10000));
-		perlin2.setFrequency(1);
-		perlin2.setOctaveCount(1);
-
-		int pointsPerSide = (int) Math.sqrt(numberOfPoints);
-		float spacing = 1 / (float) (pointsPerSide + 1);
-
-		for (int i = 0; i < pointsPerSide + 1; i++) {
-			for (int j = 0; j < pointsPerSide + 1; j++) {
-				float x = spacing * (i);
-				float y = spacing * (j);
-				double chaosx = Math.max(0.001, PerlinHelper.getCylindricalNoise(perlin, x, 1, y, 1) - .25);
-				//				double chaosy = Math.max(0, PerlinHelper.getPlanarNoise(perlin, x + 93.12, 1, y + 2390.2, 1) - 0.25);
-
-				double chaosdx = chaosx * r.nextDouble() * spacing / 2;
-				double chaosdy = chaosx * r.nextDouble() + spacing / 2;
-
-				//				dx *= chaosdx; //4 * spacing * Math.max(0.01, PerlinHelper.getPlanarNoise(perlin2, x, 20, y, 20));
-				//				dy *= chaosdy;//4 * spacing * Math.max(0.01, PerlinHelper.getPlanarNoise(perlin2, x, 20, y + 909.2, 20));
-				//System.out.println(dx + ", " + dy);
-				x += chaosdx;
-				y += chaosdy;
-				Point newPoint = new Point(x, y);
-				initialSites.add(newPoint);
-				initialSites.add(new Point(x + 1, y));
-			}
-		}
-	}
-
-	private void generatePoints(List<Point> points, Random r, int numberOfPoints) {
+	private void generateHaltonSequencePoints(List<Point> points, Random r, int numberOfPoints) {
 		HaltonSequenceGenerator hsg = new HaltonSequenceGenerator(2);
 		hsg.skipTo(20 + r.nextInt(100000));
 		for (int i = 0; i < numberOfPoints; i++) {
@@ -114,6 +80,12 @@ public class TerrainBuilder2 {
 		}
 	}
 
+	private void generateRandomPoints(List<Point> points, Random r, int numberOfPoints) {
+		for (int i = 0; i < numberOfPoints; i++) {
+			points.add(new Point(r.nextDouble(), r.nextDouble()));
+		}
+	}
+	
 	private Graphs generateGraphs(Graph graph) {
 		DefaultUndirectedGraph<Location, MapEdge> voronoiGraph = new DefaultUndirectedGraph<>(MapEdge.class);
 		DefaultUndirectedGraph<Location, MapEdge> dualGraph = new DefaultUndirectedGraph<>(MapEdge.class);

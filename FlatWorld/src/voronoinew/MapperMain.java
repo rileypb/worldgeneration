@@ -3,6 +3,7 @@ package voronoinew;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -33,7 +34,7 @@ public class MapperMain {
 
 		TerrainBuilder2 builder = new TerrainBuilder2(POINTS, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
-		//								seed = 547996639;
+//										seed = -677464267;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
