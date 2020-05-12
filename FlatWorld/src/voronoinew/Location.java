@@ -44,6 +44,7 @@ public class Location {
 	public boolean tmpMountain;
 	public Color baseColor;
 	public Color color;
+	public boolean forest;
 
 	public Location(double x, double y) {
 		this.x = x;

@@ -107,6 +107,7 @@ public class MapperMain {
 		builder.runRivers(buildResult);
 
 		builder.calculateFinalMoisture(buildResult);
+		builder.growForests(buildResult);
 
 		System.out.println("drawing...");
 

@@ -638,6 +638,22 @@ public class TerrainBuilder2 {
 			loc.elevation = loc.pdElevation;
 		});
 	}
+	
+	public void growForests(Graphs graphs) {
+		graphs.dualVertices.forEach((loc) -> {
+			List<Location> neighbors = graphs.dualGraph.edgesOf(loc).stream().map((edge) -> {
+				return edge.oppositeLocation(loc);
+			}).collect(Collectors.toList());
+			double max = neighbors.stream().mapToDouble((n) -> {
+				return n.baseMoisture;
+			}).max().getAsDouble();
+
+
+			if (loc.baseMoisture > 0.15 && max > 0.15) {
+				loc.forest = true;
+			}
+		});
+	}
 
 	public void raiseMountains(Graphs graphs) {
 		graphs.dualVertices.forEach((loc) -> {
@@ -650,9 +666,9 @@ public class TerrainBuilder2 {
 
 			double diff = loc.elevation - min;
 
-			if (diff > 0.12) {
+			if (diff > 0.09) {
 				loc.mountain = true;
-			} else if (diff > 0.08) {
+			} else if (diff > 0.06) {
 				loc.hill = true;
 			}
 		});

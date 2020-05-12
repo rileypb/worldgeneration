@@ -52,16 +52,15 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 		double y0 = clipBounds.y - 20;
 		double xWidth = clipBounds.width * 1.1;
 		double yHeight = clipBounds.height * 1.1;
-		
+
 		g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
 		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-		
-//				g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-		
 
-//		g.setColor(Color.BLACK);
+		//				g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+
+		//		g.setColor(Color.BLACK);
 
 		setBaseColors(graphs);
 
@@ -82,11 +81,67 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 		Color medGray = new Color(0.5f, 0.5f, 0.5f);
 		drawMountains(g, graphs, prettyMountains, x0, y0, xWidth, yHeight);
 
-
+				drawForests(g, graphs, x0, y0, xWidth, yHeight);
 	}
 
-	private void drawMountains(Graphics2D g, Graphs graphs, boolean prettyMountains, double x0, double y0, double xWidth,
-			double yHeight) {
+	private void drawForests(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
+		g.setStroke(new BasicStroke(1));
+		g.setColor(new Color(0.5f, 0.5f, 0.5f));
+		graphs.dualVertices.forEach((loc) -> {
+			if (loc.forest && !loc.water && !loc.mountain && !loc.hill) {
+				double minX = Double.POSITIVE_INFINITY;
+				double maxX = Double.NEGATIVE_INFINITY;
+				double minY = Double.POSITIVE_INFINITY;
+				double maxY = Double.NEGATIVE_INFINITY;
+				Set<Location> vertices = graphs.dualGraph.edgesOf(loc).stream().map((e) -> {
+					return graphs.dualToVoronoi.get(e);
+				}).filter((e) -> {
+					return e != null;
+				}).flatMap((e) -> {
+					return Arrays.stream(new Location[] { e.loc1, e.loc2 });
+				}).collect(Collectors.toSet());
+				for (Location v : vertices) {
+					minX = Math.min(minX, v.x);
+					maxX = Math.max(minX, v.x);
+					minY = Math.min(minY, v.y);
+					maxY = Math.max(maxY, v.y);
+				}
+				double dx = (maxX - minX);
+				double dy = (maxY - minY);
+				double maxD = Math.max(dx, dy);
+
+				double xa = minX + maxD / 2;
+				if (maxD < .02) {
+					double ya = maxY - maxD + .01;
+					Path2D.Float p = new Path2D.Float();
+
+					g.drawLine((int) (x0 + (xa + maxD / 2) * xWidth), (int) (y0 + (ya - maxD) * yHeight),
+							(int) (x0 + (xa + maxD / 2) * xWidth), (int) (y0 + ya * yHeight));
+					p.moveTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - maxD) * yHeight);
+					p.lineTo(x0 + (xa + maxD / 4) * xWidth, y0 + (ya - maxD / 4) * yHeight);
+					p.lineTo(x0 + (xa + 3 * maxD / 4) * xWidth, y0 + (ya - maxD / 4) * yHeight);
+					p.closePath();
+
+					g.fill(p);
+
+					//					p.moveTo(x0 + xa * xWidth, y0 + ya * yHeight);
+					//					p.lineTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight);
+					//					p.lineTo(x0 + (xa + maxD) * xWidth, y0 + ya * yHeight);
+					//					p.closePath();
+					//					g.setColor(Color.darkGray);
+					//					g.fill(p);
+					//					g.setColor(Color.LIGHT_GRAY);
+					//					g.fill(p);
+					//					g.setColor(Color.DARK_GRAY);
+					//					g.draw(p);
+					//				g.drawImage(mImage, (int) xa,(int) ya, 20, 20, null);
+				}
+			}
+		});
+	}
+
+	private void drawMountains(Graphics2D g, Graphs graphs, boolean prettyMountains, double x0, double y0,
+			double xWidth, double yHeight) {
 		g.setStroke(new BasicStroke(1));
 		graphs.dualVertices.forEach((loc) -> {
 			double minX = Double.POSITIVE_INFINITY;
@@ -190,7 +245,7 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 			double dx = (maxX - minX);
 			double dy = (maxY - minY);
 			double maxD = (dx + dy) / 5;
-			
+
 			double xa = minX + maxD / 4 + .01;
 			double ya = maxY - maxD;
 			if (loc.hill && !loc.water) {
@@ -264,7 +319,7 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 			List<MapEdge> edgeList = graphs.dualGraph.edgesOf(loc).stream().map((voronoiEdge) -> {
 				return graphs.dualToVoronoi.get(voronoiEdge);
 			}).collect(Collectors.toList());
-			
+
 			edgeList.forEach((e) -> {
 				if (e != null) {
 					Path2D.Double p = new Path2D.Double();
@@ -281,19 +336,21 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
 					if (loc.water) {
 						g.setColor(loc.color);
+//					} else if (loc.forest && !loc.mountain && !loc.hill) {
+//						g.setColor(hillColor.green);
 					} else {
 						//						g.setPaint(
 						//								new TriangleGradientPaint(pt1, loc.color, pt2, Color.white, pt3, Color.white, false));
 						g.setColor(loc.color);
 						g.fill(p); // this gets rid of stray tearing artifacts.
-						
+
 						g.setPaint(
 								new TriangleGradientPaint(pt1, loc.color, pt2, e.loc1.color, pt3, e.loc2.color, false));
 						//					g.setColor(loc.color);
 					}
 
 					g.fill(p);
-//					g.draw(p);
+					//					g.draw(p);
 				}
 			});
 		});
