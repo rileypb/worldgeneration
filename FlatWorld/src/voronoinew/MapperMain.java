@@ -95,7 +95,7 @@ public class MapperMain {
 
 		builder.markWater(buildResult, SEALEVEL);
 
-		builder.raiseMountains(buildResult);
+		builder.raiseMountains(buildResult, POINTS);
 		builder.fillInMountainGaps(buildResult);
 
 		builder.fillDepressions(buildResult);
@@ -108,6 +108,8 @@ public class MapperMain {
 
 		builder.calculateFinalMoisture(buildResult);
 		builder.growForests(buildResult);
+		
+		List<List<Location>> pickList = new CellPicker(buildResult, 0.004, 0.008).pick(r);
 
 		System.out.println("drawing...");
 
@@ -138,7 +140,7 @@ public class MapperMain {
 
 		BufferedImage img2 = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g2 = img2.createGraphics();
-		new SeaLandDrawLayer3(r, (int) Math.sqrt(POINTS)).draw(g2, buildResult, img2);
+		new SeaLandDrawLayer3(r, (int) Math.sqrt(POINTS), pickList).draw(g2, buildResult, img2);
 		display(img2, builder, g2);
 	}
 

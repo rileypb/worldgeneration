@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -25,10 +26,12 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 	private int sizeFactor;
 	private static final int BASE_SIZE_FACTOR = 70;
 	private Color hillColor = new Color(.9f, .9f, .9f);
+	private List<List<Location>> pickList;
 
-	public SeaLandDrawLayer3(Random r, int sizeFactor) {
+	public SeaLandDrawLayer3(Random r, int sizeFactor, List<List<Location>> pickList) {
 		this.r = r;
 		this.sizeFactor = sizeFactor;
+		this.pickList = pickList;
 	}
 
 	@Override
@@ -74,14 +77,41 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
 		drawWater(g, graphs, x0, y0, xWidth, yHeight);
 
-		drawHills(g, graphs, x0, y0, xWidth, yHeight);
+		//		drawHills(g, graphs, x0, y0, xWidth, yHeight);
 
 		drawCoast(g, graphs, x0, y0, xWidth, yHeight);
 
-		Color medGray = new Color(0.5f, 0.5f, 0.5f);
-		drawMountains(g, graphs, prettyMountains, x0, y0, xWidth, yHeight);
+		drawPickListCircles(g, graphs, x0, y0, xWidth, yHeight);
 
-				drawForests(g, graphs, x0, y0, xWidth, yHeight);
+		Color medGray = new Color(0.5f, 0.5f, 0.5f);
+		//		drawMountains(g, graphs, prettyMountains, x0, y0, xWidth, yHeight);
+
+		//		drawForests(g, graphs, x0, y0, xWidth, yHeight);
+	}
+
+	private void drawPickListCircles(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
+		List<Location> flatList = pickList.stream().flatMap((l) -> {
+			return l.stream();
+		}).collect(Collectors.toList());
+
+		flatList.sort((l1, l2) -> {
+			return (int) (1000*(l1.y - l2.y));
+		});
+
+		flatList.stream().filter((loc) -> {
+			return !loc.water;
+		}).forEach((loc) -> {
+			if (loc.hill && !loc.water) {
+				drawHill(g, x0, y0, xWidth, yHeight, 0.015, loc.x - loc.radius / 2, loc.y);
+			} else if (loc.mountain && !loc.water) {
+				drawMountain(g, true, x0, y0, xWidth, yHeight, 0.015, loc.x - loc.radius / 2, loc.y);
+			} else if (loc.forest && !loc.water) {
+				drawTree(g, x0, y0, xWidth, yHeight, loc.y + loc.radius / 2, 0.015, loc.x - loc.radius / 2);
+			} else {
+				g.setColor(Color.red);
+				//				g.drawOval((int) (x0 + loc.x * xWidth - 8), (int) (y0 + loc.y * yHeight - 8), 12, 12);
+			}
+		});
 	}
 
 	private void drawForests(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
@@ -112,17 +142,7 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
 				double xa = minX + maxD / 2;
 				if (maxD < .02) {
-					double ya = maxY - maxD + .01;
-					Path2D.Float p = new Path2D.Float();
-
-					g.drawLine((int) (x0 + (xa + maxD / 2) * xWidth), (int) (y0 + (ya - maxD) * yHeight),
-							(int) (x0 + (xa + maxD / 2) * xWidth), (int) (y0 + ya * yHeight));
-					p.moveTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - maxD) * yHeight);
-					p.lineTo(x0 + (xa + maxD / 4) * xWidth, y0 + (ya - maxD / 4) * yHeight);
-					p.lineTo(x0 + (xa + 3 * maxD / 4) * xWidth, y0 + (ya - maxD / 4) * yHeight);
-					p.closePath();
-
-					g.fill(p);
+					drawTree(g, x0, y0, xWidth, yHeight, maxY, maxD, xa);
 
 					//					p.moveTo(x0 + xa * xWidth, y0 + ya * yHeight);
 					//					p.lineTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight);
@@ -138,6 +158,22 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 				}
 			}
 		});
+	}
+
+	private void drawTree(Graphics2D g, double x0, double y0, double xWidth, double yHeight, double maxY, double maxD,
+			double xa) {
+		g.setColor(Color.DARK_GRAY);
+		double ya = maxY - maxD + .01;
+		Path2D.Float p = new Path2D.Float();
+
+		g.drawLine((int) (x0 + (xa + maxD / 2) * xWidth), (int) (y0 + (ya - maxD) * yHeight),
+				(int) (x0 + (xa + maxD / 2) * xWidth), (int) (y0 + ya * yHeight));
+		p.moveTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - maxD) * yHeight);
+		p.lineTo(x0 + (xa + maxD / 4) * xWidth, y0 + (ya - maxD / 4) * yHeight);
+		p.lineTo(x0 + (xa + 3 * maxD / 4) * xWidth, y0 + (ya - maxD / 4) * yHeight);
+		p.closePath();
+
+		g.fill(p);
 	}
 
 	private void drawMountains(Graphics2D g, Graphs graphs, boolean prettyMountains, double x0, double y0,
@@ -169,47 +205,52 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 			if (maxD < .02) {
 				double ya = maxY - maxD;
 				if (loc.mountain && !loc.water) {
-					Path2D.Float p = new Path2D.Float();
-					if (!prettyMountains) {
-						p.moveTo(x0 + xa * xWidth, y0 + ya * yHeight);
-						p.lineTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight);
-						p.lineTo(x0 + (xa + maxD) * xWidth, y0 + ya * yHeight);
-						p.closePath();
-						g.setColor(Color.darkGray);
-						g.fill(p);
-					} else {
-						xa -= .003;
-						ya += .0035;
-						p.moveTo(x0 + (xa) * xWidth, y0 + ya * yHeight);
-						double jiggleX = (r.nextDouble() - .1) * maxD * .06;
-						double jiggleY = r.nextDouble() * maxD * .5;
-						double jiggleX2 = -(r.nextDouble() - .1) * maxD * .06;
-						double jiggleY2 = r.nextDouble() * maxD * .5;
-
-						p.curveTo(x0 + (xa + maxD / 2 + jiggleX) * xWidth, y0 + (ya - 2 * maxD / 3 + jiggleY) * yHeight,
-								x0 + (xa + maxD / 2 + jiggleX) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight,
-								x0 + (xa + maxD / 2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight);
-						p.curveTo(x0 + (xa + maxD / 2 + jiggleX2) * xWidth,
-								y0 + (ya - 2 * maxD / 3 + jiggleY2) * yHeight, x0 + (xa + maxD / 2 + jiggleX2) * xWidth,
-								y0 + (ya - 2 * maxD / 3) * yHeight, x0 + (xa + maxD) * xWidth, y0 + ya * yHeight);
-
-						//					if (jiggleX < 0) {
-						//						p.lineTo(x0 + (xa + maxD / 2 + jiggleX) * xWidth, y0 + (ya - 2 * maxD / 3 + jiggleY) * yHeight);
-						//						p.lineTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight);
-						//					} else {
-						//						p.lineTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight);
-						//						p.lineTo(x0 + (xa + maxD / 2 + jiggleX) * xWidth, y0 + (ya - 2 * maxD / 3 + jiggleY) * yHeight);
-						//					}
-						//					p.lineTo(x0 + (xa + maxD) * xWidth, y0 + ya * yHeight);
-						g.setColor(Color.LIGHT_GRAY);
-						g.fill(p);
-						g.setColor(Color.DARK_GRAY);
-						g.draw(p);
-					}
+					drawMountain(g, prettyMountains, x0, y0, xWidth, yHeight, maxD, xa, ya);
 					//				g.drawImage(mImage, (int) xa,(int) ya, 20, 20, null);
 				}
 			}
 		});
+	}
+
+	private void drawMountain(Graphics2D g, boolean prettyMountains, double x0, double y0, double xWidth,
+			double yHeight, double maxD, double xa, double ya) {
+		Path2D.Float p = new Path2D.Float();
+		if (!prettyMountains) {
+			p.moveTo(x0 + xa * xWidth, y0 + ya * yHeight);
+			p.lineTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight);
+			p.lineTo(x0 + (xa + maxD) * xWidth, y0 + ya * yHeight);
+			p.closePath();
+			g.setColor(Color.darkGray);
+			g.fill(p);
+		} else {
+			xa -= .003;
+			ya += .0035;
+			p.moveTo(x0 + (xa) * xWidth, y0 + ya * yHeight);
+			double jiggleX = (r.nextDouble() - .1) * maxD * .06;
+			double jiggleY = r.nextDouble() * maxD * .5;
+			double jiggleX2 = -(r.nextDouble() - .1) * maxD * .06;
+			double jiggleY2 = r.nextDouble() * maxD * .5;
+
+			p.curveTo(x0 + (xa + maxD / 2 + jiggleX) * xWidth, y0 + (ya - 2 * maxD / 3 + jiggleY) * yHeight,
+					x0 + (xa + maxD / 2 + jiggleX) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight,
+					x0 + (xa + maxD / 2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight);
+			p.curveTo(x0 + (xa + maxD / 2 + jiggleX2) * xWidth, y0 + (ya - 2 * maxD / 3 + jiggleY2) * yHeight,
+					x0 + (xa + maxD / 2 + jiggleX2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight,
+					x0 + (xa + maxD) * xWidth, y0 + ya * yHeight);
+
+			//					if (jiggleX < 0) {
+			//						p.lineTo(x0 + (xa + maxD / 2 + jiggleX) * xWidth, y0 + (ya - 2 * maxD / 3 + jiggleY) * yHeight);
+			//						p.lineTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight);
+			//					} else {
+			//						p.lineTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight);
+			//						p.lineTo(x0 + (xa + maxD / 2 + jiggleX) * xWidth, y0 + (ya - 2 * maxD / 3 + jiggleY) * yHeight);
+			//					}
+			//					p.lineTo(x0 + (xa + maxD) * xWidth, y0 + ya * yHeight);
+			g.setColor(Color.LIGHT_GRAY);
+			g.fill(p);
+			g.setColor(Color.DARK_GRAY);
+			g.draw(p);
+		}
 	}
 
 	private void drawCoast(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
@@ -249,21 +290,25 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 			double xa = minX + maxD / 4 + .01;
 			double ya = maxY - maxD;
 			if (loc.hill && !loc.water) {
-				Path2D.Float p = new Path2D.Float();
-
-				p.moveTo(x0 + xa * xWidth, y0 + ya * yHeight);
-
-				p.curveTo(x0 + (xa + maxD / 4) * xWidth, y0 + (ya - maxD / 2) * yHeight,
-						x0 + (xa + 3 * maxD / 4) * xWidth, y0 + (ya - maxD / 2) * yHeight, x0 + (xa + maxD) * xWidth,
-						y0 + ya * yHeight);
-
-				//				p.closePath();
-				g.setColor(Color.white);
-				g.fill(p);
-				g.setColor(Color.lightGray);
-				g.draw(p);
+				drawHill(g, x0, y0, xWidth, yHeight, maxD, xa, ya);
 			}
 		});
+	}
+
+	private void drawHill(Graphics2D g, double x0, double y0, double xWidth, double yHeight, double maxD, double xa,
+			double ya) {
+		Path2D.Float p = new Path2D.Float();
+
+		p.moveTo(x0 + xa * xWidth, y0 + ya * yHeight);
+
+		p.curveTo(x0 + (xa + maxD / 4) * xWidth, y0 + (ya - maxD / 2) * yHeight, x0 + (xa + 3 * maxD / 4) * xWidth,
+				y0 + (ya - maxD / 2) * yHeight, x0 + (xa + maxD) * xWidth, y0 + ya * yHeight);
+
+		//				p.closePath();
+		g.setColor(Color.white);
+		g.fill(p);
+		g.setColor(Color.lightGray);
+		g.draw(p);
 	}
 
 	private void drawWater(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
@@ -291,7 +336,7 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
 	private void drawRivers(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
 		g.setColor(new Color(0.5f, 0.5f, 0.5f));
-		g.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+		g.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 		if (graphs.riverPaths != null) {
 			graphs.riverPaths.forEach((path) -> {
 				Path2D.Double p = new Path2D.Double();
@@ -336,8 +381,8 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
 					if (loc.water) {
 						g.setColor(loc.color);
-//					} else if (loc.forest && !loc.mountain && !loc.hill) {
-//						g.setColor(hillColor.green);
+						//					} else if (loc.forest && !loc.mountain && !loc.hill) {
+						//						g.setColor(hillColor.green);
 					} else {
 						//						g.setPaint(
 						//								new TriangleGradientPaint(pt1, loc.color, pt2, Color.white, pt3, Color.white, false));

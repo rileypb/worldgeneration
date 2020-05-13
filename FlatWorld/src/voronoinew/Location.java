@@ -45,6 +45,7 @@ public class Location {
 	public Color baseColor;
 	public Color color;
 	public boolean forest;
+	public double radius = 0;
 
 	public Location(double x, double y) {
 		this.x = x;

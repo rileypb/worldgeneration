@@ -655,7 +655,7 @@ public class TerrainBuilder2 {
 		});
 	}
 
-	public void raiseMountains(Graphs graphs) {
+	public void raiseMountains(Graphs graphs, int numPoints) {
 		graphs.dualVertices.forEach((loc) -> {
 			List<Location> neighbors = graphs.dualGraph.edgesOf(loc).stream().map((edge) -> {
 				return edge.oppositeLocation(loc);
@@ -665,10 +665,11 @@ public class TerrainBuilder2 {
 			}).min().getAsDouble();
 
 			double diff = loc.elevation - min;
+			double dNormal = diff * Math.sqrt(numPoints)/100;
 
-			if (diff > 0.09) {
+			if (dNormal > 0.1) {
 				loc.mountain = true;
-			} else if (diff > 0.06) {
+			} else if (dNormal > 0.07) {
 				loc.hill = true;
 			}
 		});
