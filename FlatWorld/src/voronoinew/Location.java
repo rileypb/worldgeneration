@@ -1,9 +1,14 @@
 package voronoinew;
+
 import static de.alsclo.voronoi.Math.EPSILON;
 import static de.alsclo.voronoi.Math.PRECISION;
 import static java.lang.Math.abs;
 
 import java.awt.Color;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.jgrapht.Graph;
 
 public class Location {
 
@@ -13,7 +18,7 @@ public class Location {
 	public boolean water;
 	public boolean ocean;
 	public int subdivision;
-	
+
 	public double distanceToSubdivisionEdge = -1;
 	public float distanceToCoast = -1;
 	public float heightForSubdivision;
@@ -55,19 +60,25 @@ public class Location {
 
 	@Override
 	public String toString() {
-		return "[" + x + ", " + y + "]"; 
+		return "[" + x + ", " + y + "]";
 	}
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//
-//        Location point = (Location) o;
-//        return abs(x - point.x) <= EPSILON && abs(y - point.y) <= EPSILON;
-//    }
+	//    @Override
+	//    public boolean equals(Object o) {
+	//        if (this == o) return true;
+	//        if (o == null || getClass() != o.getClass()) return false;
+	//
+	//        Location point = (Location) o;
+	//        return abs(x - point.x) <= EPSILON && abs(y - point.y) <= EPSILON;
+	//    }
 
-//    @Override
-//    public int hashCode() {
-//        return (int) (x * PRECISION * 31) + (int) (y * PRECISION);
-//    }
+	public Set<Location> neighboringVertices(Graph<Location, MapEdge> graph) {
+		return graph.edgesOf(this).stream().map((edge) -> {
+			return edge.oppositeLocation(this);
+		}).collect(Collectors.toSet());
+	}
+
+	//    @Override
+	//    public int hashCode() {
+	//        return (int) (x * PRECISION * 31) + (int) (y * PRECISION);
+	//    }
 }

@@ -26,7 +26,7 @@ public class MapperMain {
 	private static int screenWidth;
 	private static int screenHeight;
 
-	public static final int POINTS = 24000;
+	public static final int POINTS = 5000;
 
 	public static void main(String[] args) {
 		screenWidth = 800;
@@ -57,13 +57,6 @@ public class MapperMain {
 		moisturePerlin.setOctaveCount(8);
 		moisturePerlin.setSeed(r.nextInt());
 
-		//		builder.forEachLocation(buildResult, (x) -> {
-		//			System.out.println(x.x);
-		//		});
-
-		//		builder.generateValues(buildResult, r, perlin, (target, value) -> {
-		//			target.elevation = value;
-		//		});
 
 		builder.generateValues(buildResult, r, perlin, (target, value) -> {
 			target.wildness = value;
@@ -77,7 +70,6 @@ public class MapperMain {
 		builder.forEachLocation(buildResult, (target) -> {
 			target.elevation = (1 - target.wildness * target.wildness * target.wildness) * target.calmValue
 					+ target.wildness * target.wildness * target.wildness * target.wildValue;
-			//					System.out.println(target.elevation);
 		});
 
 		builder.smoothElevations(buildResult);
@@ -94,6 +86,8 @@ public class MapperMain {
 		//		builder.normalizeBaseMoisture(buildResult);
 
 		builder.markWater(buildResult, SEALEVEL);
+		
+		builder.eliminateStrandedWater(buildResult, SEALEVEL);
 
 		builder.raiseMountains(buildResult, POINTS);
 		builder.fillInMountainGaps(buildResult);

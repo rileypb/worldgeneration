@@ -57,7 +57,6 @@ public class CellPicker {
 		}
 
 		graphs.dualVertices.forEach((loc) -> {
-			System.out.println(loc);
 			if (loc.x >= 0 && loc.x <= 1 && loc.y >= 0 && loc.y <= 1) {
 				int x = (int) (loc.x / bucketWidth);
 				int y = (int) (loc.y / bucketHeight);

@@ -51,7 +51,7 @@ public class TerrainBuilder2 {
 
 		switch (cellType) {
 		case VORONOI:
-//			generateHaltonSequencePoints(initialSites, r, numberOfPoints);
+			//			generateHaltonSequencePoints(initialSites, r, numberOfPoints);
 			generateRandomPoints(initialSites, r, numberOfPoints);
 			break;
 		}
@@ -85,7 +85,7 @@ public class TerrainBuilder2 {
 			points.add(new Point(r.nextDouble(), r.nextDouble()));
 		}
 	}
-	
+
 	private Graphs generateGraphs(Graph graph) {
 		DefaultUndirectedGraph<Location, MapEdge> voronoiGraph = new DefaultUndirectedGraph<>(MapEdge.class);
 		DefaultUndirectedGraph<Location, MapEdge> dualGraph = new DefaultUndirectedGraph<>(MapEdge.class);
@@ -99,7 +99,6 @@ public class TerrainBuilder2 {
 		Map<MapEdge, MapEdge> dualToVoronoi = new HashMap<>();
 
 		for (Point p : graph.getSitePoints()) {
-			//			System.out.println(p);
 			Location loc = new Location(p.x, p.y);
 			dualGraph.addVertex(loc);
 			dualVertices.add(loc);
@@ -203,7 +202,6 @@ public class TerrainBuilder2 {
 			double adjustedTemperature = baseTemperature
 					- (loc.elevation - MapperMain.SEALEVEL) * (loc.elevation - MapperMain.SEALEVEL)
 					+ 0.1 * loc.temperatureVariance;
-			//			System.out.println(loc.y + ", " + adjustedTemperature);
 			loc.temperature = adjustedTemperature;
 		});
 	}
@@ -249,27 +247,22 @@ public class TerrainBuilder2 {
 			return v.elevation;
 		}).average().getAsDouble();
 		double min = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
-			//			System.out.println(v.elevation);
 			return v.elevation;
 		}).min().getAsDouble();
 		double max = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
 			return v.elevation;
 		}).max().getAsDouble();
 
-		System.out.println(average + ", " + min + ", " + max);
 
 		double shift = (max + min) / 2;
 		double scale = 2 / (max - min);
 
 		buildResult.voronoiVertices.forEach((v) -> {
 			if (v.elevation < min) {
-				System.out.println(v.elevation + " < " + min);
 				throw new IllegalStateException();
 			}
 			//			v.elevation = -1;
-			//			System.out.print("-1 + 2 * (" + v.elevation + " - " + min + ")/(" + max + " - " + min + ") = ");
 			v.elevation = -1 + 2 * (v.elevation - min) / (max - min);
-			//			System.out.println(v.elevation);
 			//			v.elevation = 2*Math.random() - 4;
 			//			v.elevation -= shift;
 			//			v.elevation *= scale;
@@ -284,16 +277,6 @@ public class TerrainBuilder2 {
 			e.elevation = -1 + 2 * (e.elevation - min) / (max - min);
 		});
 
-		double average2 = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
-			return v.elevation;
-		}).average().getAsDouble();
-		double min2 = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
-			return v.elevation;
-		}).min().getAsDouble();
-		double max2 = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
-			return v.elevation;
-		}).max().getAsDouble();
-		System.out.println(average2 + ", " + min2 + ", " + max2);
 	}
 
 	//	public void fillDepressions(Graphs graphs) {
@@ -359,7 +342,6 @@ public class TerrainBuilder2 {
 			}).min().orElse(Double.POSITIVE_INFINITY);
 			if (min > v.elevation) {
 				depressions.add(v);
-				//				System.out.println("depression: " + v.hashCode());
 			}
 		});
 
@@ -427,7 +409,6 @@ public class TerrainBuilder2 {
 		}
 
 		graphs.dualVertices.forEach((v) -> {
-			//			System.out.println(v.elevation + " -> " + v.pdElevation);
 			v.elevation = v.pdElevation;
 		});
 	}
@@ -448,7 +429,6 @@ public class TerrainBuilder2 {
 			MapEdge newEdge = null;
 			double minHeight = Double.POSITIVE_INFINITY;
 			for (MapEdge edge : neighborEdges) {
-				//				System.out.println(edge.oppositeLocation(loc).elevation);
 				if (minHeight > edge.oppositeLocation(loc).elevation) {
 					newEdge = edge;
 					minHeight = edge.oppositeLocation(loc).elevation;
@@ -456,14 +436,7 @@ public class TerrainBuilder2 {
 			}
 
 			if (minHeight >= loc.elevation && !loc.boundaryLocation && !loc.foo && !loc.water) {
-				//				System.out.println("error: " + loc.hashCode());
-				//				if (depressions.contains(loc)) {
-				//					System.out.println("contained");
-				//				}
 				throw new IllegalStateException();
-
-				//				newEdge.river = true;
-				//				auxGraph.addEdge(loc, newEdge.oppositeLocation(loc), newEdge);
 			} else {
 				if (newEdge != null) {
 					newEdge.river = true;
@@ -477,7 +450,6 @@ public class TerrainBuilder2 {
 		// now label vertices in river graph with height
 		boolean changed = true;
 		while (changed) {
-			//			System.out.println("labeling...");
 			changed = graphs.dualVertices.stream().reduce(Boolean.FALSE, (c, v) -> {
 				if (v.graphHeight == -1) {
 					Set<MapEdge> outgoingEdges = auxGraph.outgoingEdgesOf(v);
@@ -518,7 +490,6 @@ public class TerrainBuilder2 {
 				MapEdge outgoingEdge = outgoingEdges.iterator().next();
 				outgoingEdge.flux = flux;
 				v.flux = flux;
-				//				System.out.println(flux);
 			}
 
 			v.riverJuncture = auxGraph.incomingEdgesOf(v).size() > 1;
@@ -560,7 +531,6 @@ public class TerrainBuilder2 {
 	public void setVoronoiCornerElevations(Graphs graphs) {
 		graphs.dualEdges.forEach((edge) -> {
 			edge.elevation = (edge.loc1.elevation + edge.loc2.elevation) / 2.0;
-			//			System.out.println("!!! " + edge.elevation);
 			MapEdge voronoiEdge = graphs.dualToVoronoi.get(edge);
 			if (voronoiEdge != null) {
 				voronoiEdge.elevation = edge.elevation;
@@ -573,7 +543,6 @@ public class TerrainBuilder2 {
 				elevationSum += edge.elevation;
 			}
 			loc.elevation = elevationSum / neighborEdges.size();
-			//			System.out.println("+++ " + loc.elevation);
 		});
 	}
 
@@ -601,25 +570,11 @@ public class TerrainBuilder2 {
 		}).average().getAsDouble();
 		graphs.voronoiVertices.forEach((loc) -> {
 			loc.water = (loc.elevation < average + sealevel);
-			//			if (loc.water) {
-			//				System.out.println("water!");
-			//			} else {
-			//				System.out.println("not water!");
-			//			}
 		});
 		graphs.dualVertices.forEach((loc) -> {
-			//			System.out.println("marking water: " + loc.elevation);
 			loc.water = (loc.elevation < average + sealevel);
 			if (loc.water) {
-				//				System.out.println("water!");
 			}
-			//			loc.water = graphs.voronoiGraph.edgesOf(loc).stream().map((edge) -> {
-			//				return graphs.voronoiToDual.get(edge);
-			//			}).flatMap((edge) -> {
-			//				return Arrays.stream(new Location[] { edge.loc1, edge.loc2 });
-			//			}).allMatch((dualVertex) -> {
-			//				return dualVertex.water;
-			//			});
 		});
 	}
 
@@ -638,7 +593,7 @@ public class TerrainBuilder2 {
 			loc.elevation = loc.pdElevation;
 		});
 	}
-	
+
 	public void growForests(Graphs graphs) {
 		graphs.dualVertices.forEach((loc) -> {
 			List<Location> neighbors = graphs.dualGraph.edgesOf(loc).stream().map((edge) -> {
@@ -647,7 +602,6 @@ public class TerrainBuilder2 {
 			double max = neighbors.stream().mapToDouble((n) -> {
 				return n.baseMoisture;
 			}).max().getAsDouble();
-
 
 			if (loc.baseMoisture > 0.15 && max > 0.15) {
 				loc.forest = true;
@@ -665,7 +619,7 @@ public class TerrainBuilder2 {
 			}).min().getAsDouble();
 
 			double diff = loc.elevation - min;
-			double dNormal = diff * Math.sqrt(numPoints)/100;
+			double dNormal = diff * Math.sqrt(numPoints) / 100;
 
 			if (dNormal > 0.1) {
 				loc.mountain = true;
@@ -696,17 +650,6 @@ public class TerrainBuilder2 {
 			v.baseMoisture = -1 + 2 * (v.baseMoisture - min) / (max - min);
 		});
 
-		double average2 = buildResult.dualVertices.stream().mapToDouble((v) -> {
-			return v.baseMoisture;
-		}).average().getAsDouble();
-		double min2 = buildResult.dualVertices.stream().mapToDouble((v) -> {
-			return v.baseMoisture;
-		}).min().getAsDouble();
-		double max2 = buildResult.dualVertices.stream().mapToDouble((v) -> {
-			return v.baseMoisture;
-		}).max().getAsDouble();
-
-		System.out.println(average2 + " - " + min2 + " - " + max2);
 	}
 
 	public void calculateFinalMoisture(Graphs graphs) {
@@ -740,6 +683,39 @@ public class TerrainBuilder2 {
 		}).forEach((loc) -> {
 			loc.mountain = true;
 		});
+	}
+
+	public void eliminateStrandedWater(Graphs graphs, double sealevel) {
+		Set<Location> waterVertices = graphs.dualVertices.stream().filter((loc) -> {
+			return loc.water;
+		}).collect(Collectors.toSet());
+
+		Set<Location> frontierVertices = graphs.dualVertices.stream().filter((loc) -> {
+			return loc.water && (loc.x < 0 || loc.y < 0 || loc.x > 1 || loc.y > 1);
+		}).collect(Collectors.toSet());
+
+		while (frontierVertices.size() > 0) {
+			waterVertices.removeAll(frontierVertices);
+
+			Set<Location> newVertices = new HashSet<Location>();
+
+			frontierVertices.forEach((loc) -> {
+				loc.neighboringVertices(graphs.dualGraph).forEach((v) -> {
+					if (waterVertices.contains(v)) {
+						newVertices.add(v);
+					}
+				});
+			});
+
+			frontierVertices = newVertices;
+		}
+
+		System.out.println(waterVertices.size() + " stranded vertices");
+		waterVertices.forEach((loc) -> {
+			loc.elevation = sealevel - loc.elevation + 0.001;
+			loc.water = false;
+		});
+
 	}
 
 	//	public void fillLakes(Graphs graphs) {

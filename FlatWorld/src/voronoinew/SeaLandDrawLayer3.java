@@ -90,12 +90,19 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 	}
 
 	private void drawPickListCircles(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
+		g.setColor(Color.red);
+		graphs.dualVertices.stream().filter((loc) -> {
+			return loc.foo;
+		}).forEach((loc) -> {
+			g.drawOval((int)(x0 + loc.x * xWidth), (int) (y0 + loc.y * yHeight), 4, 4);
+		});
+
 		List<Location> flatList = pickList.stream().flatMap((l) -> {
 			return l.stream();
 		}).collect(Collectors.toList());
 
 		flatList.sort((l1, l2) -> {
-			return (int) (1000*(l1.y - l2.y));
+			return (int) (1000 * (l1.y - l2.y));
 		});
 
 		flatList.stream().filter((loc) -> {
@@ -259,7 +266,6 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 			MapEdge dualEdge = graphs.voronoiToDual.get(e);
 			if (dualEdge != null) {
 				if (dualEdge.loc1.water != dualEdge.loc2.water) {
-					//					System.out.println("draw");
 					g.setColor(Color.black);
 					g.drawLine((int) (x0 + e.loc1.x * xWidth), (int) (y0 + e.loc1.y * yHeight),
 							(int) (x0 + e.loc2.x * xWidth), (int) (y0 + e.loc2.y * yHeight));
@@ -342,7 +348,6 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 				Path2D.Double p = new Path2D.Double();
 				boolean drawn = false;
 				for (int i = 0; i < path.size(); i++) {
-					//					System.out.println(">>> " + path.getScore(i) + ", " + path.getElevation(i));
 					if (path.getScore(i) > 10 * sizeFactor / BASE_SIZE_FACTOR) {
 						if (!drawn) {
 							p.moveTo(x0 + path.getX(i) * xWidth, y0 + path.getY(i) * yHeight);
