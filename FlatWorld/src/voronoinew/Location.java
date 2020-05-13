@@ -22,7 +22,6 @@ public class Location {
 	public double distanceToSubdivisionEdge = -1;
 	public float distanceToCoast = -1;
 	public float heightForSubdivision;
-	public Lake lake;
 	public boolean sea;
 	public boolean river;
 	public boolean visited;
@@ -51,6 +50,9 @@ public class Location {
 	public Color color;
 	public boolean forest;
 	public double radius = 0;
+	public int lakeNumber;
+	public boolean isLake;
+	public Lake lake;
 
 	public Location(double x, double y) {
 		this.x = x;

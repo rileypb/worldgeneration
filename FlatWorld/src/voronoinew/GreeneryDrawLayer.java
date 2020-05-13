@@ -38,7 +38,7 @@ public class GreeneryDrawLayer extends BaseDrawLayer {
 		double y0 = clipBounds.y - 20;
 		double xWidth = clipBounds.width * 1.1;
 		double yHeight = clipBounds.height * 1.1;
-		
+
 		g.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 
 		g.setColor(Color.BLACK);
@@ -53,25 +53,24 @@ public class GreeneryDrawLayer extends BaseDrawLayer {
 
 		drawCells(g, graphs, x0, y0, xWidth, yHeight);
 
-//		Kernel kernel = new Kernel(3, 3, new float[] { -1, -1, -1, -1, 9, -1, -1, -1, -1 });
-//		ConvolveOp op = new ConvolveOp(kernel);
-//		BufferedImage im2 = new BufferedImage(im.getWidth(), im.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
-//		op.filter(im, im2);
-//		g.drawImage(im2, 0, 0, im.getWidth(), im.getHeight(), null);
+		//		Kernel kernel = new Kernel(3, 3, new float[] { -1, -1, -1, -1, 9, -1, -1, -1, -1 });
+		//		ConvolveOp op = new ConvolveOp(kernel);
+		//		BufferedImage im2 = new BufferedImage(im.getWidth(), im.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+		//		op.filter(im, im2);
+		//		g.drawImage(im2, 0, 0, im.getWidth(), im.getHeight(), null);
 
 		drawRivers(g, graphs, x0, y0, xWidth, yHeight);
 	}
 
 	private void drawRivers(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
-		g.setColor(seaBlue);
+//		g.setColor(seaBlue);
 		if (graphs.riverPaths != null) {
 			graphs.riverPaths.forEach((path) -> {
 				Path2D.Double p = new Path2D.Double();
 				boolean drawn = false;
 				for (int i = 0; i < path.size() - 1; i++) {
-					//					System.out.println(">>> " + path.getScore(i) + ", " + path.getElevation(i));
 
-					g.setStroke(new BasicStroke((float) (path.getScore(i) / 40*BASE_SIZE_FACTOR/sizeFactor), BasicStroke.CAP_ROUND,
+					g.setStroke(new BasicStroke((float) Math.min(6, path.getScore(i) / 40*BASE_SIZE_FACTOR/sizeFactor), BasicStroke.CAP_ROUND,
 							BasicStroke.JOIN_ROUND));
 					if (path.getScore(i) > 10*sizeFactor/BASE_SIZE_FACTOR) {
 						g.drawLine((int) (x0 + path.getX(i) * xWidth), (int) (y0 + path.getY(i) * yHeight),
@@ -92,7 +91,6 @@ public class GreeneryDrawLayer extends BaseDrawLayer {
 				return graphs.dualToVoronoi.get(voronoiEdge);
 			}).collect(Collectors.toList());
 
-			
 			edgeList.forEach((e) -> {
 				if (e != null) {
 					Path2D.Double p = new Path2D.Double();
@@ -114,7 +112,7 @@ public class GreeneryDrawLayer extends BaseDrawLayer {
 						//					g.setColor(loc.color);
 					}
 					g.fill(p);
-//					g.draw(p);
+					//					g.draw(p);
 				}
 			});
 		});
@@ -176,19 +174,19 @@ public class GreeneryDrawLayer extends BaseDrawLayer {
 			} else {
 				if (loc.moisture > 0.25) {
 					loc.baseColor = greenest;
-					if (loc.flux > 50*sizeFactor/BASE_SIZE_FACTOR) {
+					if (loc.flux > 50 * sizeFactor / BASE_SIZE_FACTOR) {
 						loc.baseColor = medGreen;
 					}
-				} else if (loc.moisture < -0.25){
+				} else if (loc.moisture < -0.25) {
 					loc.baseColor = medBrown;
-					if (loc.flux > 25*sizeFactor/BASE_SIZE_FACTOR) {
+					if (loc.flux > 25 * sizeFactor / BASE_SIZE_FACTOR) {
 						loc.baseColor = medGreen;
 					}
 				} else {
 					double scale = 2 * (loc.moisture + 0.25);
-					int red = (int) (scale * greenest.getRed() + (1-scale) * medBrown.getRed());
-					int green = (int) (scale * greenest.getGreen() + (1-scale) * medBrown.getGreen());
-					int blue = (int) (scale * greenest.getBlue() + (1-scale) * medBrown.getBlue());
+					int red = (int) (scale * greenest.getRed() + (1 - scale) * medBrown.getRed());
+					int green = (int) (scale * greenest.getGreen() + (1 - scale) * medBrown.getGreen());
+					int blue = (int) (scale * greenest.getBlue() + (1 - scale) * medBrown.getBlue());
 					loc.baseColor = new Color(red, green, blue);
 				}
 

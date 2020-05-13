@@ -26,7 +26,7 @@ public class MapperMain {
 	private static int screenWidth;
 	private static int screenHeight;
 
-	public static final int POINTS = 5000;
+	public static final int POINTS = 24000;
 
 	public static void main(String[] args) {
 		screenWidth = 800;
@@ -34,7 +34,7 @@ public class MapperMain {
 
 		TerrainBuilder2 builder = new TerrainBuilder2(POINTS, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
-//										seed = -677464267;
+//										seed = -329540688;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
@@ -87,7 +87,7 @@ public class MapperMain {
 
 		builder.markWater(buildResult, SEALEVEL);
 		
-		builder.eliminateStrandedWater(buildResult, SEALEVEL);
+		builder.eliminateStrandedWaterAndFindLakes(buildResult, SEALEVEL);
 
 		builder.raiseMountains(buildResult, POINTS);
 		builder.fillInMountainGaps(buildResult);

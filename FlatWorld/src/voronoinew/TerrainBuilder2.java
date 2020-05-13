@@ -36,7 +36,8 @@ public class TerrainBuilder2 {
 	private int numberOfPoints;
 	private CellType cellType;
 	private ArrayList<Location> depressions;
-	private ArrayList<Lake> lakes;
+	private int numberOfLakes;
+	private Lake[] lakes;
 
 	public TerrainBuilder2(int numberOfPoints, CellType cellType) {
 		this.numberOfPoints = numberOfPoints;
@@ -235,7 +236,6 @@ public class TerrainBuilder2 {
 			return v.elevation;
 		}).max().getAsDouble();
 
-
 		double shift = (max + min) / 2;
 		double scale = 2 / (max - min);
 
@@ -258,18 +258,54 @@ public class TerrainBuilder2 {
 	}
 
 	public void fillDepressions(Graphs graphs) {
-		this.depressions = new ArrayList<>();
+		DefaultUndirectedGraph<Location, MapEdge> graphWithLakes = new DefaultUndirectedGraph<>(MapEdge.class);
+		lakes = new Lake[numberOfLakes];
+		for (int i = 0; i < numberOfLakes; i++) {
+			lakes[i] = new Lake(0, 0);
+			lakes[i].elevation = 0.5;
+			graphWithLakes.addVertex(lakes[i]);
+		}
+
 		graphs.dualVertices.forEach((v) -> {
-			List<Location> neighbors = neighboringDualVertices(graphs, v).collect(Collectors.toList());
+			if (v.isLake) {
+				lakes[v.lakeNumber].addVertex(v);
+				v.lake = lakes[v.lakeNumber];
+			} else {
+				graphWithLakes.addVertex(v);
+			}
+		});
+
+		graphs.dualEdges.forEach((edge) -> {
+			Location loc1 = edge.loc1;
+			Location loc2 = edge.loc2;
+			if (loc1.isLake) {
+				loc1 = loc1.lake;
+			}
+			if (loc2.isLake) {
+				loc2 = loc2.lake;
+			}
+
+			if (loc1 != loc2) {
+				if (!graphWithLakes.containsEdge(loc1, loc2)) {
+					graphWithLakes.addEdge(loc1, loc2, new MapEdge(loc1, loc2));
+				}
+			}
+		});
+
+		this.depressions = new ArrayList<>();
+		graphWithLakes.vertexSet().forEach((v) -> {
+			List<Location> neighbors = graphWithLakes.edgesOf(v).stream().map((edge1) -> {
+				return edge1.oppositeLocation(v);
+			}).collect(Collectors.toList());
 			double min = neighbors.stream().mapToDouble((n) -> {
 				return n.elevation;
 			}).min().orElse(Double.POSITIVE_INFINITY);
-			if (min > v.elevation) {
+			if (min >= v.elevation) {
 				depressions.add(v);
 			}
 		});
 
-		graphs.dualVertices.forEach((v) -> {
+		graphWithLakes.vertexSet().forEach((v) -> {
 			v.pdElevation = (v.water || v.boundaryLocation) ? v.elevation : Double.POSITIVE_INFINITY;
 		});
 
@@ -277,9 +313,11 @@ public class TerrainBuilder2 {
 		boolean somethingDone = true;
 		while (somethingDone) {
 			somethingDone = false;
-			for (Location c : graphs.dualVertices) {
+			for (Location c : graphWithLakes.vertexSet()) {
 				if (c.pdElevation > c.elevation) {
-					List<Location> neighbors = neighboringDualVertices(graphs, c).collect(Collectors.toList());
+					List<Location> neighbors = graphWithLakes.edgesOf(c).stream().map((edge1) -> {
+						return edge1.oppositeLocation(c);
+					}).collect(Collectors.toList());
 
 					for (Location n : neighbors) {
 						if (c.elevation >= n.pdElevation + epsilon) {
@@ -296,16 +334,42 @@ public class TerrainBuilder2 {
 			}
 		}
 
-		graphs.dualVertices.forEach((v) -> {
+		graphWithLakes.vertexSet().forEach((v) -> {
 			v.elevation = v.pdElevation;
 		});
+
+		for (Lake l : lakes) {
+			for (Location loc : l.getVertices()) {
+				loc.elevation = l.elevation;
+				loc.water = true;
+			}
+			double min = graphWithLakes.edgesOf(l).stream().map((e) -> {
+				return e.oppositeLocation(l);
+			}).mapToDouble((v) -> {
+				return v.elevation;
+			}).min().orElse(Double.POSITIVE_INFINITY);
+			double max = graphWithLakes.edgesOf(l).stream().map((e) -> {
+				return e.oppositeLocation(l);
+			}).mapToDouble((v) -> {
+				return v.elevation;
+			}).max().orElse(Double.POSITIVE_INFINITY);
+			if (min >= l.elevation) {
+				throw new IllegalStateException();
+			}
+			if (max <= l.elevation) {
+				throw new IllegalStateException();
+			}
+		}
+
+		for (Location loc : graphs.dualVertices) {
+			if (loc.isLake) {
+				assert (lakes[loc.lakeNumber].getVertices().contains(loc));
+			}
+		}
 	}
 
 	public void runRivers(Graphs graphs) {
 		DefaultDirectedGraph<Location, MapEdge> auxGraph = new DefaultDirectedGraph<>(MapEdge.class);
-
-		Map<Location, Location> originalLocation = new HashMap<>();
-		Map<MapEdge, MapEdge> originalEdge = new HashMap<>();
 
 		graphs.dualVertices.forEach((loc) -> {
 			auxGraph.addVertex(loc);
@@ -325,9 +389,14 @@ public class TerrainBuilder2 {
 
 			if (minHeight >= loc.elevation && !loc.boundaryLocation && !loc.water) {
 				throw new IllegalStateException();
+			} else if (minHeight > loc.elevation && !loc.boundaryLocation && loc.isLake) {
+				throw new IllegalStateException();
 			} else {
 				if (newEdge != null) {
 					newEdge.river = true;
+					if (loc.isLake && newEdge.oppositeLocation(loc).elevation > loc.elevation) {
+						int a = 0;
+					}
 					auxGraph.addEdge(loc, newEdge.oppositeLocation(loc), newEdge);
 				}
 			}
@@ -370,24 +439,48 @@ public class TerrainBuilder2 {
 		for (Location v : vertices) {
 			Set<MapEdge> incomingEdges = auxGraph.incomingEdgesOf(v);
 			double flux = Math.max(0, Math.min(2, 1 + v.baseMoisture));
+			int i = 0;
 			for (MapEdge edge : incomingEdges) {
+//				if (edge.elevation == v.elevation) {
+//					continue;
+//				}
+				i++;
 				flux += edge.flux;
+
+				if (edge.oppositeLocation(v).isLake) {
+					if (!v.isLake) {
+						System.out.println("fooooo");
+						System.out.println(edge.oppositeLocation(v));
+					}
+					v.foo = true;
+					
+					flux += 100;//3 * edge.oppositeLocation(v).lake.getVertices().size();
+					edge.oppositeLocation(v).riverHead = true;
+					edge.oppositeLocation(v).flux = 100;
+					edge.oppositeLocation(v).foo = true;
+				}
 			}
+
 			Set<MapEdge> outgoingEdges = auxGraph.outgoingEdgesOf(v);
 			if (!outgoingEdges.isEmpty()) {
 				MapEdge outgoingEdge = outgoingEdges.iterator().next();
 				outgoingEdge.flux = flux;
 				v.flux = flux;
+			} else {
+				int a = 0;
 			}
 
-			v.riverJuncture = auxGraph.incomingEdgesOf(v).size() > 1;
-			v.riverHead = auxGraph.incomingEdgesOf(v).size() == 0;
+			v.riverJuncture = i > 1; //auxGraph.incomingEdgesOf(v).size() > 1;
+			v.riverHead = v.riverHead && i == 0; //v.riverHead || auxGraph.incomingEdgesOf(v).size() == 0;
 		}
 
 		// finally compile into separate paths
 		List<Path> paths = new ArrayList<>();
 		for (Location v : vertices) {
 			if (v.riverHead || v.riverJuncture) {
+				if (v.isLake) {
+					System.out.println("LAKE!");
+				}
 				Path p = new Path();
 				MapEdge outgoingEdge = singleOutgoingEdge(auxGraph, v);
 				Location currentVertex = v;
@@ -412,7 +505,7 @@ public class TerrainBuilder2 {
 
 	private MapEdge singleOutgoingEdge(DefaultDirectedGraph<Location, MapEdge> graph, Location v) {
 		Set<MapEdge> outgoingEdges = graph.outgoingEdgesOf(v);
-		MapEdge outgoingEdge = outgoingEdges.size() > 0 ? outgoingEdges.iterator().next() : null;
+		MapEdge outgoingEdge = outgoingEdges.size() == 1 ? outgoingEdges.iterator().next() : null;
 		return outgoingEdge;
 	}
 
@@ -569,7 +662,7 @@ public class TerrainBuilder2 {
 		});
 	}
 
-	public void eliminateStrandedWater(Graphs graphs, double sealevel) {
+	public void eliminateStrandedWaterAndFindLakes(Graphs graphs, double sealevel) {
 		Set<Location> waterVertices = graphs.dualVertices.stream().filter((loc) -> {
 			return loc.water;
 		}).collect(Collectors.toSet());
@@ -594,13 +687,39 @@ public class TerrainBuilder2 {
 			frontierVertices = newVertices;
 		}
 
-		System.out.println(waterVertices.size() + " stranded vertices");
-		waterVertices.forEach((loc) -> {
-			loc.elevation = sealevel - loc.elevation + 0.001;
-			loc.water = false;
-		});
+		numberOfLakes = 0;
 
+		while (waterVertices.size() > 0) {
+			Location seedVertex = waterVertices.iterator().next();
+			seedVertex.isLake = true;
+			seedVertex.lakeNumber = numberOfLakes;
+			seedVertex.elevation = sealevel + 0.001;
+			Set<Location> lakeVertices = new HashSet<Location>();
+			frontierVertices = new HashSet<Location>();
+			frontierVertices.add(seedVertex);
+
+			while (frontierVertices.size() > 0) {
+				waterVertices.removeAll(frontierVertices);
+				Set<Location> newVertices = new HashSet<Location>();
+				frontierVertices.forEach((loc) -> {
+					loc.neighboringVertices(graphs.dualGraph).forEach((v) -> {
+						if (waterVertices.contains(v)) {
+							newVertices.add(v);
+						}
+					});
+				});
+
+				for (Location loc : newVertices) {
+					loc.isLake = true;
+					loc.lakeNumber = numberOfLakes;
+					loc.elevation = sealevel + 0.001;
+				}
+				frontierVertices = newVertices;
+			}
+			numberOfLakes++;
+		}
+
+		System.out.println(numberOfLakes + " lakes");
 	}
-
 
 }

@@ -1,43 +1,22 @@
 package voronoinew;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
-public class Lake {
+import java.util.HashSet;
+import java.util.Set;
 
-	private double elevation = -1000;
-	private List<Location> faces = new ArrayList<>();
-	private double outletElevation = 1000;
+public class Lake extends Location {
 
-	public double getElevation() {
-		return elevation;
+	private Set<Location> vertices = new HashSet<Location>();
+	
+	public Lake(double x, double y) {
+		super(x, y);
 	}
 
-	public void addFace(Location newFace) {
-		faces.add(newFace);
-		newFace.lake = this;
-		newFace.water = true;
-		elevation = newFace.elevation > elevation ? newFace.elevation : elevation;
+	public void addVertex(Location v) {
+		vertices.add(v);
 	}
-
-	public void addLakeFaces(Lake lake2) {
-		lake2.faces.forEach((face) -> {
-			addFace(face);
-		});
-	}
-
-	public void setOutletElevation(double elevation) {
-		if (elevation < outletElevation) {
-			outletElevation = elevation;
-		}
-	}
-
-	public double getOutletElevation() {
-		return outletElevation;
-	}
-
-	public List<Location> getFaces() {
-		return Collections.unmodifiableList(faces);
+	
+	public Set<Location> getVertices() {
+		return new HashSet<>(vertices);
 	}
 
 }

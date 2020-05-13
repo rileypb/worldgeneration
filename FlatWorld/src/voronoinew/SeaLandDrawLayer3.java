@@ -90,12 +90,12 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 	}
 
 	private void drawPickListCircles(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
-		g.setColor(Color.red);
-		graphs.dualVertices.stream().filter((loc) -> {
-			return loc.foo;
-		}).forEach((loc) -> {
-			g.drawOval((int)(x0 + loc.x * xWidth), (int) (y0 + loc.y * yHeight), 4, 4);
-		});
+//		g.setColor(Color.red);
+//		graphs.dualVertices.stream().filter((loc) -> {
+//			return loc.foo;
+//		}).forEach((loc) -> {
+//			g.drawOval((int)(x0 + loc.x * xWidth), (int) (y0 + loc.y * yHeight), 4, 4);
+//		});
 
 		List<Location> flatList = pickList.stream().flatMap((l) -> {
 			return l.stream();
@@ -385,7 +385,11 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 							y0 + yHeight * minmax(0, 1, e.loc2.y));
 
 					if (loc.water) {
-						g.setColor(loc.color);
+						if (loc.isLake) {
+							g.setColor(Color.red);
+						} else {
+							g.setColor(loc.color);
+						}
 						//					} else if (loc.forest && !loc.mountain && !loc.hill) {
 						//						g.setColor(hillColor.green);
 					} else {
