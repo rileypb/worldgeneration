@@ -12,7 +12,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -73,6 +72,8 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
 		drawCells(g, graphs, x0, y0, xWidth, yHeight);
 
+		drawRoads(g, graphs, x0, y0, xWidth, yHeight);
+
 		drawRivers(g, graphs, x0, y0, xWidth, yHeight);
 
 		drawWater(g, graphs, x0, y0, xWidth, yHeight);
@@ -83,10 +84,34 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
 		drawPickListCircles(g, graphs, x0, y0, xWidth, yHeight);
 
+		//		drawRoads(g, graphs, x0, y0, xWidth, yHeight);
+
 		Color medGray = new Color(0.5f, 0.5f, 0.5f);
 		//		drawMountains(g, graphs, prettyMountains, x0, y0, xWidth, yHeight);
 
 		//		drawForests(g, graphs, x0, y0, xWidth, yHeight);
+	}
+	//
+	//	private void drawRoads(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
+	//		graphs.du
+	//	}
+
+	private void drawRoads(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
+		// crap below here
+		g.setColor(Color.black);
+//		graphs.dualVertices.stream().filter((loc) -> {
+//			return loc.road;
+//		}).forEach((loc) -> {
+//			g.fillOval((int) (x0 + loc.x * xWidth - 3), (int) (y0 + loc.y * yHeight - 3), 6, 6);
+//		});
+
+		g.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1, new float[] { 1, 6 }, 0));
+		graphs.dualEdges.stream().filter((edge) -> {
+			return edge.road;
+		}).forEach((edge) -> {
+			g.drawLine((int) (x0 + edge.loc1.x * xWidth), (int) (y0 + edge.loc1.y * yHeight),
+					(int) (x0 + edge.loc2.x * xWidth), (int) (y0 + edge.loc2.y * yHeight));
+		});
 	}
 
 	private void drawPickListCircles(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
@@ -112,14 +137,14 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 				g.setColor(Color.red);
 				//				g.drawOval((int) (x0 + loc.x * xWidth - 8), (int) (y0 + loc.y * yHeight - 8), 12, 12);
 			}
-		});		
-		
+		});
+
 		g.setColor(Color.black);
 		graphs.dualVertices.stream().filter((loc) -> {
 			return loc.city;
 		}).forEach((loc) -> {
-			g.fillOval((int)(x0 + loc.x * xWidth - 3), (int) (y0 + loc.y * yHeight - 3), 6, 6);
-			g.drawOval((int)(x0 + loc.x * xWidth - 6), (int) (y0 + loc.y * yHeight - 6), 12, 12);
+			g.fillOval((int) (x0 + loc.x * xWidth - 3), (int) (y0 + loc.y * yHeight - 3), 6, 6);
+			g.drawOval((int) (x0 + loc.x * xWidth - 6), (int) (y0 + loc.y * yHeight - 6), 12, 12);
 		});
 
 	}
@@ -173,7 +198,7 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 	private void drawTree(Graphics2D g, double x0, double y0, double xWidth, double yHeight, double maxY, double maxD,
 			double xa) {
 		g.setColor(Color.DARK_GRAY);
-		double ya = maxY - maxD + .01;
+		double ya = maxY - maxD + .015;
 		Path2D.Float p = new Path2D.Float();
 
 		g.drawLine((int) (x0 + (xa + maxD / 2) * xWidth), (int) (y0 + (ya - maxD) * yHeight),

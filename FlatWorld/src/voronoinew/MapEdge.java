@@ -1,4 +1,5 @@
 package voronoinew;
+
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,7 +19,8 @@ public class MapEdge {
 	public boolean boundaryEdge;
 	public double elevation;
 	public double flux;
-	
+	public boolean road;
+
 	public MapEdge(Location loc1, Location loc2) {
 		this.loc1 = loc1;
 		this.loc2 = loc2;
@@ -26,43 +28,44 @@ public class MapEdge {
 			int a = 0;
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		return loc1 + " <-> " + loc2;
 	}
-
 
 	public void addAdjacentFace(Face face) {
 		if (!adjacentFaces.contains(face)) {
 			adjacentFaces.add(face);
 		}
 	}
-	
+
 	public List<Face> getAdjacentFaces() {
 		return Collections.unmodifiableList(adjacentFaces);
 	}
-	
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+		MapEdge edge = (MapEdge) o;
 
-        MapEdge edge = (MapEdge) o;
+		if (!loc1.equals(edge.loc1))
+			return false;
+		if (!loc2.equals(edge.loc2))
+			return false;
+		return true;
+	}
 
-        if (!loc1.equals(edge.loc1)) return false;
-        if (!loc2.equals(edge.loc2)) return false;
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = loc1.hashCode();
-        result = 31 * result + loc2.hashCode();
-        return result;
-    }
+	@Override
+	public int hashCode() {
+		int result = loc1.hashCode();
+		result = 31 * result + loc2.hashCode();
+		return result;
+	}
 
 	public Location oppositeLocation(Location point) {
 		if (point == loc1) {
@@ -72,5 +75,9 @@ public class MapEdge {
 		}
 		return null;
 		//throw new IllegalArgumentException();
+	}
+
+	public double length() {
+		return Math.sqrt((loc1.x - loc2.x) * (loc1.x - loc2.x) + (loc1.y - loc2.y) * (loc1.y - loc2.y));
 	}
 }

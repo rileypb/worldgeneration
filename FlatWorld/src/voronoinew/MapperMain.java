@@ -34,7 +34,7 @@ public class MapperMain {
 
 		TerrainBuilder2 builder = new TerrainBuilder2(POINTS, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
-//										seed = 1416021076;
+//										seed = 1951326414;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
@@ -107,6 +107,8 @@ public class MapperMain {
 		for (int i = 0; i < 5; i++) {
 			cityScorer.scoreCitySites(buildResult);
 		}
+		
+		builder.buildRoads(buildResult);
 		
 		List<List<Location>> pickList = new CellPicker(buildResult, 0.004, 0.008).pick(r);
 

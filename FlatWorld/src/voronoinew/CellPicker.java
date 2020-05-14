@@ -2,11 +2,8 @@ package voronoinew;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class CellPicker {
 	private Graphs graphs;
@@ -29,7 +26,7 @@ public class CellPicker {
 		List<Location> obstacles = new ArrayList<Location>();
 
 		graphs.dualVertices.forEach((loc) -> {
-			if ((loc.water && loc.x >= 0 && loc.x <= 1 && loc.y >= 0 && loc.y <= 1) || loc.city) {
+			if ((loc.x >= 0 && loc.x <= 1 && loc.y >= 0 && loc.y <= 1) && (loc.water || loc.city || loc.road)) {
 				double maxRadius = graphs.dualGraph.edgesOf(loc).stream().map((e) -> {
 					return graphs.dualToVoronoi.get(e);
 				}).filter((e) -> {

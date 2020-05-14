@@ -55,6 +55,8 @@ public class Location {
 	public Lake lake;
 	public double cityScore;
 	public boolean city;
+	public boolean road;
+	public boolean usedForRoad;
 
 	public Location(double x, double y) {
 		this.x = x;

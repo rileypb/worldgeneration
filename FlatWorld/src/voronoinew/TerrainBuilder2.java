@@ -356,9 +356,9 @@ public class TerrainBuilder2 {
 			if (min >= l.elevation) {
 				throw new IllegalStateException();
 			}
-//			if (max <= l.elevation) {
-//				throw new IllegalStateException();
-//			}
+			//			if (max <= l.elevation) {
+			//				throw new IllegalStateException();
+			//			}
 		}
 
 		for (Location loc : graphs.dualVertices) {
@@ -441,9 +441,9 @@ public class TerrainBuilder2 {
 			double flux = Math.max(0, Math.min(2, 1 + v.baseMoisture));
 			int i = 0;
 			for (MapEdge edge : incomingEdges) {
-//				if (edge.elevation == v.elevation) {
-//					continue;
-//				}
+				//				if (edge.elevation == v.elevation) {
+				//					continue;
+				//				}
 				i++;
 				flux += edge.flux;
 
@@ -453,10 +453,10 @@ public class TerrainBuilder2 {
 						System.out.println(edge.oppositeLocation(v));
 					}
 					v.foo = true;
-					
-					flux += 100;//3 * edge.oppositeLocation(v).lake.getVertices().size();
+
+					flux += 3 * edge.oppositeLocation(v).lake.getVertices().size();
 					edge.oppositeLocation(v).riverHead = true;
-					edge.oppositeLocation(v).flux = 100;
+					edge.oppositeLocation(v).flux = 3 * edge.oppositeLocation(v).lake.getVertices().size();;
 					edge.oppositeLocation(v).foo = true;
 				}
 			}
@@ -720,6 +720,45 @@ public class TerrainBuilder2 {
 		}
 
 		System.out.println(numberOfLakes + " lakes");
+	}
+
+	public void buildRoads(Graphs graphs) {
+		for (Location city1 : graphs.cities) {
+			for (Location city2 : graphs.cities) {
+				if (city1.x > city2.x || city1.y > city2.y) {
+					graphs.dualVertices.forEach((loc) -> {
+						loc.usedForRoad = false;
+					});
+					PriorityQueue<Road> roads = new PriorityQueue<Road>((l1, l2) -> {
+						return (int) (10000*(l1.getScore() - l2.getScore()));
+					});
+					Road initialRoad = new Road();
+					initialRoad.add(city1);
+					roads.offer(initialRoad);
+					Road winner = null;
+					while (winner == null && roads.size() > 0) {
+						Road currentRoad = roads.remove();
+						Location head = currentRoad.getHead();
+						Set<Location> neighboringVertices = head.neighboringVertices(graphs.dualGraph);
+						for (Location neighbor : neighboringVertices) {
+							if (!neighbor.usedForRoad && !neighbor.water) {
+								head.usedForRoad = true;
+								MapEdge edge = graphs.dualGraph.getEdge(head, neighbor);
+								Road extension = currentRoad.extend(neighbor, edge);
+								if (neighbor == city2) {
+									winner = extension;
+									break;
+								}
+								roads.offer(extension);
+							}
+						}
+					}
+					if (winner != null) {
+						winner.markRoad();
+					}
+				}
+			}
+		}
 	}
 
 }
