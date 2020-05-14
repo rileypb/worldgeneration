@@ -34,7 +34,7 @@ public class CityScorer {
 			double distance = Math.sqrt((city.x - loc.x) * (city.x - loc.x) + (city.y - loc.y) * (city.y - loc.y));
 			if (distance == 0) {
 				siteScore = Double.NEGATIVE_INFINITY;
-			} else if (distance <  0.5/sizeFactor) {
+			} else if (distance <  0.25 / (1 + graphs.cities.size())) {
 				siteScore -= 800;
 			}
 		}
