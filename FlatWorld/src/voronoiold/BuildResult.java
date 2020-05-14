@@ -1,4 +1,4 @@
-package voronoi;
+package voronoiold;
 
 public class BuildResult {
 

@@ -1,4 +1,4 @@
-package square;
+package voronoiold;
 
 
 import java.awt.Color;

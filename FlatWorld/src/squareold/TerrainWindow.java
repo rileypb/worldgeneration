@@ -1,4 +1,4 @@
-package square;
+package squareold;
 
 public class TerrainWindow {
 	public final double x0;

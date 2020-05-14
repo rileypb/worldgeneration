@@ -1,4 +1,4 @@
-package voronoi;
+package voronoiold;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;

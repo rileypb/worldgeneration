@@ -1,4 +1,4 @@
-package voronoi;
+package voronoiold;
 import java.awt.Graphics2D;
 
 public interface DrawLayer {

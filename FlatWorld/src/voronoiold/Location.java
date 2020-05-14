@@ -1,4 +1,4 @@
-package voronoi;
+package voronoiold;
 import static de.alsclo.voronoi.Math.EPSILON;
 import static de.alsclo.voronoi.Math.PRECISION;
 import static java.lang.Math.abs;

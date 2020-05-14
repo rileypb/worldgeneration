@@ -1,4 +1,4 @@
-package square;
+package squareold;
 
 import java.awt.BorderLayout;
 import java.awt.Canvas;

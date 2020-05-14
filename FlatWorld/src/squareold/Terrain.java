@@ -1,4 +1,4 @@
-package square;
+package squareold;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
