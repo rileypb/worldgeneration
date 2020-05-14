@@ -53,6 +53,8 @@ public class Location {
 	public int lakeNumber;
 	public boolean isLake;
 	public Lake lake;
+	public double cityScore;
+	public boolean city;
 
 	public Location(double x, double y) {
 		this.x = x;

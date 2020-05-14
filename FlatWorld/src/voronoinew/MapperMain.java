@@ -26,7 +26,7 @@ public class MapperMain {
 	private static int screenWidth;
 	private static int screenHeight;
 
-	public static final int POINTS = 24000;
+	public static final int POINTS = 4000;
 
 	public static void main(String[] args) {
 		screenWidth = 800;
@@ -34,7 +34,7 @@ public class MapperMain {
 
 		TerrainBuilder2 builder = new TerrainBuilder2(POINTS, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
-//										seed = -329540688;
+//										seed = 1416021076;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
@@ -102,6 +102,11 @@ public class MapperMain {
 
 		builder.calculateFinalMoisture(buildResult);
 		builder.growForests(buildResult);
+		
+		CityScorer cityScorer = new CityScorer(POINTS);
+		for (int i = 0; i < 5; i++) {
+			cityScorer.scoreCitySites(buildResult);
+		}
 		
 		List<List<Location>> pickList = new CellPicker(buildResult, 0.004, 0.008).pick(r);
 

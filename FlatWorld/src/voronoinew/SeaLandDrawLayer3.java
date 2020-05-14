@@ -90,12 +90,6 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 	}
 
 	private void drawPickListCircles(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
-//		g.setColor(Color.red);
-//		graphs.dualVertices.stream().filter((loc) -> {
-//			return loc.foo;
-//		}).forEach((loc) -> {
-//			g.drawOval((int)(x0 + loc.x * xWidth), (int) (y0 + loc.y * yHeight), 4, 4);
-//		});
 
 		List<Location> flatList = pickList.stream().flatMap((l) -> {
 			return l.stream();
@@ -118,7 +112,16 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 				g.setColor(Color.red);
 				//				g.drawOval((int) (x0 + loc.x * xWidth - 8), (int) (y0 + loc.y * yHeight - 8), 12, 12);
 			}
+		});		
+		
+		g.setColor(Color.black);
+		graphs.dualVertices.stream().filter((loc) -> {
+			return loc.city;
+		}).forEach((loc) -> {
+			g.fillOval((int)(x0 + loc.x * xWidth - 3), (int) (y0 + loc.y * yHeight - 3), 6, 6);
+			g.drawOval((int)(x0 + loc.x * xWidth - 6), (int) (y0 + loc.y * yHeight - 6), 12, 12);
 		});
+
 	}
 
 	private void drawForests(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
@@ -341,8 +344,8 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 	}
 
 	private void drawRivers(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
-		g.setColor(new Color(0.5f, 0.5f, 0.5f));
-		g.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+		g.setColor(new Color(0.4f, 0.4f, 0.4f));
+		g.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 		if (graphs.riverPaths != null) {
 			graphs.riverPaths.forEach((path) -> {
 				Path2D.Double p = new Path2D.Double();

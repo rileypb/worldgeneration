@@ -356,9 +356,9 @@ public class TerrainBuilder2 {
 			if (min >= l.elevation) {
 				throw new IllegalStateException();
 			}
-			if (max <= l.elevation) {
-				throw new IllegalStateException();
-			}
+//			if (max <= l.elevation) {
+//				throw new IllegalStateException();
+//			}
 		}
 
 		for (Location loc : graphs.dualVertices) {

@@ -29,7 +29,7 @@ public class CellPicker {
 		List<Location> obstacles = new ArrayList<Location>();
 
 		graphs.dualVertices.forEach((loc) -> {
-			if (loc.water && loc.x >= 0 && loc.x <= 1 && loc.y >= 0 && loc.y <= 1) {
+			if ((loc.water && loc.x >= 0 && loc.x <= 1 && loc.y >= 0 && loc.y <= 1) || loc.city) {
 				double maxRadius = graphs.dualGraph.edgesOf(loc).stream().map((e) -> {
 					return graphs.dualToVoronoi.get(e);
 				}).filter((e) -> {

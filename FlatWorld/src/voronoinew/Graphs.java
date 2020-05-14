@@ -1,6 +1,7 @@
 package voronoinew;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,6 +24,7 @@ public class Graphs {
 	public List<Location> subdivisionSeeds;
 	public DefaultDirectedGraph<Location, MapEdge> riverGraph;
 	public List<Path> riverPaths;
+	public Set<Location> cities;
 
 	public Graphs(DefaultUndirectedGraph<Location, MapEdge> voronoiGraph,
 			DefaultUndirectedGraph<Location, MapEdge> dualGraph, Set<Location> dualVertices,
@@ -36,6 +38,8 @@ public class Graphs {
 		this.voronoiEdges = voronoiEdges;
 		this.dualToVoronoi = dualToVoronoi;
 		this.voronoiToDual = voronoiToDual;
+		
+		cities = new HashSet<Location>();
 	}
 
 	public Stream<Location> getVoronoiVerticesForDualVertex(Location v) {

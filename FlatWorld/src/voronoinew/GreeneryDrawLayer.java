@@ -63,7 +63,7 @@ public class GreeneryDrawLayer extends BaseDrawLayer {
 	}
 
 	private void drawRivers(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
-//		g.setColor(seaBlue);
+		g.setColor(seaBlue);
 		if (graphs.riverPaths != null) {
 			graphs.riverPaths.forEach((path) -> {
 				Path2D.Double p = new Path2D.Double();
