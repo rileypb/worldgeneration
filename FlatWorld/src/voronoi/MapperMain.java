@@ -1,9 +1,8 @@
-package voronoinew;
+package voronoi;
 
 import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
-import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -110,7 +109,7 @@ public class MapperMain {
 		
 		builder.buildRoads(buildResult);
 		
-		List<List<Location>> pickList = new CellPicker(buildResult, 0.004, 0.008).pick(r);
+		List<List<Location>> pickList = new CellPicker(buildResult, 0.008).pick(r);
 
 		System.out.println("drawing...");
 
@@ -123,11 +122,6 @@ public class MapperMain {
 
 		BufferedImage img = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g = img.createGraphics();
-		//		g.setColor(Color.black);
-		//		g.fillRect(0, 0, screenWidth, screenHeight);
-		//		g.setColor(Color.gray);
-		//		g.fillRect(20, 20, screenWidth - 40, screenHeight - 40);
-		//		g.setClip(25, 25, screenWidth - 50, screenHeight - 50);
 
 		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g.setBackground(Color.white);
@@ -158,15 +152,6 @@ public class MapperMain {
 			}
 		};
 		canvas.setMinimumSize(new Dimension(screenWidth, screenHeight));
-
-		//		Timer timer = new Timer("foo");
-		//		timer.schedule(new TimerTask() {
-		//			@Override
-		//			public void run() {
-		//				builder.drawImage(g, true);
-		//				canvas.repaint();
-		//			}
-		//		}, 0, 200);
 
 		frame.getContentPane().setLayout(new BorderLayout());
 		frame.getContentPane().add(canvas, BorderLayout.CENTER);

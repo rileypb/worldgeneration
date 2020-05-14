@@ -1,4 +1,4 @@
-package voronoinew;
+package voronoi;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 

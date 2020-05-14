@@ -1,4 +1,4 @@
-package voronoinew;
+package voronoi;
 
 import java.awt.Color;
 import java.util.ArrayList;

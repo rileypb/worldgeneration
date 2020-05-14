@@ -1,4 +1,4 @@
-package voronoinew;
+package voronoi;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,12 +7,10 @@ import java.util.Random;
 
 public class CellPicker {
 	private Graphs graphs;
-	private double minRadius;
 	private double maxRadius;
 
-	public CellPicker(Graphs graphs, double minRadius, double maxRadius) {
+	public CellPicker(Graphs graphs, double maxRadius) {
 		this.graphs = graphs;
-		this.minRadius = minRadius;
 		this.maxRadius = maxRadius;
 	}
 
@@ -22,7 +20,6 @@ public class CellPicker {
 		int heightInBuckets = (int) (1 / maxRadius) + 1;
 		double bucketHeight = 1.0 / heightInBuckets;
 
-		List<Location> picks = new ArrayList<Location>();
 		List<Location> obstacles = new ArrayList<Location>();
 
 		graphs.dualVertices.forEach((loc) -> {

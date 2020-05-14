@@ -1,23 +1,17 @@
-package voronoinew;
+package voronoi;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.imageio.ImageIO;
 
 public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
@@ -35,18 +29,6 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
 	@Override
 	public void draw(Graphics2D g, Graphs graphs, BufferedImage im) {
-		boolean prettyMountains = true;
-
-		InputStream imgStream = this.getClass().getResourceAsStream("mountain.png");
-		Image mountainImage = null;
-		try {
-			mountainImage = ImageIO.read(imgStream);
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-
-		final Image mImage = mountainImage;
 
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
@@ -59,10 +41,7 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 
-		//				g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-
-		//		g.setColor(Color.BLACK);
 
 		setBaseColors(graphs);
 
@@ -78,32 +57,14 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
 		drawWater(g, graphs, x0, y0, xWidth, yHeight);
 
-		//		drawHills(g, graphs, x0, y0, xWidth, yHeight);
-
 		drawCoast(g, graphs, x0, y0, xWidth, yHeight);
 
 		drawPickListCircles(g, graphs, x0, y0, xWidth, yHeight);
 
-		//		drawRoads(g, graphs, x0, y0, xWidth, yHeight);
-
-		Color medGray = new Color(0.5f, 0.5f, 0.5f);
-		//		drawMountains(g, graphs, prettyMountains, x0, y0, xWidth, yHeight);
-
-		//		drawForests(g, graphs, x0, y0, xWidth, yHeight);
 	}
-	//
-	//	private void drawRoads(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
-	//		graphs.du
-	//	}
 
 	private void drawRoads(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
-		// crap below here
 		g.setColor(Color.black);
-//		graphs.dualVertices.stream().filter((loc) -> {
-//			return loc.road;
-//		}).forEach((loc) -> {
-//			g.fillOval((int) (x0 + loc.x * xWidth - 3), (int) (y0 + loc.y * yHeight - 3), 6, 6);
-//		});
 
 		g.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1, new float[] { 1, 6 }, 0));
 		graphs.dualEdges.stream().filter((edge) -> {
@@ -133,9 +94,6 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 				drawMountain(g, true, x0, y0, xWidth, yHeight, 0.015, loc.x - loc.radius / 2, loc.y);
 			} else if (loc.forest && !loc.water) {
 				drawTree(g, x0, y0, xWidth, yHeight, loc.y + loc.radius / 2, 0.015, loc.x - loc.radius / 2);
-			} else {
-				g.setColor(Color.red);
-				//				g.drawOval((int) (x0 + loc.x * xWidth - 8), (int) (y0 + loc.y * yHeight - 8), 12, 12);
 			}
 		});
 
@@ -147,52 +105,6 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 			g.drawOval((int) (x0 + loc.x * xWidth - 6), (int) (y0 + loc.y * yHeight - 6), 12, 12);
 		});
 
-	}
-
-	private void drawForests(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
-		g.setStroke(new BasicStroke(1));
-		g.setColor(new Color(0.5f, 0.5f, 0.5f));
-		graphs.dualVertices.forEach((loc) -> {
-			if (loc.forest && !loc.water && !loc.mountain && !loc.hill) {
-				double minX = Double.POSITIVE_INFINITY;
-				double maxX = Double.NEGATIVE_INFINITY;
-				double minY = Double.POSITIVE_INFINITY;
-				double maxY = Double.NEGATIVE_INFINITY;
-				Set<Location> vertices = graphs.dualGraph.edgesOf(loc).stream().map((e) -> {
-					return graphs.dualToVoronoi.get(e);
-				}).filter((e) -> {
-					return e != null;
-				}).flatMap((e) -> {
-					return Arrays.stream(new Location[] { e.loc1, e.loc2 });
-				}).collect(Collectors.toSet());
-				for (Location v : vertices) {
-					minX = Math.min(minX, v.x);
-					maxX = Math.max(minX, v.x);
-					minY = Math.min(minY, v.y);
-					maxY = Math.max(maxY, v.y);
-				}
-				double dx = (maxX - minX);
-				double dy = (maxY - minY);
-				double maxD = Math.max(dx, dy);
-
-				double xa = minX + maxD / 2;
-				if (maxD < .02) {
-					drawTree(g, x0, y0, xWidth, yHeight, maxY, maxD, xa);
-
-					//					p.moveTo(x0 + xa * xWidth, y0 + ya * yHeight);
-					//					p.lineTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight);
-					//					p.lineTo(x0 + (xa + maxD) * xWidth, y0 + ya * yHeight);
-					//					p.closePath();
-					//					g.setColor(Color.darkGray);
-					//					g.fill(p);
-					//					g.setColor(Color.LIGHT_GRAY);
-					//					g.fill(p);
-					//					g.setColor(Color.DARK_GRAY);
-					//					g.draw(p);
-					//				g.drawImage(mImage, (int) xa,(int) ya, 20, 20, null);
-				}
-			}
-		});
 	}
 
 	private void drawTree(Graphics2D g, double x0, double y0, double xWidth, double yHeight, double maxY, double maxD,
@@ -209,42 +121,6 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 		p.closePath();
 
 		g.fill(p);
-	}
-
-	private void drawMountains(Graphics2D g, Graphs graphs, boolean prettyMountains, double x0, double y0,
-			double xWidth, double yHeight) {
-		g.setStroke(new BasicStroke(1));
-		graphs.dualVertices.forEach((loc) -> {
-			double minX = Double.POSITIVE_INFINITY;
-			double maxX = Double.NEGATIVE_INFINITY;
-			double minY = Double.POSITIVE_INFINITY;
-			double maxY = Double.NEGATIVE_INFINITY;
-			Set<Location> vertices = graphs.dualGraph.edgesOf(loc).stream().map((e) -> {
-				return graphs.dualToVoronoi.get(e);
-			}).filter((e) -> {
-				return e != null;
-			}).flatMap((e) -> {
-				return Arrays.stream(new Location[] { e.loc1, e.loc2 });
-			}).collect(Collectors.toSet());
-			for (Location v : vertices) {
-				minX = Math.min(minX, v.x);
-				maxX = Math.max(minX, v.x);
-				minY = Math.min(minY, v.y);
-				maxY = Math.max(maxY, v.y);
-			}
-			double dx = (maxX - minX);
-			double dy = (maxY - minY);
-			double maxD = Math.max(dx, dy);
-
-			double xa = minX + maxD / 4;
-			if (maxD < .02) {
-				double ya = maxY - maxD;
-				if (loc.mountain && !loc.water) {
-					drawMountain(g, prettyMountains, x0, y0, xWidth, yHeight, maxD, xa, ya);
-					//				g.drawImage(mImage, (int) xa,(int) ya, 20, 20, null);
-				}
-			}
-		});
 	}
 
 	private void drawMountain(Graphics2D g, boolean prettyMountains, double x0, double y0, double xWidth,
@@ -273,14 +149,6 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 					x0 + (xa + maxD / 2 + jiggleX2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight,
 					x0 + (xa + maxD) * xWidth, y0 + ya * yHeight);
 
-			//					if (jiggleX < 0) {
-			//						p.lineTo(x0 + (xa + maxD / 2 + jiggleX) * xWidth, y0 + (ya - 2 * maxD / 3 + jiggleY) * yHeight);
-			//						p.lineTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight);
-			//					} else {
-			//						p.lineTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight);
-			//						p.lineTo(x0 + (xa + maxD / 2 + jiggleX) * xWidth, y0 + (ya - 2 * maxD / 3 + jiggleY) * yHeight);
-			//					}
-			//					p.lineTo(x0 + (xa + maxD) * xWidth, y0 + ya * yHeight);
 			g.setColor(Color.LIGHT_GRAY);
 			g.fill(p);
 			g.setColor(Color.DARK_GRAY);
@@ -298,33 +166,6 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 					g.drawLine((int) (x0 + e.loc1.x * xWidth), (int) (y0 + e.loc1.y * yHeight),
 							(int) (x0 + e.loc2.x * xWidth), (int) (y0 + e.loc2.y * yHeight));
 				}
-			}
-		});
-	}
-
-	private void drawHills(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
-		graphs.dualVertices.forEach((loc) ->
-
-		{
-			double minX = Double.POSITIVE_INFINITY;
-			double maxX = Double.NEGATIVE_INFINITY;
-			double minY = Double.POSITIVE_INFINITY;
-			double maxY = Double.NEGATIVE_INFINITY;
-			for (MapEdge edge : graphs.dualGraph.edgesOf(loc)) {
-				Location l2 = edge.oppositeLocation(loc);
-				minX = Math.min(minX, l2.x);
-				maxX = Math.max(minX, l2.x);
-				minY = Math.min(minY, l2.y);
-				maxY = Math.max(maxY, l2.y);
-			}
-			double dx = (maxX - minX);
-			double dy = (maxY - minY);
-			double maxD = (dx + dy) / 5;
-
-			double xa = minX + maxD / 4 + .01;
-			double ya = maxY - maxD;
-			if (loc.hill && !loc.water) {
-				drawHill(g, x0, y0, xWidth, yHeight, maxD, xa, ya);
 			}
 		});
 	}

@@ -1,4 +1,4 @@
-package voronoinew;
+package voronoi;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

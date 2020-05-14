@@ -1,4 +1,4 @@
-package voronoinew;
+package voronoi;
 
 import java.util.HashSet;
 import java.util.Set;

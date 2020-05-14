@@ -1,8 +1,4 @@
-package voronoinew;
-
-import static de.alsclo.voronoi.Math.EPSILON;
-import static de.alsclo.voronoi.Math.PRECISION;
-import static java.lang.Math.abs;
+package voronoi;
 
 import java.awt.Color;
 import java.util.Set;
@@ -68,14 +64,6 @@ public class Location {
 	public String toString() {
 		return "[" + x + ", " + y + "]";
 	}
-	//    @Override
-	//    public boolean equals(Object o) {
-	//        if (this == o) return true;
-	//        if (o == null || getClass() != o.getClass()) return false;
-	//
-	//        Location point = (Location) o;
-	//        return abs(x - point.x) <= EPSILON && abs(y - point.y) <= EPSILON;
-	//    }
 
 	public Set<Location> neighboringVertices(Graph<Location, MapEdge> graph) {
 		return graph.edgesOf(this).stream().map((edge) -> {
@@ -83,8 +71,4 @@ public class Location {
 		}).collect(Collectors.toSet());
 	}
 
-	//    @Override
-	//    public int hashCode() {
-	//        return (int) (x * PRECISION * 31) + (int) (y * PRECISION);
-	//    }
 }

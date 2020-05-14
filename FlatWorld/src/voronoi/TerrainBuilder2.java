@@ -1,16 +1,10 @@
-package voronoinew;
+package voronoi;
 
-import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
 import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Set;
@@ -18,7 +12,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.math3.random.HaltonSequenceGenerator;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultUndirectedGraph;
@@ -32,7 +25,6 @@ import de.alsclo.voronoi.graph.Point;
 import de.alsclo.voronoi.graph.Vertex;
 
 public class TerrainBuilder2 {
-	private static final double CONSTANT_FLUX = 1;
 	private int numberOfPoints;
 	private CellType cellType;
 	private ArrayList<Location> depressions;
@@ -110,9 +102,6 @@ public class TerrainBuilder2 {
 		graph.edgeStream().forEach((Edge e) -> {
 			Point site1 = e.getSite1();
 			Point site2 = e.getSite2();
-			if (site1.equals(site2)) {
-				int xvxcvxc = 0;
-			}
 			Vertex a = e.getA();
 			Vertex b = e.getB();
 			if (site1 != null && site2 != null) {// && a != null & b != null) {
@@ -226,18 +215,12 @@ public class TerrainBuilder2 {
 	}
 
 	public void normalizeElevations(Graphs buildResult) {
-		double average = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
-			return v.elevation;
-		}).average().getAsDouble();
 		double min = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
 			return v.elevation;
 		}).min().getAsDouble();
 		double max = buildResult.voronoiVertices.stream().mapToDouble((v) -> {
 			return v.elevation;
 		}).max().getAsDouble();
-
-		double shift = (max + min) / 2;
-		double scale = 2 / (max - min);
 
 		buildResult.voronoiVertices.forEach((v) -> {
 			if (v.elevation < min) {
@@ -348,11 +331,6 @@ public class TerrainBuilder2 {
 			}).mapToDouble((v) -> {
 				return v.elevation;
 			}).min().orElse(Double.POSITIVE_INFINITY);
-			double max = graphWithLakes.edgesOf(l).stream().map((e) -> {
-				return e.oppositeLocation(l);
-			}).mapToDouble((v) -> {
-				return v.elevation;
-			}).max().orElse(Double.POSITIVE_INFINITY);
 			if (min >= l.elevation) {
 				throw new IllegalStateException();
 			}
@@ -466,9 +444,7 @@ public class TerrainBuilder2 {
 				MapEdge outgoingEdge = outgoingEdges.iterator().next();
 				outgoingEdge.flux = flux;
 				v.flux = flux;
-			} else {
-				int a = 0;
-			}
+			} 
 
 			v.riverJuncture = i > 1; //auxGraph.incomingEdgesOf(v).size() > 1;
 			v.riverHead = v.riverHead && i == 0; //v.riverHead || auxGraph.incomingEdgesOf(v).size() == 0;
@@ -617,9 +593,6 @@ public class TerrainBuilder2 {
 	}
 
 	public void normalizeBaseMoisture(Graphs buildResult) {
-		double average = buildResult.dualVertices.stream().mapToDouble((v) -> {
-			return v.baseMoisture;
-		}).average().getAsDouble();
 		double min = buildResult.dualVertices.stream().mapToDouble((v) -> {
 			return v.baseMoisture;
 		}).min().getAsDouble();
@@ -694,7 +667,6 @@ public class TerrainBuilder2 {
 			seedVertex.isLake = true;
 			seedVertex.lakeNumber = numberOfLakes;
 			seedVertex.elevation = sealevel + 0.001;
-			Set<Location> lakeVertices = new HashSet<Location>();
 			frontierVertices = new HashSet<Location>();
 			frontierVertices.add(seedVertex);
 

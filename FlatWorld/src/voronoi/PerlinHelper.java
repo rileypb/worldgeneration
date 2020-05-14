@@ -1,4 +1,4 @@
-package voronoinew;
+package voronoi;
 
 import com.flowpowered.noise.module.source.Perlin;
 

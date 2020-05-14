@@ -1,4 +1,4 @@
-package voronoinew;
+package voronoi;
 import java.util.Collections;
 import java.util.List;
 
