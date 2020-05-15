@@ -32,9 +32,9 @@ public class CityScorer {
 		// are other cities close by?
 		for (Location city : graphs.cities) {
 			double distance = Math.sqrt((city.x - loc.x) * (city.x - loc.x) + (city.y - loc.y) * (city.y - loc.y));
-			if (distance == 0) {
+			if (distance < 0.05) {
 				siteScore = Double.NEGATIVE_INFINITY;
-			} else if (distance <  0.25 / (1 + graphs.cities.size())) {
+			} else if (distance <  0.10) {
 				siteScore -= 800;
 			}
 		}
@@ -59,9 +59,9 @@ public class CityScorer {
 			siteScore += loc.flux / (2 * sizeFactor);
 		}
 
-		if (siteScore > Double.NEGATIVE_INFINITY) {
-			System.out.println("* " + siteScore);
-		}
+//		if (siteScore > Double.NEGATIVE_INFINITY) {
+//			System.out.println("* " + siteScore);
+//		}
 
 		Set<Location> neighboringVertices = loc.neighboringVertices(graphs.dualGraph);
 		for (Location neighbor : neighboringVertices) {

@@ -137,16 +137,16 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 			xa -= .003;
 			ya += .0035;
 			p.moveTo(x0 + (xa) * xWidth, y0 + ya * yHeight);
-			double jiggleX = (r.nextDouble() - .1) * maxD * .06;
+			double jiggleX = (r.nextDouble() - .2) * maxD * .06;
 			double jiggleY = r.nextDouble() * maxD * .5;
-			double jiggleX2 = -(r.nextDouble() - .1) * maxD * .06;
+			double jiggleX2 = -(r.nextDouble() - .2) * maxD * .06;
 			double jiggleY2 = r.nextDouble() * maxD * .5;
 
 			p.curveTo(x0 + (xa + maxD / 2 + jiggleX) * xWidth, y0 + (ya - 2 * maxD / 3 + jiggleY) * yHeight,
 					x0 + (xa + maxD / 2 + jiggleX) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight,
 					x0 + (xa + maxD / 2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight);
-			p.curveTo(x0 + (xa + maxD / 2 + jiggleX2) * xWidth, y0 + (ya - 2 * maxD / 3 + jiggleY2) * yHeight,
-					x0 + (xa + maxD / 2 + jiggleX2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight,
+			p.curveTo(x0 + (xa + maxD / 2 - jiggleX2) * xWidth, y0 + (ya - 2 * maxD / 3 + jiggleY2) * yHeight,
+					x0 + (xa + maxD / 2 - jiggleX2) * xWidth, y0 + (ya - 2 * maxD / 3) * yHeight,
 					x0 + (xa + maxD) * xWidth, y0 + ya * yHeight);
 
 			g.setColor(Color.LIGHT_GRAY);
