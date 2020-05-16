@@ -33,7 +33,7 @@ public class CellPicker {
 				}).mapToDouble((v) -> {
 					return Math.sqrt((v.x - loc.x) * (v.x - loc.x) + (v.y - loc.y) * (v.y - loc.y));
 				}).max().getAsDouble();
-				loc.radius = maxRadius / 2;
+				loc.radius = Math.min(.01, maxRadius / 2);
 				obstacles.add(loc);
 			}
 		});
@@ -69,11 +69,12 @@ public class CellPicker {
 						if (candidate.hill) {
 							radius = 2 * maxRadius / 3;
 						} else if (candidate.mountain) {
-							radius = maxRadius;
+							radius = 2 * maxRadius;
 						} else if (candidate.forest) {
 							radius = maxRadius / 2;
 						}
 					}
+					
 					if (radius == 0) {
 						continue;
 					}

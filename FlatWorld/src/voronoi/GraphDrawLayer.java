@@ -29,9 +29,12 @@ public class GraphDrawLayer implements DrawLayer {
 		graphs.voronoiEdges.forEach((e) -> {
 			g.drawLine((int) (x0 + xWidth * e.loc1.x), (int) (y0 + yHeight * e.loc1.y), (int) (x0 + xWidth * e.loc2.x),
 					(int) (y0 + yHeight * e.loc2.y));
-			
+
 		});
 
+		graphs.dualVertices.forEach((loc) -> {
+			g.drawOval((int) (x0 + xWidth * loc.x), (int) (y0 + yHeight * loc.y), 4, 4);
+		});
 
 	}
 

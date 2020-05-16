@@ -33,7 +33,7 @@ public class MapperMain {
 
 		TerrainBuilder2 builder = new TerrainBuilder2(POINTS, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
-//										seed = 1972059413;
+//										seed = -940488418;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
