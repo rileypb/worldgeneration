@@ -20,6 +20,8 @@ public class MapEdge {
 	public double elevation;
 	public double flux;
 	public boolean road;
+	public boolean coast;
+	public boolean secondaryRoad;
 
 	public MapEdge(Location loc1, Location loc2) {
 		this.loc1 = loc1;

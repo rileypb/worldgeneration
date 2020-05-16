@@ -24,6 +24,7 @@ public class Graphs {
 	public DefaultDirectedGraph<Location, MapEdge> riverGraph;
 	public List<Path> riverPaths;
 	public Set<Location> cities;
+	public Set<Location> towns;
 
 	public Graphs(DefaultUndirectedGraph<Location, MapEdge> voronoiGraph,
 			DefaultUndirectedGraph<Location, MapEdge> dualGraph, Set<Location> dualVertices,
@@ -39,6 +40,7 @@ public class Graphs {
 		this.voronoiToDual = voronoiToDual;
 		
 		cities = new HashSet<Location>();
+		towns = new HashSet<Location>();
 	}
 
 	public Stream<Location> getVoronoiVerticesForDualVertex(Location v) {

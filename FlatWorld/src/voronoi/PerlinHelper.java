@@ -11,8 +11,6 @@ public class PerlinHelper {
 		float lowerLimit = 3f / 2f * leftLimit;
 
 		double x0 = 2 * Math.PI * (float) cell.location.x / (float) leftLimit;
-		//				maxX0 = Math.max(maxX0, x0);
-		//				System.out.println(maxX0);
 
 		double rawValue = (float) scaleFactor * perlin.getValue(xFactor + 0.1 * Math.sin(x0),
 				yFactor + 0.1 * Math.cos(x0), zFactor + cell.location.y / (float) lowerLimit);
@@ -25,8 +23,6 @@ public class PerlinHelper {
 	//		float lowerLimit = 3f / 2f * leftLimit;
 	//
 	//		double x0 = 2 * Math.PI * (float) corner.x / (float) leftLimit;
-	//		//				maxX0 = Math.max(maxX0, x0);
-	//		//				System.out.println(maxX0);
 	//
 	//		double rawValue = (float) scaleFactor * perlin.getValue(xFactor + 0.1 * Math.sin(x0),
 	//				yFactor + 0.1 * Math.cos(x0), zFactor + corner.y / (float) lowerLimit);

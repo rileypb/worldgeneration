@@ -52,6 +52,8 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 		drawCells(g, graphs, x0, y0, xWidth, yHeight);
 
 		drawRoads(g, graphs, x0, y0, xWidth, yHeight);
+		
+		drawSecondaryRoads(g, graphs, x0, y0, xWidth, yHeight);
 
 		drawRivers(g, graphs, x0, y0, xWidth, yHeight);
 
@@ -66,9 +68,21 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 	private void drawRoads(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
 		g.setColor(Color.black);
 
-		g.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1, new float[] { 1, 6 }, 0));
+		g.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1, new float[] { 4, 8 }, 0));
 		graphs.dualEdges.stream().filter((edge) -> {
 			return edge.road;
+		}).forEach((edge) -> {
+			g.drawLine((int) (x0 + edge.loc1.x * xWidth), (int) (y0 + edge.loc1.y * yHeight),
+					(int) (x0 + edge.loc2.x * xWidth), (int) (y0 + edge.loc2.y * yHeight));
+		});
+	}
+
+	private void drawSecondaryRoads(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
+		g.setColor(Color.black);
+
+		g.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1, new float[] { 1, 6 }, 0));
+		graphs.dualEdges.stream().filter((edge) -> {
+			return edge.secondaryRoad && !edge.road;
 		}).forEach((edge) -> {
 			g.drawLine((int) (x0 + edge.loc1.x * xWidth), (int) (y0 + edge.loc1.y * yHeight),
 					(int) (x0 + edge.loc2.x * xWidth), (int) (y0 + edge.loc2.y * yHeight));
@@ -103,6 +117,14 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 		}).forEach((loc) -> {
 			g.fillOval((int) (x0 + loc.x * xWidth - 3), (int) (y0 + loc.y * yHeight - 3), 6, 6);
 			g.drawOval((int) (x0 + loc.x * xWidth - 6), (int) (y0 + loc.y * yHeight - 6), 12, 12);
+		});
+
+		g.setColor(Color.black);
+		graphs.dualVertices.stream().filter((loc) -> {
+			return loc.town;
+		}).forEach((loc) -> {
+			g.drawOval((int) (x0 + loc.x * xWidth - 3), (int) (y0 + loc.y * yHeight - 3), 6, 6);
+//			g.drawOval((int) (x0 + loc.x * xWidth - 6), (int) (y0 + loc.y * yHeight - 6), 12, 12);
 		});
 
 	}

@@ -93,9 +93,6 @@ public class TerrainBuilder {
 				double chaosdx = chaosx * r.nextDouble() * spacing / 2;
 				double chaosdy = chaosx * r.nextDouble() + spacing / 2;
 
-				//				dx *= chaosdx; //4 * spacing * Math.max(0.01, PerlinHelper.getPlanarNoise(perlin2, x, 20, y, 20));
-				//				dy *= chaosdy;//4 * spacing * Math.max(0.01, PerlinHelper.getPlanarNoise(perlin2, x, 20, y + 909.2, 20));
-				//System.out.println(dx + ", " + dy);
 				x += chaosdx;
 				y += chaosdy;
 				Point newPoint = new Point(x, y);
@@ -127,7 +124,6 @@ public class TerrainBuilder {
 		Map<MapEdge, MapEdge> dualToVoronoi = new HashMap<>();
 
 		for (Point p : graph.getSitePoints()) {
-			System.out.println(p);
 			Location loc = new Location(p.x, p.y);
 			dualGraph.addVertex(loc);
 			dualVertices.add(loc);
@@ -223,8 +219,6 @@ public class TerrainBuilder {
 		currentPoint.visited = true;
 		currentEdge.oppositeLocation(currentPoint).visited = true;
 
-		//		System.out.println("start: " + currentPoint + ", " + currentEdge);
-
 		boolean done = false;
 		while (!done) {
 			Vector2D cv = createVector(currentEdge, currentPoint);
@@ -232,21 +226,16 @@ public class TerrainBuilder {
 				return;
 			}
 			Vector2D enteringVector = cv.normalize();
-			//			System.out.println("enteringVector = " + enteringVector);
-			//currentPoint = currentEdge.oppositeLocation(currentPoint);
 
 			MapEdge bestEdge = null;
 			double maxDot = -100;
 			for (MapEdge edge : graphs.voronoiGraph.edgesOf(currentPoint)) {
-				//				System.out.println("edge: " + edge);
 				Vector2D createVector = createVector(edge, currentPoint);
 				if (createVector.getNorm() == 0) {
 					continue;
 				}
 				Vector2D leavingVector = createVector.normalize();
-				//				System.out.println("leavingVector = " + leavingVector);
 				double dotProduct = -enteringVector.dotProduct(leavingVector);
-				//				System.out.println("dotProduct: " + dotProduct);
 				Location oppositeLocation = edge.oppositeLocation(currentPoint);
 				if (dotProduct > maxDot && !oppositeLocation.visited && !edge.river) {
 					maxDot = dotProduct;
@@ -269,7 +258,6 @@ public class TerrainBuilder {
 				currentEdge.river = true;
 				currentEdge.riverColor = color;
 
-				//				System.out.println(currentPoint + ", " + currentEdge);
 			}
 		}
 	}
@@ -338,7 +326,6 @@ public class TerrainBuilder {
 			double adjustedTemperature = baseTemperature
 					- (loc.elevation - MapperMain.SEALEVEL) * (loc.elevation - MapperMain.SEALEVEL)
 					+ 0.1 * loc.temperatureVariance;
-			System.out.println(loc.y + ", " + adjustedTemperature);
 			loc.temperature = adjustedTemperature;
 		});
 	}
@@ -398,57 +385,6 @@ public class TerrainBuilder {
 		});
 	}
 
-	//	public void fillDepressions(Graphs graphs) {
-	//		graphs.voronoiVertices.forEach((v) -> {
-	//			if (v.boundaryLocation) {
-	//				System.out.println("boundary");
-	//				v.pdElevation = v.elevation;
-	//			} else {
-	//				System.out.println("inside");
-	//				v.pdElevation = Double.POSITIVE_INFINITY;
-	//			}
-	//		});
-	//
-	//		boolean isChanged = true;
-	//		while (isChanged) {
-	//			System.out.println("loop!!!!!!!1");
-	//			isChanged = graphs.voronoiVertices.stream().reduce(Boolean.FALSE, (c, v) -> {
-	//				//				System.out.println(c);
-	//				Set<MapEdge> edges = graphs.voronoiGraph.edgesOf(v);
-	//				double min = edges.stream().mapToDouble((edge) -> {
-	//					return edge.oppositeLocation(v).pdElevation;
-	//				}).min().orElse(Double.POSITIVE_INFINITY);
-	//
-	//				//				System.out.println(v.pdElevation + ", min = " + min);
-	//
-	//				boolean somethingDone = false;
-	//				if (v.pdElevation > v.elevation) {
-	//					List<Location> neighbors = graphs.voronoiGraph.edgesOf(v).stream().map((e) -> {
-	//						return e.oppositeLocation(v);
-	//					}).collect(Collectors.toList());
-	//					for (Location neighbor : neighbors) {
-	//						if (v.elevation >= neighbor.pdElevation + 0.00001) {
-	//							v.pdElevation = v.elevation;
-	//							somethingDone = true;
-	//						} else if (v.pdElevation > neighbor.pdElevation + 0.00001) {
-	//							v.pdElevation = neighbor.pdElevation + 0.00001;
-	//							somethingDone = true;
-	//						}
-	//					}
-	//				}
-	//
-	//				return c || somethingDone;
-	//			}, (c, c2) -> {
-	//				System.out.println(c + " - " + c2);
-	//				return c || c2;
-	//			});
-	//			//			System.out.println("end");
-	//		}
-	//
-	//		graphs.voronoiVertices.forEach((v) -> {
-	//			v.elevation = v.pdElevation;
-	//		});
-	//	}
 
 	public void fillDepressions(Graphs graphs) {
 		this.depressions = new ArrayList<>();
@@ -461,7 +397,6 @@ public class TerrainBuilder {
 			}).min().orElse(Double.POSITIVE_INFINITY);
 			if (min > v.elevation) {
 				depressions.add(v);
-				System.out.println("depression: " + v.hashCode());
 			}
 		});
 
@@ -478,9 +413,6 @@ public class TerrainBuilder {
 		while (somethingDone) {
 			somethingDone = false;
 			for (Location c : graphs.voronoiVertices) {
-//				if (c.boundaryLocation) {
-//					continue;
-//				}
 				if (c.pdElevation > c.elevation) {
 					List<Location> neighbors = graphs.voronoiGraph.edgesOf(c).stream().map((e) -> {
 						return e.oppositeLocation(c);
@@ -522,7 +454,6 @@ public class TerrainBuilder {
 			MapEdge newEdge = null;
 			double minHeight = Double.POSITIVE_INFINITY;
 			for (MapEdge edge : neighborEdges) {
-				//				System.out.println(edge.oppositeLocation(loc).elevation);
 				if (minHeight > edge.oppositeLocation(loc).elevation) {
 					newEdge = edge;
 					minHeight = edge.oppositeLocation(loc).elevation;
@@ -531,13 +462,6 @@ public class TerrainBuilder {
 
 			if (minHeight >= loc.elevation && !loc.boundaryLocation) {
 				System.out.println("error: " + loc.hashCode());
-				if (depressions.contains(loc)) {
-					System.out.println("contained");
-				}
-//				throw new IllegalStateException();
-
-				//				newEdge.river = true;
-				//				auxGraph.addEdge(loc, newEdge.oppositeLocation(loc), newEdge);
 			} else {
 
 				newEdge.river = true;
@@ -591,7 +515,6 @@ public class TerrainBuilder {
 				MapEdge outgoingEdge = outgoingEdges.iterator().next();
 				outgoingEdge.flux = flux;
 				v.flux = flux;
-				//				System.out.println(flux);
 			}
 
 			v.riverJuncture = auxGraph.incomingEdgesOf(v).size() > 1;
@@ -645,7 +568,6 @@ public class TerrainBuilder {
 				elevationSum += edge.elevation;
 			}
 			loc.elevation = elevationSum / neighborEdges.size();
-			System.out.println(loc.elevation);
 		});
 	}
 

@@ -70,7 +70,7 @@ public class GreeneryDrawLayer extends BaseDrawLayer {
 				boolean drawn = false;
 				for (int i = 0; i < path.size() - 1; i++) {
 
-					g.setStroke(new BasicStroke((float) Math.min(6, path.getScore(i) / 40*BASE_SIZE_FACTOR/sizeFactor), BasicStroke.CAP_ROUND,
+					g.setStroke(new BasicStroke((float) Math.min(4, path.getScore(i) / 45*BASE_SIZE_FACTOR/sizeFactor), BasicStroke.CAP_ROUND,
 							BasicStroke.JOIN_ROUND));
 					if (path.getScore(i) > 10*sizeFactor/BASE_SIZE_FACTOR) {
 						g.drawLine((int) (x0 + path.getX(i) * xWidth), (int) (y0 + path.getY(i) * yHeight),

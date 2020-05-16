@@ -39,19 +39,10 @@ public class SeaLandDrawLayer2 implements DrawLayer {
 					p.lineTo(x0 + xWidth * e.loc1.x, y0 + yHeight * minmax(0, 1, e.loc1.y));
 					p.lineTo(x0 + xWidth * e.loc2.x, y0 + yHeight * minmax(0, 1, e.loc2.y));
 					p.closePath();
-					//					System.out.println(e.elevation + ": " + e.loc1.water);
 					if (loc.water) {
 						g.setColor(Color.lightGray);
 					} else {
 						g.setColor(Color.white);
-						//						g.setColor(Color.cyan);
-						//						if (loc.elevation > 0.5) {
-						//							g.setColor(Color.red);
-						//						} else if (loc.elevation > 0.25) {
-						//							g.setColor(Color.PINK);
-						//						}
-						//						float c = (float) Math.pow(Math.max(0, Math.min(1, 0.25+loc.elevation)),2);
-						//						g.setColor(new Color(c,c,c));
 					}
 					g.fill(p);
 				}
@@ -123,7 +114,6 @@ public class SeaLandDrawLayer2 implements DrawLayer {
 			MapEdge voronoiEdge = graphs.dualToVoronoi.get(e);
 			if (voronoiEdge != null) {
 				if (voronoiEdge.loc1.water != voronoiEdge.loc2.water) {
-//					System.out.println("draw");
 					g.setColor(Color.black);
 					g.drawLine((int) (x0 + e.loc1.x * xWidth), (int) (y0 + e.loc1.y * yHeight), (int) (x0 + e.loc2.x * xWidth),
 							(int) (y0 + e.loc2.y*yHeight));

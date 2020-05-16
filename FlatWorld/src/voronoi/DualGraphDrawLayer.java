@@ -21,8 +21,6 @@ public class DualGraphDrawLayer implements DrawLayer {
 		double y0 = clipBounds.y - 20;
 		double xWidth = clipBounds.width * 1.1;
 		double yHeight = clipBounds.height * 1.1;
-		System.out.println(xWidth);
-		System.out.println(yHeight);
 
 		//		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setStroke(new BasicStroke(1));

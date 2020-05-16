@@ -25,7 +25,7 @@ public class MapperMain {
 	private static int screenWidth;
 	private static int screenHeight;
 
-	public static final int POINTS = 4000;
+	public static final int POINTS = 2500;
 
 	public static void main(String[] args) {
 		screenWidth = 800;
@@ -33,7 +33,7 @@ public class MapperMain {
 
 		TerrainBuilder2 builder = new TerrainBuilder2(POINTS, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
-//										seed = 1951326414;
+//										seed = 1972059413;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
@@ -109,14 +109,23 @@ public class MapperMain {
 		
 		builder.buildRoads(buildResult);
 		
+		TownPlanner townPlanner = new TownPlanner(POINTS);
+		for (int i = 0; i < 7; i++) {
+			townPlanner.placeTowns(buildResult);
+		}
+		
+		builder.buildSecondaryRoads(buildResult);
+		
+		builder.relaxCoast(buildResult);
+		
 		List<List<Location>> pickList = new CellPicker(buildResult, 0.008).pick(r);
 
 		System.out.println("drawing...");
 
 		List<DrawLayer> drawLayers = new ArrayList<>();
-		//		drawLayers.add(new SeaLandDrawLayer3(r));
+//				drawLayers.add(new SeaLandDrawLayer3(r, (int) Math.sqrt(POINTS), pickList));
 		//		drawLayers.add(new BoundaryCellDrawLayer());
-		//						drawLayers.add(new GraphDrawLayer());
+//								drawLayers.add(new GraphDrawLayer());
 		//				drawLayers.add(new DualGraphDrawLayer());
 		drawLayers.add(new GreeneryDrawLayer(r, (int) Math.sqrt(POINTS)));
 
@@ -136,6 +145,7 @@ public class MapperMain {
 		BufferedImage img2 = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g2 = img2.createGraphics();
 		new SeaLandDrawLayer3(r, (int) Math.sqrt(POINTS), pickList).draw(g2, buildResult, img2);
+//		new GraphDrawLayer().draw(g2, buildResult, img2);
 		display(img2, builder, g2);
 	}
 
@@ -156,7 +166,7 @@ public class MapperMain {
 		frame.getContentPane().setLayout(new BorderLayout());
 		frame.getContentPane().add(canvas, BorderLayout.CENTER);
 
-		frame.setTitle("Contours");
+		frame.setTitle("Generated World");
 		frame.setVisible(true);
 		Insets insets = frame.getInsets();
 		frame.setSize(screenWidth + insets.left + insets.right, screenHeight + insets.bottom + insets.top);

@@ -18,7 +18,6 @@ public class Path {
 	}
 
 	public void createRelaxedPath() {
-//		System.out.println("---------");
 		if (points.size() == 0) {
 			int a = 0;
 		}
@@ -32,13 +31,6 @@ public class Path {
 			xInit[i] = points.get(i).x;
 			yInit[i] = points.get(i).y;
 			score[i] = points.get(i).flux;
-//			if (points.get(i).isLake && points.get(i).riverHead) {
-//				System.out.print(">>> " +points.get(i) + ": " + points.get(i).flux);
-//				System.out.println(", " + points.get(i).elevation);
-//			} else {
-//				System.out.print("... " + points.get(i).flux);
-//				System.out.println(", " + points.get(i).elevation);
-//			}
 			elevation[i] = points.get(i).elevation;
 		}
 		

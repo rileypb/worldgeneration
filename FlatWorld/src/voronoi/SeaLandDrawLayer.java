@@ -39,7 +39,6 @@ public class SeaLandDrawLayer implements DrawLayer {
 					p.lineTo(x0 + xWidth * e.loc1.x, y0 + yHeight * minmax(0, 1, e.loc1.y));
 					p.lineTo(x0 + xWidth * e.loc2.x, y0 + yHeight * minmax(0, 1, e.loc2.y));
 					p.closePath();
-					//					System.out.println(e.elevation + ": " + e.loc1.water);
 					if (loc.water) {
 						g.setColor(Color.lightGray);
 					} else {
@@ -101,7 +100,6 @@ public class SeaLandDrawLayer implements DrawLayer {
 				Path2D.Double p = new Path2D.Double();
 				boolean drawn = false;
 				for (int i = 0; i < path.size(); i++) {
-					System.out.println(">>> " + path.getScore(i) + ", " + path.getElevation(i));
 					if (path.getScore(i) > 25) {
 						if (!drawn) {
 							p.moveTo(x0 + path.getX(i) * xWidth, y0 + path.getY(i) * yHeight);

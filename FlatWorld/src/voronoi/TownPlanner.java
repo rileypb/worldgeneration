@@ -2,14 +2,14 @@ package voronoi;
 
 import java.util.Set;
 
-public class CityScorer {
+public class TownPlanner {
 	private int points;
 
-	public CityScorer(int points) {
+	public TownPlanner(int points) {
 		this.points = points;
 	}
 
-	public void scoreCitySites(Graphs graphs) {
+	public void placeTowns(Graphs graphs) {
 		double maxScore = Double.NEGATIVE_INFINITY;
 		Location bestSite = null;
 		for (Location loc : graphs.dualVertices) {
@@ -20,8 +20,8 @@ public class CityScorer {
 			}
 		}
 		if (bestSite != null) {
-			bestSite.city = true;
-			graphs.cities.add(bestSite);
+			bestSite.town = true;
+			graphs.towns.add(bestSite);
 		}
 	}
 
@@ -29,16 +29,26 @@ public class CityScorer {
 		double siteScore = 0;
 		double sizeFactor = Math.sqrt(points) / 70;
 
-		// are other cities close by?
-		for (Location city : graphs.cities) {
-			double distance = Math.sqrt((city.x - loc.x) * (city.x - loc.x) + (city.y - loc.y) * (city.y - loc.y));
-			if (distance < 0.05) {
+		// are other towns close by?
+		for (Location town : graphs.towns) {
+			double distance = Math.sqrt((town.x - loc.x) * (town.x - loc.x) + (town.y - loc.y) * (town.y - loc.y));
+			if (distance < 0.01) {
 				siteScore = Double.NEGATIVE_INFINITY;
-			} else if (distance <  0.10) {
-				siteScore -= 800;
+			} else if (distance < 0.03) {
+				siteScore -= 10;
 			}
 		}
-		
+
+		// is there a city close by?
+		for (Location city : graphs.cities) {
+			double distance = Math.sqrt((city.x - loc.x) * (city.x - loc.x) + (city.y - loc.y) * (city.y - loc.y));
+			if (distance < 0.01) {
+				siteScore = Double.NEGATIVE_INFINITY;
+			} else {
+				siteScore += 0.05 / distance;
+			}
+		}
+
 		if (loc.x < 0.1 || loc.x > .9 || loc.y < 0.1 || loc.y > 0.9) {
 			siteScore = Double.NEGATIVE_INFINITY;
 		}
@@ -54,15 +64,19 @@ public class CityScorer {
 		}
 
 		if (loc.riverJuncture) {
-			siteScore += loc.flux / sizeFactor;
-		} else {
 			siteScore += loc.flux / (2 * sizeFactor);
+		} else {
+			siteScore += loc.flux / (3 * sizeFactor);
+		}
+
+		if (loc.road) {
+			siteScore += 3;
 		}
 
 		Set<Location> neighboringVertices = loc.neighboringVertices(graphs.dualGraph);
 		for (Location neighbor : neighboringVertices) {
 			if (neighbor.water) {
-				siteScore += 5;
+				siteScore += 10;
 			}
 		}
 

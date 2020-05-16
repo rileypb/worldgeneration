@@ -1,6 +1,8 @@
 package voronoi;
 
+import java.awt.BasicStroke;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -426,15 +428,12 @@ public class TerrainBuilder2 {
 				flux += edge.flux;
 
 				if (edge.oppositeLocation(v).isLake) {
-					if (!v.isLake) {
-						System.out.println("fooooo");
-						System.out.println(edge.oppositeLocation(v));
-					}
 					v.foo = true;
 
-					flux += 3 * edge.oppositeLocation(v).lake.getVertices().size();
+					flux += 2 * edge.oppositeLocation(v).lake.getVertices().size();
 					edge.oppositeLocation(v).riverHead = true;
-					edge.oppositeLocation(v).flux = 3 * edge.oppositeLocation(v).lake.getVertices().size();;
+					edge.oppositeLocation(v).flux = 2 * edge.oppositeLocation(v).lake.getVertices().size();
+					;
 					edge.oppositeLocation(v).foo = true;
 				}
 			}
@@ -444,7 +443,7 @@ public class TerrainBuilder2 {
 				MapEdge outgoingEdge = outgoingEdges.iterator().next();
 				outgoingEdge.flux = flux;
 				v.flux = flux;
-			} 
+			}
 
 			v.riverJuncture = i > 1; //auxGraph.incomingEdgesOf(v).size() > 1;
 			v.riverHead = v.riverHead && i == 0; //v.riverHead || auxGraph.incomingEdgesOf(v).size() == 0;
@@ -454,9 +453,6 @@ public class TerrainBuilder2 {
 		List<Path> paths = new ArrayList<>();
 		for (Location v : vertices) {
 			if (v.riverHead || v.riverJuncture) {
-				if (v.isLake) {
-					System.out.println("LAKE!");
-				}
 				Path p = new Path();
 				MapEdge outgoingEdge = singleOutgoingEdge(auxGraph, v);
 				Location currentVertex = v;
@@ -578,9 +574,9 @@ public class TerrainBuilder2 {
 			double diff = loc.elevation - min;
 			double dNormal = diff * Math.sqrt(numPoints) / 100;
 
-			if (dNormal > 0.1) {
+			if (dNormal > 0.08) {
 				loc.mountain = true;
-			} else if (dNormal > 0.07) {
+			} else if (dNormal > 0.05) {
 				loc.hill = true;
 			}
 		});
@@ -691,7 +687,6 @@ public class TerrainBuilder2 {
 			numberOfLakes++;
 		}
 
-		System.out.println(numberOfLakes + " lakes");
 	}
 
 	public void buildRoads(Graphs graphs) {
@@ -702,7 +697,7 @@ public class TerrainBuilder2 {
 						loc.usedForRoad = false;
 					});
 					PriorityQueue<Road> roads = new PriorityQueue<Road>((l1, l2) -> {
-						return (int) (10000*(l1.getScore() - l2.getScore()));
+						return (int) (10000 * (l1.getScore() - l2.getScore()));
 					});
 					Road initialRoad = new Road();
 					initialRoad.add(city1);
@@ -731,6 +726,82 @@ public class TerrainBuilder2 {
 				}
 			}
 		}
+	}
+
+	public void buildSecondaryRoads(Graphs graphs) {
+		for (Location town : graphs.towns) {
+			graphs.dualVertices.forEach((loc) -> {
+				loc.usedForRoad = false;
+			});
+			PriorityQueue<SecondaryRoad> roads = new PriorityQueue<SecondaryRoad>((l1, l2) -> {
+				return (int) (10000 * (l1.getScore() - l2.getScore()));
+			});
+			SecondaryRoad initialRoad = new SecondaryRoad();
+			initialRoad.add(town);
+			roads.offer(initialRoad);
+			SecondaryRoad winner = null;
+			while (winner == null && roads.size() > 0) {
+				SecondaryRoad currentRoad = roads.remove();
+				Location head = currentRoad.getHead();
+				Set<Location> neighboringVertices = head.neighboringVertices(graphs.dualGraph);
+				for (Location neighbor : neighboringVertices) {
+					if (!neighbor.usedForRoad && !neighbor.water) {
+						head.usedForRoad = true;
+						MapEdge edge = graphs.dualGraph.getEdge(head, neighbor);
+						SecondaryRoad extension = currentRoad.extend(neighbor, edge);
+						if (neighbor.city || neighbor.road || neighbor.town) {
+							winner = extension;
+							break;
+						}
+						roads.offer(extension);
+					}
+				}
+			}
+			if (winner != null) {
+				winner.markRoad();
+			}
+		}
+	}
+
+	public void relaxCoast(Graphs graphs) {
+		graphs.voronoiEdges.forEach((e) -> {
+			MapEdge dualEdge = graphs.voronoiToDual.get(e);
+			if (dualEdge != null) {
+				if (dualEdge.loc1.water != dualEdge.loc2.water) {
+					e.coast = true;
+				}
+			}
+		});
+
+		graphs.voronoiEdges.stream().filter((e) -> {
+			return e.coast;
+		}).flatMap((e) -> {
+			return Arrays.stream(new Location[] { e.loc1, e.loc2 });
+		}).forEach((loc) -> {
+			loc.coast = true;
+		});
+
+		graphs.voronoiVertices.forEach((loc) -> {
+			Location accumulation = graphs.voronoiGraph.edgesOf(loc).stream().filter((e) -> {
+				return e.coast;
+			}).map((e) -> {
+				return e.oppositeLocation(loc);
+			}).reduce(new Location(2 * loc.x, 2 * loc.y), (accumulated, p) -> {
+				return new Location(accumulated.x + p.x, accumulated.y + p.y);
+			}, (p1, p2) -> {
+				return null;
+			});
+
+			loc.tmpX = accumulation.x / 4;
+			loc.tmpY = accumulation.y / 4;
+		});
+
+		graphs.voronoiVertices.stream().filter((loc) -> {
+			return loc.coast;
+		}).forEach((l) -> {
+			l.x = l.tmpX;
+			l.y = l.tmpY;
+		});
 	}
 
 }

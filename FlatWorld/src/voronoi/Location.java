@@ -8,8 +8,8 @@ import org.jgrapht.Graph;
 
 public class Location {
 
-	public final double x;
-	public final double y;
+	public double x;
+	public double y;
 	public double elevation;
 	public boolean water;
 	public boolean ocean;
@@ -53,6 +53,11 @@ public class Location {
 	public boolean city;
 	public boolean road;
 	public boolean usedForRoad;
+	public boolean town;
+	public boolean coast;
+	public double tmpX;
+	public double tmpY;
+	public boolean secondaryRoad;
 
 	public Location(double x, double y) {
 		this.x = x;
