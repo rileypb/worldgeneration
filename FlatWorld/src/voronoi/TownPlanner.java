@@ -35,7 +35,7 @@ public class TownPlanner {
 			if (distance < 0.01) {
 				siteScore = Double.NEGATIVE_INFINITY;
 			} else if (distance < 0.03) {
-				siteScore -= 10;
+				siteScore -= 50;
 			}
 		}
 

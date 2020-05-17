@@ -748,7 +748,7 @@ public class TerrainBuilder2 {
 						head.usedForRoad = true;
 						MapEdge edge = graphs.dualGraph.getEdge(head, neighbor);
 						SecondaryRoad extension = currentRoad.extend(neighbor, edge);
-						if (neighbor.city || neighbor.road) {// || neighbor.town) {
+						if (neighbor.city || neighbor.road || neighbor.town) {
 							winner = extension;
 							break;
 						}
