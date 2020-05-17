@@ -8,15 +8,22 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
 import com.flowpowered.noise.module.source.Perlin;
+
+import javafx.scene.input.KeyCode;
 
 public class MapperMain {
 
@@ -33,7 +40,7 @@ public class MapperMain {
 
 		TerrainBuilder2 builder = new TerrainBuilder2(POINTS, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
-		//										seed = -799505819;
+//												seed = 13802760;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
@@ -161,6 +168,34 @@ public class MapperMain {
 			}
 		};
 		canvas.setMinimumSize(new Dimension(screenWidth, screenHeight));
+		
+		canvas.addKeyListener(new KeyListener() {
+			
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+			
+			private void save() {
+			    File outputfile = new File("saved.png");
+			    try {
+					ImageIO.write(img, "png", outputfile);
+					System.out.println("Saved to " + outputfile.getAbsolutePath());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if (e.isMetaDown() && e.getKeyCode() == KeyEvent.VK_S) {
+					save();
+				}
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+			}
+		});
 
 		frame.getContentPane().setLayout(new BorderLayout());
 		frame.getContentPane().add(canvas, BorderLayout.CENTER);

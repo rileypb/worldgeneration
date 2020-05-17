@@ -32,9 +32,9 @@ public class TownPlanner {
 		// are other towns close by?
 		for (Location town : graphs.towns) {
 			double distance = Math.sqrt((town.x - loc.x) * (town.x - loc.x) + (town.y - loc.y) * (town.y - loc.y));
-			if (distance < 0.01) {
+			if (distance < 0.015) {
 				siteScore = Double.NEGATIVE_INFINITY;
-			} else if (distance < 0.03) {
+			} else if (distance < 0.04) {
 				siteScore -= 50;
 			}
 		}
@@ -42,7 +42,7 @@ public class TownPlanner {
 		// is there a city close by?
 		for (Location city : graphs.cities) {
 			double distance = Math.sqrt((city.x - loc.x) * (city.x - loc.x) + (city.y - loc.y) * (city.y - loc.y));
-			if (distance < 0.01) {
+			if (distance < 0.015) {
 				siteScore = Double.NEGATIVE_INFINITY;
 			} else {
 				siteScore += 0.05 / distance;
@@ -64,9 +64,9 @@ public class TownPlanner {
 		}
 
 		if (loc.riverJuncture) {
-			siteScore += loc.flux / (2 * sizeFactor);
-		} else {
 			siteScore += loc.flux / (3 * sizeFactor);
+		} else {
+			siteScore += loc.flux / (4 * sizeFactor);
 		}
 
 		if (loc.road) {
