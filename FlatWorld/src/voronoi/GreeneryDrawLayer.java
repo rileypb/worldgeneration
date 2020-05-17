@@ -24,10 +24,12 @@ public class GreeneryDrawLayer extends BaseDrawLayer {
 	private Random r;
 	private int sizeFactor;
 	private static final int BASE_SIZE_FACTOR = 70;
+	private double fluxThreshold;
 
-	public GreeneryDrawLayer(Random r, int sizeFactor) {
+	public GreeneryDrawLayer(Random r, int sizeFactor, double fluxThreshold) {
 		this.r = r;
 		this.sizeFactor = sizeFactor;
+		this.fluxThreshold = fluxThreshold;
 	}
 
 	@Override
@@ -70,9 +72,9 @@ public class GreeneryDrawLayer extends BaseDrawLayer {
 				boolean drawn = false;
 				for (int i = 0; i < path.size() - 1; i++) {
 
-					g.setStroke(new BasicStroke((float) Math.min(4, path.getScore(i) / 45*BASE_SIZE_FACTOR/sizeFactor), BasicStroke.CAP_ROUND,
+					g.setStroke(new BasicStroke((float) Math.min(4, path.getScore(i) / fluxThreshold), BasicStroke.CAP_ROUND,
 							BasicStroke.JOIN_ROUND));
-					if (path.getScore(i) > 10*sizeFactor/BASE_SIZE_FACTOR) {
+					if (path.getScore(i) > fluxThreshold) {
 						g.drawLine((int) (x0 + path.getX(i) * xWidth), (int) (y0 + path.getY(i) * yHeight),
 								(int) (x0 + path.getX(i + 1) * xWidth), (int) (y0 + path.getY(i + 1) * yHeight));
 					}

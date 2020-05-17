@@ -33,7 +33,7 @@ public class MapperMain {
 
 		TerrainBuilder2 builder = new TerrainBuilder2(POINTS, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
-//										seed = -940488418;
+		//										seed = -799505819;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
@@ -55,7 +55,6 @@ public class MapperMain {
 		moisturePerlin.setFrequency(.125);
 		moisturePerlin.setOctaveCount(8);
 		moisturePerlin.setSeed(r.nextInt());
-
 
 		builder.generateValues(buildResult, r, perlin, (target, value) -> {
 			target.wildness = value;
@@ -85,7 +84,7 @@ public class MapperMain {
 		//		builder.normalizeBaseMoisture(buildResult);
 
 		builder.markWater(buildResult, SEALEVEL);
-		
+
 		builder.eliminateStrandedWaterAndFindLakes(buildResult, SEALEVEL);
 
 		builder.raiseMountains(buildResult, POINTS);
@@ -97,37 +96,37 @@ public class MapperMain {
 
 		builder.normalizeElevations(buildResult);
 
-		builder.runRivers(buildResult);
+		builder.runRivers(buildResult, 20);
 
 		builder.calculateFinalMoisture(buildResult);
 		builder.growForests(buildResult);
-		
+
 		CityScorer cityScorer = new CityScorer(POINTS);
 		for (int i = 0; i < 5; i++) {
 			cityScorer.scoreCitySites(buildResult);
 		}
-		
+
 		builder.buildRoads(buildResult);
-		
+
 		TownPlanner townPlanner = new TownPlanner(POINTS);
 		for (int i = 0; i < 7; i++) {
 			townPlanner.placeTowns(buildResult);
 		}
-		
+
 		builder.buildSecondaryRoads(buildResult);
-		
+
 		builder.relaxCoast(buildResult);
-		
-		List<List<Location>> pickList = new CellPicker(buildResult, 0.008).pick(r);
+
+		List<List<Location>> pickList = new CellPicker(buildResult, 0.008).pick(r, 20);
 
 		System.out.println("drawing...");
 
 		List<DrawLayer> drawLayers = new ArrayList<>();
-//				drawLayers.add(new SeaLandDrawLayer3(r, (int) Math.sqrt(POINTS), pickList));
+		//				drawLayers.add(new SeaLandDrawLayer3(r, (int) Math.sqrt(POINTS), pickList));
 		//		drawLayers.add(new BoundaryCellDrawLayer());
-//								drawLayers.add(new GraphDrawLayer());
+		//								drawLayers.add(new GraphDrawLayer());
 		//				drawLayers.add(new DualGraphDrawLayer());
-		drawLayers.add(new GreeneryDrawLayer(r, (int) Math.sqrt(POINTS)));
+		drawLayers.add(new GreeneryDrawLayer(r, (int) Math.sqrt(POINTS), 20));
 
 		BufferedImage img = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g = img.createGraphics();
@@ -144,8 +143,8 @@ public class MapperMain {
 
 		BufferedImage img2 = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g2 = img2.createGraphics();
-		new SeaLandDrawLayer3(r, (int) Math.sqrt(POINTS), pickList).draw(g2, buildResult, img2);
-//		new GraphDrawLayer().draw(g2, buildResult, img2);
+		new SeaLandDrawLayer3(r, (int) Math.sqrt(POINTS), pickList, 20).draw(g2, buildResult, img2);
+		//		new GraphDrawLayer().draw(g2, buildResult, img2);
 		display(img2, builder, g2);
 	}
 

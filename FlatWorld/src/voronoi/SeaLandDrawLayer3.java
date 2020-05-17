@@ -20,11 +20,13 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 	private static final int BASE_SIZE_FACTOR = 70;
 	private Color hillColor = new Color(.9f, .9f, .9f);
 	private List<List<Location>> pickList;
+	private double fluxThreshold;
 
-	public SeaLandDrawLayer3(Random r, int sizeFactor, List<List<Location>> pickList) {
+	public SeaLandDrawLayer3(Random r, int sizeFactor, List<List<Location>> pickList, double fluxThreshold) {
 		this.r = r;
 		this.sizeFactor = sizeFactor;
 		this.pickList = pickList;
+		this.fluxThreshold = fluxThreshold;
 	}
 
 	@Override
@@ -314,7 +316,7 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 				Path2D.Double p = new Path2D.Double();
 				boolean drawn = false;
 				for (int i = 0; i < path.size(); i++) {
-					if (path.getScore(i) > 10 * sizeFactor / BASE_SIZE_FACTOR) {
+					if (path.getScore(i) > fluxThreshold) {
 						if (!drawn) {
 							p.moveTo(x0 + path.getX(i) * xWidth, y0 + path.getY(i) * yHeight);
 							drawn = true;

@@ -14,7 +14,7 @@ public class CellPicker {
 		this.maxRadius = maxRadius;
 	}
 
-	public List<List<Location>> pick(Random r) {
+	public List<List<Location>> pick(Random r, double fluxThreshold) {
 		int widthInBuckets = (int) (1 / maxRadius) + 1;
 		double bucketWidth = 1.0 / widthInBuckets;
 		int heightInBuckets = (int) (1 / maxRadius) + 1;
@@ -23,7 +23,8 @@ public class CellPicker {
 		List<Location> obstacles = new ArrayList<Location>();
 
 		graphs.dualVertices.forEach((loc) -> {
-			if ((loc.x >= 0 && loc.x <= 1 && loc.y >= 0 && loc.y <= 1) && (loc.water || loc.city || loc.road)) {
+			if ((loc.x >= 0 && loc.x <= 1 && loc.y >= 0 && loc.y <= 1)
+					&& (loc.water || loc.city || loc.road || loc.secondaryRoad || (loc.river && loc.flux > fluxThreshold))) {
 				double maxRadius = graphs.dualGraph.edgesOf(loc).stream().map((e) -> {
 					return graphs.dualToVoronoi.get(e);
 				}).filter((e) -> {
@@ -74,7 +75,7 @@ public class CellPicker {
 							radius = maxRadius / 2;
 						}
 					}
-					
+
 					if (radius == 0) {
 						continue;
 					}

@@ -348,7 +348,7 @@ public class TerrainBuilder2 {
 		}
 	}
 
-	public void runRivers(Graphs graphs) {
+	public void runRivers(Graphs graphs, double fluxThreshold) {
 		DefaultDirectedGraph<Location, MapEdge> auxGraph = new DefaultDirectedGraph<>(MapEdge.class);
 
 		graphs.dualVertices.forEach((loc) -> {
@@ -373,10 +373,9 @@ public class TerrainBuilder2 {
 				throw new IllegalStateException();
 			} else {
 				if (newEdge != null) {
+					loc.river = true;
+					newEdge.oppositeLocation(loc).river = true;
 					newEdge.river = true;
-					if (loc.isLake && newEdge.oppositeLocation(loc).elevation > loc.elevation) {
-						int a = 0;
-					}
 					auxGraph.addEdge(loc, newEdge.oppositeLocation(loc), newEdge);
 				}
 			}
