@@ -41,6 +41,9 @@ public class MapperMain {
 		TerrainBuilder2 builder = new TerrainBuilder2(POINTS, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
 //												seed = 13802760;
+//		seed=56452391;
+//		seed = -1433114302; // screwed up cell rendering
+//		seed = -1029468384; // screwed up cell rendering
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
@@ -123,6 +126,7 @@ public class MapperMain {
 		builder.buildSecondaryRoads(buildResult);
 
 		builder.relaxCoast(buildResult);
+		builder.relaxEdges(buildResult, 20);
 
 		List<List<Location>> pickList = new CellPicker(buildResult, 0.008).pick(r, 20);
 

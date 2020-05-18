@@ -69,7 +69,7 @@ public class CellPicker {
 						double radius = 0;
 						if (!candidate.water) {
 							if (candidate.hill) {
-								radius = 2 * maxRadius / 3;
+								radius = 2 * maxRadius;
 							} else if (candidate.mountain) {
 								radius = 2 * maxRadius;
 							} else if (candidate.forest) {

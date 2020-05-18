@@ -431,8 +431,8 @@ public class TerrainBuilder2 {
 
 					flux += 2 * edge.oppositeLocation(v).lake.getVertices().size();
 					edge.oppositeLocation(v).riverHead = true;
+					//					edge.oppositeLocation(v).river = true;
 					edge.oppositeLocation(v).flux = 2 * edge.oppositeLocation(v).lake.getVertices().size();
-					;
 					edge.oppositeLocation(v).foo = true;
 				}
 			}
@@ -446,6 +446,7 @@ public class TerrainBuilder2 {
 
 			v.riverJuncture = i > 1; //auxGraph.incomingEdgesOf(v).size() > 1;
 			v.riverHead = v.riverHead && i == 0; //v.riverHead || auxGraph.incomingEdgesOf(v).size() == 0;
+			//			v.river = true;
 		}
 
 		// finally compile into separate paths
@@ -749,7 +750,7 @@ public class TerrainBuilder2 {
 						head.usedForRoad = true;
 						MapEdge edge = graphs.dualGraph.getEdge(head, neighbor);
 						SecondaryRoad extension = currentRoad.extend(neighbor, edge);
-						if (neighbor.city || neighbor.road ) {
+						if (neighbor.city || neighbor.road) {
 							winner = extension;
 							break;
 						}
@@ -795,6 +796,41 @@ public class TerrainBuilder2 {
 				}
 			}
 		}
+	}
+
+	public void relaxEdges(Graphs graphs, double fluxThreshold) {
+
+		graphs.dualVertices.forEach((loc) -> {
+			loc.tmpX = loc.x;
+			loc.tmpY = loc.y;
+			int count = (int) graphs.dualGraph.edgesOf(loc).stream().filter((e) -> {
+				return (e.road && loc.road) || (e.secondaryRoad && loc.secondaryRoad) || 
+						(e.river && e.flux > fluxThreshold && loc.river && loc.flux > fluxThreshold);
+			}).count();
+			if (count > 0) {
+				Location accumulation = graphs.dualGraph.edgesOf(loc).stream().filter((e) -> {
+					return (e.road && loc.road) || (e.secondaryRoad && loc.secondaryRoad) || 
+							(e.river && e.flux > fluxThreshold && loc.river && loc.flux > fluxThreshold);
+				}).map((e) -> {
+					return e.oppositeLocation(loc);
+				}).reduce(new Location(2 * loc.x, 2 * loc.y), (accumulated, p) -> {
+					return new Location(accumulated.x + p.x, accumulated.y + p.y);
+				}, (p1, p2) -> {
+					return null;
+				});
+
+				loc.tmpX = accumulation.x / (2 + count);
+				loc.tmpY = accumulation.y / (2 + count);
+			}
+		});
+
+		graphs.dualVertices.stream().filter((loc) -> {
+			return loc.road || loc.secondaryRoad || (loc.river && loc.flux > fluxThreshold);
+		}).forEach((l) -> {
+			l.x = l.tmpX;
+			l.y = l.tmpY;
+		});
+
 	}
 
 	public void relaxCoast(Graphs graphs) {

@@ -72,58 +72,58 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 		//		drawMountains(g, graphs, x0, y0, xWidth, yHeight);
 	}
 
-//	private void drawMountains(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
-//		List<Location> flatList = pickList.stream().flatMap((l) -> {
-//			return l.stream();
-//		}).filter((loc) -> {
-//			return loc.mountain && !loc.water;
-//		}).collect(Collectors.toList());
-//
-//		flatList.sort((l1, l2) -> {
-//			return (int) (1000 * (l1.y - l2.y));
-//		});
-//
-//		flatList.forEach((loc) -> {
-//			drawMountain(g, graphs, x0, y0, xWidth, yHeight, 1, loc);
-//		});
-//		flatList.forEach((loc) -> {
-//			List<Location> neighborMountains = loc.neighboringVertices(graphs.dualGraph).stream().filter((v) -> {
-//				double distance = Math.sqrt((loc.x - v.x) * (loc.x - v.x) + (loc.y - v.y) * (loc.y - v.y));
-//				return flatList.contains(v) && v.mountain && !v.water && v.y > (loc.y + loc.radius) && distance < 0.04
-//						&& !v.inMountainRange;
-//			}).collect(Collectors.toList());
-//
-//			Location bestNeighbor = null;
-//			double maxXDistance = Double.NEGATIVE_INFINITY;
-//			for (Location neighbor : neighborMountains) {
-//				double distance = Math.abs(loc.x - neighbor.x);
-//				if (distance > maxXDistance) {
-//					maxXDistance = distance;
-//					bestNeighbor = neighbor;
-//				}
-//			}
-//
-//			if (bestNeighbor != null) {
-//				loc.inMountainRange = true;
-//				bestNeighbor.inMountainRange = true;
-//				g.drawLine((int) (x0 + loc.x * xWidth), (int) (y0 + (loc.y - loc.radius) * yHeight),
-//						(int) (x0 + bestNeighbor.x * xWidth),
-//						(int) (y0 + (bestNeighbor.y - bestNeighbor.radius) * yHeight));
-//			}
-//		});
-//
-//		//	
-//		//			flatList.forEach((loc) -> {
-//		//				drawMountain(g, graphs, x0, y0, xWidth, yHeight, 1, loc);
-//		//				Set<Location> neighbors = loc.neighboringVertices(graphs.dualGraph);
-//		//				neighbors.stream().filter((v) -> {
-//		//					return v.mountain && !v.water && loc.y < v.y;
-//		//				}).forEach((v) -> {
-//		//					g.drawLine((int) (x0 + loc.x * xWidth), (int) (y0 + loc.y * yHeight), (int) (x0 + v.x * xWidth),
-//		//							(int) (y0 + v.y * yHeight));
-//		//				});
-//		//			});
-//	}
+	//	private void drawMountains(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
+	//		List<Location> flatList = pickList.stream().flatMap((l) -> {
+	//			return l.stream();
+	//		}).filter((loc) -> {
+	//			return loc.mountain && !loc.water;
+	//		}).collect(Collectors.toList());
+	//
+	//		flatList.sort((l1, l2) -> {
+	//			return (int) (1000 * (l1.y - l2.y));
+	//		});
+	//
+	//		flatList.forEach((loc) -> {
+	//			drawMountain(g, graphs, x0, y0, xWidth, yHeight, 1, loc);
+	//		});
+	//		flatList.forEach((loc) -> {
+	//			List<Location> neighborMountains = loc.neighboringVertices(graphs.dualGraph).stream().filter((v) -> {
+	//				double distance = Math.sqrt((loc.x - v.x) * (loc.x - v.x) + (loc.y - v.y) * (loc.y - v.y));
+	//				return flatList.contains(v) && v.mountain && !v.water && v.y > (loc.y + loc.radius) && distance < 0.04
+	//						&& !v.inMountainRange;
+	//			}).collect(Collectors.toList());
+	//
+	//			Location bestNeighbor = null;
+	//			double maxXDistance = Double.NEGATIVE_INFINITY;
+	//			for (Location neighbor : neighborMountains) {
+	//				double distance = Math.abs(loc.x - neighbor.x);
+	//				if (distance > maxXDistance) {
+	//					maxXDistance = distance;
+	//					bestNeighbor = neighbor;
+	//				}
+	//			}
+	//
+	//			if (bestNeighbor != null) {
+	//				loc.inMountainRange = true;
+	//				bestNeighbor.inMountainRange = true;
+	//				g.drawLine((int) (x0 + loc.x * xWidth), (int) (y0 + (loc.y - loc.radius) * yHeight),
+	//						(int) (x0 + bestNeighbor.x * xWidth),
+	//						(int) (y0 + (bestNeighbor.y - bestNeighbor.radius) * yHeight));
+	//			}
+	//		});
+	//
+	//		//	
+	//		//			flatList.forEach((loc) -> {
+	//		//				drawMountain(g, graphs, x0, y0, xWidth, yHeight, 1, loc);
+	//		//				Set<Location> neighbors = loc.neighboringVertices(graphs.dualGraph);
+	//		//				neighbors.stream().filter((v) -> {
+	//		//					return v.mountain && !v.water && loc.y < v.y;
+	//		//				}).forEach((v) -> {
+	//		//					g.drawLine((int) (x0 + loc.x * xWidth), (int) (y0 + loc.y * yHeight), (int) (x0 + v.x * xWidth),
+	//		//							(int) (y0 + v.y * yHeight));
+	//		//				});
+	//		//			});
+	//	}
 
 	private void drawRoads(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
 		g.setColor(Color.black);
@@ -313,8 +313,9 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 				x0 + (loc.x + 2 * loc.radius / 3 - jiggleX2) * xWidth, y0 + (loc.y - loc.radius / 3) * yHeight,
 				x0 + (loc.x + loc.radius) * xWidth, y0 + loc.y * yHeight);
 
-		g.setPaint(new GradientPaint((float)(x0 + (loc.x - loc.radius) * xWidth), (float)loc.y, new Color(0.9f, 0.9f, 0.9f),
-				(float)(x0 + (loc.x + loc.radius) * xWidth), (float)loc.y, new Color(0.5f, 0.5f, 0.5f), false));
+		g.setPaint(new GradientPaint((float) (x0 + (loc.x - loc.radius) * xWidth), (float) loc.y,
+				new Color(0.9f, 0.9f, 0.9f), (float) (x0 + (loc.x + loc.radius) * xWidth), (float) loc.y,
+				new Color(0.5f, 0.5f, 0.5f), false));
 
 		g.fill(p);
 		g.setColor(Color.DARK_GRAY);
@@ -404,24 +405,24 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 		g.draw(p);
 	}
 
-	private void drawMountainStyle5(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight, Location loc) {
+	private void drawMountainStyle5(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight,
+			Location loc) {
 		drawMountainStyle4(g, graphs, x0, y0, xWidth, yHeight, loc);
-		
+
 		double jiggleX = (r.nextDouble() - 0.5) * loc.radius * 0.5;
 		double jiggleY = (r.nextDouble() - 0.5) * loc.radius;
 		double jiggleX2 = (r.nextDouble() - 0.5) * loc.radius * 0.5;
 		double jiggleY2 = (r.nextDouble() - 0.5) * loc.radius;
 
 		Path2D p = new Path2D.Double();
-		p.moveTo(x0 + (loc.x - loc.radius/2) * xWidth, y0 + loc.y * yHeight);
+		p.moveTo(x0 + (loc.x - loc.radius / 2) * xWidth, y0 + loc.y * yHeight);
 		//			p.lineTo(x0 + loc.x * xWidth, y0 + (loc.y - loc.radius) * yHeight);
 		//			p.lineTo(x0 + (loc.x + loc.radius) * xWidth, y0 + loc.y * yHeight);
 
-		p.curveTo(x0 + (loc.x - loc.radius / 3 + jiggleX) * xWidth,
-				y0 + (loc.y - loc.radius / 3 + jiggleY) * yHeight, x0 + (loc.x - loc.radius / 6 + jiggleX) * xWidth,
-				y0 + (loc.y - 2 * loc.radius / 3) * yHeight, x0 + (loc.x) * xWidth,
-				y0 + (loc.y - loc.radius) * yHeight);
-		
+		p.curveTo(x0 + (loc.x - loc.radius / 3 + jiggleX) * xWidth, y0 + (loc.y - loc.radius / 3 + jiggleY) * yHeight,
+				x0 + (loc.x - loc.radius / 6 + jiggleX) * xWidth, y0 + (loc.y - 2 * loc.radius / 3) * yHeight,
+				x0 + (loc.x) * xWidth, y0 + (loc.y - loc.radius) * yHeight);
+
 		g.setStroke(new BasicStroke(0.5f));
 		g.setColor(Color.DARK_GRAY);
 		g.draw(p);
@@ -508,7 +509,6 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 			}).collect(Collectors.toList());
 
 			if (loc.water) {
-
 				edgeList.forEach((e) -> {
 					if (e != null) {
 						Path2D.Double p = new Path2D.Double();
@@ -527,25 +527,32 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 	private void drawRivers(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
 		g.setColor(new Color(0.4f, 0.4f, 0.4f));
 		g.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-		if (graphs.riverPaths != null) {
-			graphs.riverPaths.forEach((path) -> {
-				Path2D.Double p = new Path2D.Double();
-				boolean drawn = false;
-				for (int i = 0; i < path.size(); i++) {
-					if (path.getScore(i) > fluxThreshold) {
-						if (!drawn) {
-							p.moveTo(x0 + path.getX(i) * xWidth, y0 + path.getY(i) * yHeight);
-							drawn = true;
-						} else if (drawn) {
-							p.lineTo(x0 + path.getX(i) * xWidth, y0 + path.getY(i) * yHeight);
-						}
-					}
-				}
-				if (drawn) {
-					g.draw(p);
-				}
-			});
-		}
+		//		if (graphs.riverPaths != null) {
+		//			graphs.riverPaths.forEach((path) -> {
+		//				Path2D.Double p = new Path2D.Double();
+		//				boolean drawn = false;
+		//				for (int i = 0; i < path.size(); i++) {
+		//					if (path.getScore(i) > fluxThreshold) {
+		//						if (!drawn) {
+		//							p.moveTo(x0 + path.getX(i) * xWidth, y0 + path.getY(i) * yHeight);
+		//							drawn = true;
+		//						} else if (drawn) {
+		//							p.lineTo(x0 + path.getX(i) * xWidth, y0 + path.getY(i) * yHeight);
+		//						}
+		//					}
+		//				}
+		//				if (drawn) {
+		//					g.draw(p);
+		//				}
+		//			});
+		//		}
+
+		graphs.dualEdges.forEach((e) -> {
+			if (e.river && e.flux > fluxThreshold) {
+				g.drawLine((int) (x0 + xWidth * e.loc1.x), (int) (y0 + yHeight * e.loc1.y),
+						(int) (x0 + xWidth * e.loc2.x), (int) (y0 + yHeight * e.loc2.y));
+			}
+		});
 	}
 
 	private void drawCells(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {

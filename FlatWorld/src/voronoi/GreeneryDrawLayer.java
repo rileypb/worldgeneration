@@ -66,25 +66,34 @@ public class GreeneryDrawLayer extends BaseDrawLayer {
 
 	private void drawRivers(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
 		g.setColor(seaBlue);
-		if (graphs.riverPaths != null) {
-			graphs.riverPaths.forEach((path) -> {
-				Path2D.Double p = new Path2D.Double();
-				boolean drawn = false;
-				for (int i = 0; i < path.size() - 1; i++) {
+		//		if (graphs.riverPaths != null) {
+		//			graphs.riverPaths.forEach((path) -> {
+		//				Path2D.Double p = new Path2D.Double();
+		//				boolean drawn = false;
+		//				for (int i = 0; i < path.size() - 1; i++) {
+		//
+		//					g.setStroke(new BasicStroke((float) Math.min(4, path.getScore(i) / fluxThreshold), BasicStroke.CAP_ROUND,
+		//							BasicStroke.JOIN_ROUND));
+		//					if (path.getScore(i) > fluxThreshold) {
+		//						g.drawLine((int) (x0 + path.getX(i) * xWidth), (int) (y0 + path.getY(i) * yHeight),
+		//								(int) (x0 + path.getX(i + 1) * xWidth), (int) (y0 + path.getY(i + 1) * yHeight));
+		//					}
+		//
+		//				}
+		//				if (drawn) {
+		//					g.draw(p);
+		//				}
+		//			});
+		//		}
 
-					g.setStroke(new BasicStroke((float) Math.min(4, path.getScore(i) / fluxThreshold), BasicStroke.CAP_ROUND,
-							BasicStroke.JOIN_ROUND));
-					if (path.getScore(i) > fluxThreshold) {
-						g.drawLine((int) (x0 + path.getX(i) * xWidth), (int) (y0 + path.getY(i) * yHeight),
-								(int) (x0 + path.getX(i + 1) * xWidth), (int) (y0 + path.getY(i + 1) * yHeight));
-					}
-
-				}
-				if (drawn) {
-					g.draw(p);
-				}
-			});
-		}
+		graphs.dualEdges.forEach((e) -> {
+			g.setStroke(new BasicStroke((float) Math.min(4, e.flux / fluxThreshold), BasicStroke.CAP_ROUND,
+					BasicStroke.JOIN_ROUND));
+			if (e.river && e.flux > fluxThreshold) {
+				g.drawLine((int) (x0 + xWidth * e.loc1.x), (int) (y0 + yHeight * e.loc1.y),
+						(int) (x0 + xWidth * e.loc2.x), (int) (y0 + yHeight * e.loc2.y));
+			}
+		});
 	}
 
 	private void drawCells(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
