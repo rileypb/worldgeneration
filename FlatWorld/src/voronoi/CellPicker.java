@@ -23,8 +23,8 @@ public class CellPicker {
 		List<Location> obstacles = new ArrayList<Location>();
 
 		graphs.dualVertices.forEach((loc) -> {
-			if ((loc.x >= 0 && loc.x <= 1 && loc.y >= 0 && loc.y <= 1)
-					&& (loc.water || loc.city || loc.road || loc.secondaryRoad || (loc.river && loc.flux > fluxThreshold))) {
+			if ((loc.x >= 0 && loc.x <= 1 && loc.y >= 0 && loc.y <= 1) && (loc.water || loc.city || loc.road
+					|| loc.secondaryRoad || (loc.river && loc.flux > fluxThreshold))) {
 				double maxRadius = graphs.dualGraph.edgesOf(loc).stream().map((e) -> {
 					return graphs.dualToVoronoi.get(e);
 				}).filter((e) -> {
@@ -64,85 +64,97 @@ public class CellPicker {
 			for (int v = 0; v < heightInBuckets; v++) {
 				int index = u * widthInBuckets + v;
 				List<Location> candidates = bucketList.get(index);
-				for (Location candidate : new ArrayList<Location>(candidates)) {
-					double radius = 0;
-					if (!candidate.water) {
-						if (candidate.hill) {
-							radius = 2 * maxRadius / 3;
-						} else if (candidate.mountain) {
-							radius = 2 * maxRadius;
-						} else if (candidate.forest) {
-							radius = maxRadius / 2;
+				while (candidates.size() > 0) {
+					for (Location candidate : new ArrayList<Location>(candidates)) {
+						double radius = 0;
+						if (!candidate.water) {
+							if (candidate.hill) {
+								radius = 2 * maxRadius / 3;
+							} else if (candidate.mountain) {
+								radius = 2 * maxRadius;
+							} else if (candidate.forest) {
+								radius = maxRadius / 64;
+							}
 						}
-					}
 
-					if (radius == 0) {
-						continue;
-					}
-					int i0 = index;
-					boolean collision = collides(candidate, pickList.get(i0), radius);
-					if (collision) {
-						candidates.remove(candidate);
-						continue;
-					}
-					if (u > 0) {
-						int i1 = index - widthInBuckets;
-						collision = collides(candidate, pickList.get(i1), radius);
+						if (radius == 0) {
+							candidates.remove(candidate);
+							continue;
+						}
+						int i0 = index;
+						boolean collision = collides(candidate, pickList.get(i0), radius);
 						if (collision) {
 							candidates.remove(candidate);
 							continue;
 						}
-					}
-					if (v > 0) {
-						int i2 = index - 1;
-						collision = collides(candidate, pickList.get(i2), radius);
-						if (collision) {
-							candidates.remove(candidate);
-							continue;
+						if (u > 0) {
+							int i1 = index - widthInBuckets;
+							collision = collides(candidate, pickList.get(i1), radius);
+							if (collision) {
+								candidates.remove(candidate);
+								continue;
+							}
 						}
-					}
-					if (u > 0 && v > 0) {
-						int i3 = index - 1 - widthInBuckets;
-						collision = collides(candidate, pickList.get(i3), radius);
-						if (collision) {
-							candidates.remove(candidate);
-							continue;
+						if (v > 0) {
+							int i2 = index - 1;
+							collision = collides(candidate, pickList.get(i2), radius);
+							if (collision) {
+								candidates.remove(candidate);
+								continue;
+							}
 						}
-					}
-					if (u < widthInBuckets - 1) {
-						int i4 = index + widthInBuckets;
-						collision = collides(candidate, pickList.get(i4), radius);
-						if (collision) {
-							candidates.remove(candidate);
-							continue;
+						if (u > 0 && v > 0) {
+							int i3 = index - 1 - widthInBuckets;
+							collision = collides(candidate, pickList.get(i3), radius);
+							if (collision) {
+								candidates.remove(candidate);
+								continue;
+							}
 						}
-					}
-					if (v < heightInBuckets - 1) {
-						int i5 = index + 1;
-						collision = collides(candidate, pickList.get(i5), radius);
-						if (collision) {
-							candidates.remove(candidate);
-							continue;
+						if (u < widthInBuckets - 1) {
+							int i4 = index + widthInBuckets;
+							collision = collides(candidate, pickList.get(i4), radius);
+							if (collision) {
+								candidates.remove(candidate);
+								continue;
+							}
 						}
-					}
-					if (u < widthInBuckets - 1 && v < heightInBuckets - 1) {
-						int i6 = index + 1 + widthInBuckets;
-						collision = collides(candidate, pickList.get(i6), radius);
-						if (collision) {
-							candidates.remove(candidate);
-							continue;
+						if (v < heightInBuckets - 1) {
+							int i5 = index + 1;
+							collision = collides(candidate, pickList.get(i5), radius);
+							if (collision) {
+								candidates.remove(candidate);
+								continue;
+							}
 						}
-					}
+						if (u < widthInBuckets - 1 && v < heightInBuckets - 1) {
+							int i6 = index + 1 + widthInBuckets;
+							collision = collides(candidate, pickList.get(i6), radius);
+							if (collision) {
+								candidates.remove(candidate);
+								continue;
+							}
+						}
 
-					collision = collides(candidate, obstacles, radius);
-					if (collision) {
-						candidates.remove(candidate);
-						continue;
-					}
+						collision = collides(candidate, obstacles, radius);
+						if (collision) {
+							candidates.remove(candidate);
+							continue;
+						}
 
-					// we survived, add to pick list.
-					candidate.radius = radius;
-					pickList.get(index).add(candidate);
+						double newX = candidate.x + 4 * (r.nextDouble()-0.5) * radius;
+						double newY = candidate.y + 4 * (r.nextDouble()-0.5) * radius;
+						Location newLocation = new Location(newX, newY);
+						newLocation.mountain = candidate.mountain;
+						newLocation.hill = candidate.hill;
+						newLocation.forest = candidate.forest;
+						newLocation.water = candidate.water;
+						candidates.add(newLocation);
+
+						// we survived, add to pick list.
+						candidate.radius = radius;
+						pickList.get(index).add(candidate);
+					}
 				}
 			}
 		}

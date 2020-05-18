@@ -728,6 +728,7 @@ public class TerrainBuilder2 {
 	}
 
 	public void buildSecondaryRoads(Graphs graphs) {
+		SecondaryRoad winner = null;
 		for (Location town : graphs.towns) {
 			graphs.dualVertices.forEach((loc) -> {
 				loc.usedForRoad = false;
@@ -738,7 +739,7 @@ public class TerrainBuilder2 {
 			SecondaryRoad initialRoad = new SecondaryRoad();
 			initialRoad.add(town);
 			roads.offer(initialRoad);
-			SecondaryRoad winner = null;
+			winner = null;
 			while (winner == null && roads.size() > 0) {
 				SecondaryRoad currentRoad = roads.remove();
 				Location head = currentRoad.getHead();
@@ -748,7 +749,7 @@ public class TerrainBuilder2 {
 						head.usedForRoad = true;
 						MapEdge edge = graphs.dualGraph.getEdge(head, neighbor);
 						SecondaryRoad extension = currentRoad.extend(neighbor, edge);
-						if (neighbor.city || neighbor.road || neighbor.town) {
+						if (neighbor.city || neighbor.road ) {
 							winner = extension;
 							break;
 						}
@@ -758,6 +759,40 @@ public class TerrainBuilder2 {
 			}
 			if (winner != null) {
 				winner.markRoad();
+			}
+		}
+		if (winner == null) {
+			for (Location town : graphs.towns) {
+				graphs.dualVertices.forEach((loc) -> {
+					loc.usedForRoad = false;
+				});
+				PriorityQueue<SecondaryRoad> roads = new PriorityQueue<SecondaryRoad>((l1, l2) -> {
+					return (int) (10000 * (l1.getScore() - l2.getScore()));
+				});
+				SecondaryRoad initialRoad = new SecondaryRoad();
+				initialRoad.add(town);
+				roads.offer(initialRoad);
+				winner = null;
+				while (winner == null && roads.size() > 0) {
+					SecondaryRoad currentRoad = roads.remove();
+					Location head = currentRoad.getHead();
+					Set<Location> neighboringVertices = head.neighboringVertices(graphs.dualGraph);
+					for (Location neighbor : neighboringVertices) {
+						if (!neighbor.usedForRoad && !neighbor.water) {
+							head.usedForRoad = true;
+							MapEdge edge = graphs.dualGraph.getEdge(head, neighbor);
+							SecondaryRoad extension = currentRoad.extend(neighbor, edge);
+							if (neighbor.city || neighbor.road || neighbor.town) {
+								winner = extension;
+								break;
+							}
+							roads.offer(extension);
+						}
+					}
+				}
+				if (winner != null) {
+					winner.markRoad();
+				}
 			}
 		}
 	}

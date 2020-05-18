@@ -218,7 +218,10 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 		p.lineTo(x0 + (xa + maxD / 2) * xWidth, y0 + (ya - maxD / 4) * yHeight);
 		p.closePath();
 
+		g.setColor(Color.lightGray);
 		g.fill(p);
+		g.setColor(Color.DARK_GRAY);
+		g.draw(p);
 	}
 
 	//	private void drawMountain(Graphics2D g, int mountainStyle, double x0, double y0, double xWidth,
