@@ -577,6 +577,10 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
 		//				p.closePath();
 		g.setColor(hillColor);
+		g.setPaint(new GradientPaint((float) (x0 + xa * xWidth), (float) loc.y,
+				hillColor, (float) ( x0 + (xa + maxD) * xWidth), (float) loc.y,
+				Color.lightGray, false));
+
 		g.fill(p);
 		g.setColor(Color.lightGray);
 		g.draw(p);
