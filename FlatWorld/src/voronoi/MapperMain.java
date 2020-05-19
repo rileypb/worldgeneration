@@ -23,7 +23,7 @@ import javax.swing.WindowConstants;
 
 import com.flowpowered.noise.module.source.Perlin;
 
-import javafx.scene.input.KeyCode;
+import voronoi.SeaLandDrawLayer3.MapType;
 
 public class MapperMain {
 
@@ -41,10 +41,6 @@ public class MapperMain {
 		TerrainBuilder2 builder = new TerrainBuilder2(POINTS, TerrainBuilder2.CellType.VORONOI);
 		int seed = new Random().nextInt();
 //												seed = 13802760;
-//		seed=56452391;
-//		seed = -1433114302; // screwed up cell rendering
-//		seed = -1029468384; // screwed up cell rendering
-//		seed = -580132427;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
@@ -155,7 +151,7 @@ public class MapperMain {
 
 		BufferedImage img2 = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g2 = img2.createGraphics();
-		new SeaLandDrawLayer3(r, (int) Math.sqrt(POINTS), pickList, 20).draw(g2, buildResult, img2);
+		new SeaLandDrawLayer3(r, (int) Math.sqrt(POINTS), pickList, 20, MapType.DEFAULT).draw(g2, buildResult, img2);
 		//		new GraphDrawLayer().draw(g2, buildResult, img2);
 		display(img2, builder, g2);
 	}

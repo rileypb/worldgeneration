@@ -852,6 +852,9 @@ public class TerrainBuilder2 {
 		});
 
 		graphs.voronoiVertices.forEach((loc) -> {
+			long count = graphs.voronoiGraph.edgesOf(loc).stream().filter((e) -> {
+				return e.coast;
+			}).count();
 			Location accumulation = graphs.voronoiGraph.edgesOf(loc).stream().filter((e) -> {
 				return e.coast;
 			}).map((e) -> {
@@ -862,8 +865,8 @@ public class TerrainBuilder2 {
 				return null;
 			});
 
-			loc.tmpX = accumulation.x / 4;
-			loc.tmpY = accumulation.y / 4;
+			loc.tmpX = accumulation.x / (2 + count);
+			loc.tmpY = accumulation.y / (2 + count);
 		});
 
 		graphs.voronoiVertices.stream().filter((loc) -> {

@@ -58,10 +58,13 @@ public class Location {
 	public double tmpX;
 	public double tmpY;
 	public boolean secondaryRoad;
+	public String name;
 
 	public Location(double x, double y) {
 		this.x = x;
 		this.y = y;
+		tmpX = x;
+		tmpY = y;
 		subdivision = 0;
 	}
 
