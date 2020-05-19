@@ -36,8 +36,8 @@ public class GreeneryDrawLayer extends BaseDrawLayer {
 	public void draw(Graphics2D g, Graphs graphs, BufferedImage im) {
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
-		double x0 = clipBounds.x - 20;
-		double y0 = clipBounds.y - 20;
+		double x0 = clipBounds.x - 10;
+		double y0 = clipBounds.y - 10;
 		double xWidth = clipBounds.width * 1.1;
 		double yHeight = clipBounds.height * 1.1;
 
@@ -87,7 +87,7 @@ public class GreeneryDrawLayer extends BaseDrawLayer {
 		//		}
 
 		graphs.dualEdges.forEach((e) -> {
-			g.setStroke(new BasicStroke((float) Math.min(4, e.flux / fluxThreshold), BasicStroke.CAP_ROUND,
+			g.setStroke(new BasicStroke((float) Math.min(6, e.flux / fluxThreshold / 2), BasicStroke.CAP_ROUND,
 					BasicStroke.JOIN_ROUND));
 			if (e.river && e.flux > fluxThreshold) {
 				g.drawLine((int) (x0 + xWidth * e.loc1.x), (int) (y0 + yHeight * e.loc1.y),

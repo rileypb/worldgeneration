@@ -44,6 +44,7 @@ public class MapperMain {
 //		seed=56452391;
 //		seed = -1433114302; // screwed up cell rendering
 //		seed = -1029468384; // screwed up cell rendering
+//		seed = -580132427;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);

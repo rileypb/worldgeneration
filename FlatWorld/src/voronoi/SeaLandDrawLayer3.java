@@ -38,8 +38,8 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
-		double x0 = clipBounds.x - 20;
-		double y0 = clipBounds.y - 20;
+		double x0 = clipBounds.x - 10;
+		double y0 = clipBounds.y - 10;
 		double xWidth = clipBounds.width * 1.1;
 		double yHeight = clipBounds.height * 1.1;
 
@@ -207,6 +207,7 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
 	private void drawTree(Graphics2D g, double x0, double y0, double xWidth, double yHeight, double maxY, double maxD,
 			double xa) {
+		g.setStroke(new BasicStroke(1));
 		g.setColor(Color.DARK_GRAY);
 		double ya = maxY - maxD + .015;
 		Path2D.Float p = new Path2D.Float();
