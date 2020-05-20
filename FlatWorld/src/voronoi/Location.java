@@ -59,6 +59,7 @@ public class Location {
 	public double tmpY;
 	public boolean secondaryRoad;
 	public String name;
+	public int index;
 
 	public Location(double x, double y) {
 		this.x = x;

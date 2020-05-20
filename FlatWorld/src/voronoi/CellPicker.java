@@ -73,7 +73,7 @@ public class CellPicker {
 							} else if (candidate.mountain) {
 								radius = 2 * maxRadius;
 							} else if (candidate.forest) {
-								radius = maxRadius / 64;
+								radius = maxRadius / 4;
 							}
 						}
 
@@ -142,8 +142,8 @@ public class CellPicker {
 							continue;
 						}
 
-						double newX = candidate.x + 4 * (r.nextDouble()-0.5) * radius;
-						double newY = candidate.y + 4 * (r.nextDouble()-0.5) * radius;
+						double newX = candidate.x + 8 * (r.nextDouble()-0.5) * radius;
+						double newY = candidate.y + 8 * (r.nextDouble()-0.5) * radius;
 						Location newLocation = new Location(newX, newY);
 						newLocation.mountain = candidate.mountain;
 						newLocation.hill = candidate.hill;

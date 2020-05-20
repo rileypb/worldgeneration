@@ -38,14 +38,20 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 	private List<List<Location>> pickList;
 	private double fluxThreshold;
 	private MapType mapType;
+	private BufferedImage selectionTexture;
+	double x0;
+	double y0;
+	double xWidth;
+	double yHeight;
 
 	public SeaLandDrawLayer3(Random r, int sizeFactor, List<List<Location>> pickList, double fluxThreshold,
-			MapType mapType) {
+			MapType mapType, BufferedImage selectionTexture) {
 		this.r = r;
 		this.sizeFactor = sizeFactor;
 		this.pickList = pickList;
 		this.fluxThreshold = fluxThreshold;
 		this.mapType = mapType;
+		this.selectionTexture = selectionTexture;
 	}
 
 	@Override
@@ -53,10 +59,10 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
-		double x0 = clipBounds.x - 10;
-		double y0 = clipBounds.y - 10;
-		double xWidth = clipBounds.width * 1.1;
-		double yHeight = clipBounds.height * 1.1;
+		x0 = clipBounds.x - 20;
+		y0 = clipBounds.y - 20;
+		xWidth = clipBounds.width * 1.1;
+		yHeight = clipBounds.height * 1.1;
 
 		g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
 		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
@@ -577,9 +583,8 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 
 		//				p.closePath();
 		g.setColor(hillColor);
-		g.setPaint(new GradientPaint((float) (x0 + xa * xWidth), (float) loc.y,
-				hillColor, (float) ( x0 + (xa + maxD) * xWidth), (float) loc.y,
-				Color.lightGray, false));
+		g.setPaint(new GradientPaint((float) (x0 + xa * xWidth), (float) loc.y, hillColor,
+				(float) (x0 + (xa + maxD) * xWidth), (float) loc.y, Color.lightGray, false));
 
 		g.fill(p);
 		g.setColor(Color.lightGray);
@@ -645,15 +650,13 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 			if (loc.water) {
 				edgeList.forEach((e) -> {
 					if (e != null) {
-						if (e.loc1.x > 0) {
-							Path2D.Double p = new Path2D.Double();
-							p.moveTo(x0 + xWidth * loc.x, y0 + yHeight * minmax(0, 1, loc.y));
-							p.lineTo(x0 + xWidth * e.loc1.x, y0 + yHeight * minmax(0, 1, e.loc1.y));
-							p.lineTo(x0 + xWidth * e.loc2.x, y0 + yHeight * minmax(0, 1, e.loc2.y));
-							p.closePath();
-							g.setColor(Color.lightGray);
-							g.fill(p);
-						}
+						Path2D.Double p = new Path2D.Double();
+						p.moveTo(x0 + xWidth * loc.x, y0 + yHeight * minmax(0, 1, loc.y));
+						p.lineTo(x0 + xWidth * e.loc1.x, y0 + yHeight * minmax(0, 1, e.loc1.y));
+						p.lineTo(x0 + xWidth * e.loc2.x, y0 + yHeight * minmax(0, 1, e.loc2.y));
+						p.closePath();
+						g.setColor(Color.lightGray);
+						g.fill(p);
 					}
 				});
 			}
@@ -692,10 +695,13 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 	}
 
 	private void drawCells(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
+		int[] i = new int[1];
+		Graphics2D g2 = (Graphics2D) selectionTexture.getGraphics();
 		graphs.dualVertices.forEach((loc) -> {
 			List<MapEdge> edgeList = graphs.dualGraph.edgesOf(loc).stream().map((voronoiEdge) -> {
 				return graphs.dualToVoronoi.get(voronoiEdge);
 			}).collect(Collectors.toList());
+			loc.index = i[0];
 
 			edgeList.forEach((e) -> {
 				if (e != null) {
@@ -731,9 +737,13 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 					}
 
 					g.fill(p);
-					//					g.draw(p);
+
+					g2.setColor(new Color(i[0]));
+					g2.fill(p);
+					g2.draw(p);
 				}
 			});
+			i[0]++;
 		});
 	}
 
@@ -783,7 +793,7 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 		});
 	}
 
-	private double minmax(double min, double max, double value) {
+	static double minmax(double min, double max, double value) {
 		return Math.min(max, Math.max(min, value));
 	}
 
