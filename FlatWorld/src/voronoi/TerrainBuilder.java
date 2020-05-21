@@ -26,14 +26,14 @@ import de.alsclo.voronoi.graph.Graph;
 import de.alsclo.voronoi.graph.Point;
 import de.alsclo.voronoi.graph.Vertex;
 
-public class TerrainBuilder2 {
+public class TerrainBuilder {
 	private int numberOfPoints;
 	private CellType cellType;
 	private ArrayList<Location> depressions;
 	private int numberOfLakes;
 	private Lake[] lakes;
 
-	public TerrainBuilder2(int numberOfPoints, CellType cellType) {
+	public TerrainBuilder(int numberOfPoints, CellType cellType) {
 		this.numberOfPoints = numberOfPoints;
 		this.cellType = cellType;
 	}

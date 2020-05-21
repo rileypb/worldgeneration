@@ -95,7 +95,7 @@ public class MapperMain {
 		screenWidth = 800;
 		screenHeight = 800;
 
-		TerrainBuilder2 builder = new TerrainBuilder2(POINTS, TerrainBuilder2.CellType.VORONOI);
+		TerrainBuilder builder = new TerrainBuilder(POINTS, TerrainBuilder.CellType.VORONOI);
 		int seed = new Random().nextInt();
 		//												seed = 13802760;
 		//		seed = 1473019236;
@@ -216,7 +216,7 @@ public class MapperMain {
 		display(img2, builder, g2, selectionTexture, buildResult);
 	}
 
-	private static void display(BufferedImage img, TerrainBuilder2 builder, Graphics2D g,
+	private static void display(BufferedImage img, TerrainBuilder builder, Graphics2D g,
 			BufferedImage selectionTexture, Graphs graphs) {
 		JFrame frame = new JFrame();
 		@SuppressWarnings("serial")
