@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 import org.lwjgl.util.vector.Vector2f;
 
-public class SeaLandDrawLayer3 extends BaseDrawLayer {
+public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 
 	public static enum MapType {
 		DEFAULT, TOPDOWN
@@ -44,7 +44,7 @@ public class SeaLandDrawLayer3 extends BaseDrawLayer {
 	double xWidth;
 	double yHeight;
 
-	public SeaLandDrawLayer3(Random r, int sizeFactor, List<List<Location>> pickList, double fluxThreshold,
+	public FantasyLargeScaleDrawLayer(Random r, int sizeFactor, List<List<Location>> pickList, double fluxThreshold,
 			MapType mapType, BufferedImage selectionTexture) {
 		this.r = r;
 		this.sizeFactor = sizeFactor;

@@ -30,7 +30,7 @@ import javax.swing.WindowConstants;
 
 import com.flowpowered.noise.module.source.Perlin;
 
-import voronoi.SeaLandDrawLayer3.MapType;
+import voronoi.FantasyLargeScaleDrawLayer.MapType;
 
 public class MapperMain {
 
@@ -69,9 +69,9 @@ public class MapperMain {
 				if (e != null) {
 					g.setColor(Color.red);
 					((Graphics2D) g).drawLine((int) (mapLayer.x0 + mapLayer.xWidth * e.loc1.x),
-							(int) (mapLayer.y0 + mapLayer.yHeight * SeaLandDrawLayer3.minmax(0, 1, e.loc1.y)),
+							(int) (mapLayer.y0 + mapLayer.yHeight * FantasyLargeScaleDrawLayer.minmax(0, 1, e.loc1.y)),
 							(int) (mapLayer.x0 + mapLayer.xWidth * e.loc2.x),
-							(int) (mapLayer.y0 + mapLayer.yHeight * SeaLandDrawLayer3.minmax(0, 1, e.loc2.y)));
+							(int) (mapLayer.y0 + mapLayer.yHeight * FantasyLargeScaleDrawLayer.minmax(0, 1, e.loc2.y)));
 				}
 			});
 
@@ -89,7 +89,7 @@ public class MapperMain {
 
 	public static final int POINTS = 2500;
 	private static BufferedImage selectionTexture;
-	private static SeaLandDrawLayer3 mapLayer;
+	private static FantasyLargeScaleDrawLayer mapLayer;
 
 	public static void main(String[] args) {
 		screenWidth = 800;
@@ -192,7 +192,7 @@ public class MapperMain {
 		//		drawLayers.add(new BoundaryCellDrawLayer());
 		//								drawLayers.add(new GraphDrawLayer());
 		//				drawLayers.add(new DualGraphDrawLayer());
-		drawLayers.add(new GreeneryDrawLayer(r, (int) Math.sqrt(POINTS), 20));
+		drawLayers.add(new SatelliteDrawLayer(r, (int) Math.sqrt(POINTS), 20));
 
 		BufferedImage img = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g = img.createGraphics();
@@ -210,7 +210,7 @@ public class MapperMain {
 		BufferedImage img2 = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g2 = img2.createGraphics();
 		selectionTexture = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_3BYTE_BGR);
-		mapLayer = new SeaLandDrawLayer3(r, (int) Math.sqrt(POINTS), pickList, 20, MapType.DEFAULT, selectionTexture);
+		mapLayer = new FantasyLargeScaleDrawLayer(r, (int) Math.sqrt(POINTS), pickList, 20, MapType.DEFAULT, selectionTexture);
 		mapLayer.draw(g2, buildResult, img2);
 		//				new GraphDrawLayer().draw(g2, buildResult, img2);
 		display(img2, builder, g2, selectionTexture, buildResult);
