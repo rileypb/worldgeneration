@@ -43,12 +43,13 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	double y0;
 	double xWidth;
 	double yHeight;
+	private Graphs graphs;
 
 	public FantasyLargeScaleDrawLayer(Random r, int sizeFactor, Graphs graphs, double fluxThreshold,
 			MapType mapType, BufferedImage selectionTexture) {
 		this.r = r;
 		this.sizeFactor = sizeFactor;
-		this.pickList = pickList;
+		this.graphs = graphs;
 		this.fluxThreshold = fluxThreshold;
 		this.mapType = mapType;
 		this.selectionTexture = selectionTexture;
@@ -57,7 +58,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	}
 
 	@Override
-	public void draw(Graphics2D g, Graphs graphs, BufferedImage im) {
+	public void draw(Graphics2D g, BufferedImage im) {
 
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 

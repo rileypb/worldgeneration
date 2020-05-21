@@ -4,6 +4,6 @@ import java.awt.image.BufferedImage;
 
 public interface DrawLayer {
 
-	void draw(Graphics2D graphics, Graphs buildResult, BufferedImage im);
+	void draw(Graphics2D graphics, BufferedImage im);
 
 }

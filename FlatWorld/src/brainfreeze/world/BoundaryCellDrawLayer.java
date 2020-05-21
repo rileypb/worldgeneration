@@ -11,8 +11,14 @@ import java.util.stream.Collectors;
 
 public class BoundaryCellDrawLayer implements DrawLayer {
 
+	private Graphs graphs;
+
+	public BoundaryCellDrawLayer(Graphs graphs) {
+		this.graphs = graphs;
+	}
+	
 	@Override
-	public void draw(Graphics2D g, Graphs graphs, BufferedImage im) {
+	public void draw(Graphics2D g, BufferedImage im) {
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
 		double x0 = clipBounds.x + 20;

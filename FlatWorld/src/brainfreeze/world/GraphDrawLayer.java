@@ -12,9 +12,14 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 public class GraphDrawLayer implements DrawLayer {
+	private Graphs graphs;
+
+	public GraphDrawLayer(Graphs graphs) {
+		this.graphs = graphs;
+	}
 
 	@Override
-	public void draw(Graphics2D g, Graphs graphs, BufferedImage im) {
+	public void draw(Graphics2D g, BufferedImage im) {
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
 		double x0 = clipBounds.x - 20;

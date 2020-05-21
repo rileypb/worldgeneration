@@ -25,15 +25,18 @@ public class SatelliteDrawLayer extends BaseDrawLayer {
 	private int sizeFactor;
 	private static final int BASE_SIZE_FACTOR = 70;
 	private double fluxThreshold;
+	private Graphs graphs;
+	private Graphs graphs2;
 
-	public SatelliteDrawLayer(Random r, int sizeFactor, double fluxThreshold) {
+	public SatelliteDrawLayer(Random r, Graphs graphs, int sizeFactor, double fluxThreshold) {
 		this.r = r;
+		this.graphs = graphs;
 		this.sizeFactor = sizeFactor;
 		this.fluxThreshold = fluxThreshold;
 	}
 
 	@Override
-	public void draw(Graphics2D g, Graphs graphs, BufferedImage im) {
+	public void draw(Graphics2D g, BufferedImage im) {
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
 		double x0 = clipBounds.x - 10;

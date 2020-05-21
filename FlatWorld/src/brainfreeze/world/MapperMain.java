@@ -110,7 +110,7 @@ public class MapperMain {
 		//		drawLayers.add(new BoundaryCellDrawLayer());
 		//								drawLayers.add(new GraphDrawLayer());
 		//				drawLayers.add(new DualGraphDrawLayer());
-		drawLayers.add(new SatelliteDrawLayer(r, (int) Math.sqrt(POINTS), 20));
+		drawLayers.add(new SatelliteDrawLayer(r, buildResult, (int) Math.sqrt(POINTS), 20));
 
 		BufferedImage img = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g = img.createGraphics();
@@ -120,7 +120,7 @@ public class MapperMain {
 		g.setColor(Color.white);
 
 		drawLayers.forEach((layer) -> {
-			layer.draw((Graphics2D) img.getGraphics(), buildResult, img);
+			layer.draw((Graphics2D) img.getGraphics(), img);
 		});
 
 		display(img, builder, g, null, buildResult);
@@ -129,7 +129,7 @@ public class MapperMain {
 		Graphics2D g2 = img2.createGraphics();
 		selectionTexture = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_3BYTE_BGR);
 		mapLayer = new FantasyLargeScaleDrawLayer(r, (int) Math.sqrt(POINTS), buildResult, 20, MapType.DEFAULT, selectionTexture);
-		mapLayer.draw(g2, buildResult, img2);
+		mapLayer.draw(g2, img2);
 		//				new GraphDrawLayer().draw(g2, buildResult, img2);
 		display(img2, builder, g2, selectionTexture, buildResult);
 	}
