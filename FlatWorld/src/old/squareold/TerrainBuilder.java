@@ -1,10 +1,10 @@
-package squareold;
+package old.squareold;
 
 import java.util.Random;
 
 import com.flowpowered.noise.module.source.Perlin;
 
-import voronoiold.PerlinHelper;
+import old.voronoiold.PerlinHelper;
 
 public class TerrainBuilder {
 

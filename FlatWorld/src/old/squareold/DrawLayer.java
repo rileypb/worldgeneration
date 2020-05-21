@@ -1,4 +1,4 @@
-package squareold;
+package old.squareold;
 import java.awt.Graphics2D;
 
 public interface DrawLayer {

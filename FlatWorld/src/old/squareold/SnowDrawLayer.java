@@ -1,12 +1,12 @@
-package squareold;
+package old.squareold;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
-public class BiomeDrawLayer implements DrawLayer {
+public class SnowDrawLayer implements DrawLayer {
 
 	private double sealevel;
 
-	public BiomeDrawLayer(double sealevel) {
+	public SnowDrawLayer(double sealevel) {
 		this.sealevel = sealevel;
 	}
 
@@ -17,7 +17,7 @@ public class BiomeDrawLayer implements DrawLayer {
 		for (int x = 0; x < terrain.numHorizontalSamples; x++) {
 			for (int y = 0; y < terrain.numVerticalSamples; y++) {
 				elevation = Math.min(1, Math.max(-1, terrain.getElevation(x, y) - sealevel));
-				if (elevation > 0) {
+				if (elevation > 0 && terrain.getBiome(x, y) == Biome.SNOW) {
 					graphics.setColor(terrain.getBiome(x, y).color);
 					graphics.drawRect(x, y, 1, 1);
 				}

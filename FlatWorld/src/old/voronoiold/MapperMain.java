@@ -1,4 +1,4 @@
-package voronoiold;
+package old.voronoiold;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
