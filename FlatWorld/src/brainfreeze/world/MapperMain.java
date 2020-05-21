@@ -120,7 +120,7 @@ public class MapperMain {
 		g.setColor(Color.white);
 
 		drawLayers.forEach((layer) -> {
-			layer.draw((Graphics2D) img.getGraphics(), img);
+			layer.draw(img);
 		});
 
 		display(img, builder, g, null, buildResult);
@@ -129,7 +129,7 @@ public class MapperMain {
 		Graphics2D g2 = img2.createGraphics();
 		selectionTexture = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_3BYTE_BGR);
 		mapLayer = new FantasyLargeScaleDrawLayer(r, (int) Math.sqrt(POINTS), buildResult, 20, MapType.DEFAULT, selectionTexture);
-		mapLayer.draw(g2, img2);
+		mapLayer.draw(img2);
 		//				new GraphDrawLayer().draw(g2, buildResult, img2);
 		display(img2, builder, g2, selectionTexture, buildResult);
 	}

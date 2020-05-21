@@ -19,7 +19,8 @@ public class GraphDrawLayer implements DrawLayer {
 	}
 
 	@Override
-	public void draw(Graphics2D g, BufferedImage im) {
+	public void draw(BufferedImage im) {
+		Graphics2D g = (Graphics2D) im.getGraphics();
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
 		double x0 = clipBounds.x - 20;
