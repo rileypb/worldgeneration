@@ -1,4 +1,4 @@
-package voronoi;
+package brainfreeze.world;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -12,7 +12,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class GreeneryDrawLayer extends BaseDrawLayer {
+public class SatelliteDrawLayer extends BaseDrawLayer {
 
 	Color seaBlue = new Color(19, 18, 52);
 	private Color anotherGreen = new Color(39, 50, 41);
@@ -26,7 +26,7 @@ public class GreeneryDrawLayer extends BaseDrawLayer {
 	private static final int BASE_SIZE_FACTOR = 70;
 	private double fluxThreshold;
 
-	public GreeneryDrawLayer(Random r, int sizeFactor, double fluxThreshold) {
+	public SatelliteDrawLayer(Random r, int sizeFactor, double fluxThreshold) {
 		this.r = r;
 		this.sizeFactor = sizeFactor;
 		this.fluxThreshold = fluxThreshold;

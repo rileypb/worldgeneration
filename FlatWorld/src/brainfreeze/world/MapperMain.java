@@ -12,10 +12,7 @@ import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.geom.Path2D;
-import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -95,7 +92,7 @@ public class MapperMain {
 		screenWidth = 800;
 		screenHeight = 800;
 
-		TerrainBuilder builder = new TerrainBuilder(POINTS, TerrainBuilder.CellType.VORONOI);
+		TerrainBuilder builder = new TerrainBuilder(POINTS, SEALEVEL);
 		int seed = new Random().nextInt();
 		//												seed = 13802760;
 		//		seed = 1473019236;
@@ -103,87 +100,8 @@ public class MapperMain {
 		Random r = new Random(seed);
 		Graphs buildResult = builder.run(r, 1);
 
-		Perlin perlin = new Perlin();
-		perlin.setFrequency(1);
-		perlin.setOctaveCount(16);
-		perlin.setSeed(r.nextInt());
-		Perlin calmPerlin = new Perlin();
-		calmPerlin.setFrequency(.25);
-		calmPerlin.setOctaveCount(16);
-		calmPerlin.setSeed(r.nextInt());
-		Perlin wildPerlin = new Perlin();
-		wildPerlin.setFrequency(4);
-		wildPerlin.setOctaveCount(30);
-		wildPerlin.setSeed(r.nextInt());
+		
 
-		Perlin moisturePerlin = new Perlin();
-		moisturePerlin.setFrequency(.125);
-		moisturePerlin.setOctaveCount(8);
-		moisturePerlin.setSeed(r.nextInt());
-
-		builder.generateValues(buildResult, r, perlin, (target, value) -> {
-			target.wildness = value;
-		});
-		builder.generateValues(buildResult, r, calmPerlin, (target, value) -> {
-			target.calmValue = value;
-		});
-		builder.generateValues(buildResult, r, wildPerlin, (target, value) -> {
-			target.wildValue = value;
-		});
-		builder.forEachLocation(buildResult, (target) -> {
-			target.elevation = (1 - target.wildness * target.wildness * target.wildness) * target.calmValue
-					+ target.wildness * target.wildness * target.wildness * target.wildValue;
-		});
-
-		builder.smoothElevations(buildResult);
-		builder.smoothElevations(buildResult);
-		builder.smoothElevations(buildResult);
-
-		builder.setVoronoiCornerElevations(buildResult);
-
-		builder.setDualCornerElevations(buildResult);
-
-		builder.normalizeElevations(buildResult);
-
-		builder.setBaseMoisture(buildResult, r, moisturePerlin);
-		//		builder.normalizeBaseMoisture(buildResult);
-
-		builder.markWater(buildResult, SEALEVEL);
-
-		builder.eliminateStrandedWaterAndFindLakes(buildResult, SEALEVEL);
-
-		builder.raiseMountains(buildResult, POINTS);
-		builder.fillInMountainGaps(buildResult);
-
-		builder.fillDepressions(buildResult);
-
-		builder.setVoronoiCornerElevations(buildResult);
-
-		builder.normalizeElevations(buildResult);
-
-		builder.runRivers(buildResult, 20);
-
-		builder.calculateFinalMoisture(buildResult);
-		builder.growForests(buildResult);
-
-		CityScorer cityScorer = new CityScorer(POINTS);
-		for (int i = 0; i < 5; i++) {
-			cityScorer.scoreCitySites(buildResult);
-		}
-
-		builder.buildRoads(buildResult);
-
-		TownPlanner townPlanner = new TownPlanner(POINTS);
-		for (int i = 0; i < 7; i++) {
-			townPlanner.placeTowns(buildResult);
-		}
-
-		builder.buildSecondaryRoads(buildResult);
-
-		builder.relaxCoast(buildResult);
-		builder.relaxEdges(buildResult, 20);
-
-		List<List<Location>> pickList = new CellPicker(buildResult, 0.008).pick(r, 20);
 
 		System.out.println("drawing...");
 
@@ -210,7 +128,7 @@ public class MapperMain {
 		BufferedImage img2 = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g2 = img2.createGraphics();
 		selectionTexture = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_3BYTE_BGR);
-		mapLayer = new FantasyLargeScaleDrawLayer(r, (int) Math.sqrt(POINTS), pickList, 20, MapType.DEFAULT, selectionTexture);
+		mapLayer = new FantasyLargeScaleDrawLayer(r, (int) Math.sqrt(POINTS), buildResult, 20, MapType.DEFAULT, selectionTexture);
 		mapLayer.draw(g2, buildResult, img2);
 		//				new GraphDrawLayer().draw(g2, buildResult, img2);
 		display(img2, builder, g2, selectionTexture, buildResult);

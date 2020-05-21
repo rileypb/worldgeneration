@@ -1,6 +1,5 @@
 package brainfreeze.world;
 
-import java.awt.BasicStroke;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,29 +27,23 @@ import de.alsclo.voronoi.graph.Vertex;
 
 public class TerrainBuilder {
 	private int numberOfPoints;
-	private CellType cellType;
 	private ArrayList<Location> depressions;
 	private int numberOfLakes;
 	private Lake[] lakes;
+	private double seaLevel;
 
-	public TerrainBuilder(int numberOfPoints, CellType cellType) {
+	public TerrainBuilder(int numberOfPoints, double seaLevel) {
 		this.numberOfPoints = numberOfPoints;
-		this.cellType = cellType;
-	}
-
-	public enum CellType {
-		VORONOI
+		this.seaLevel = seaLevel;
 	}
 
 	public Graphs run(Random r, int relaxations) {
 		ArrayList<Point> initialSites = new ArrayList<>();
 
-		switch (cellType) {
-		case VORONOI:
-			//			generateHaltonSequencePoints(initialSites, r, numberOfPoints);
-			generateRandomPoints(initialSites, r, numberOfPoints);
-			break;
-		}
+		// generates "evenly spaced" points
+		//			generateHaltonSequencePoints(initialSites, r, numberOfPoints);
+		
+		generateRandomPoints(initialSites, r, numberOfPoints);
 
 		System.out.println("creating voronoi diagram...");
 		Voronoi voronoi = new Voronoi(initialSites);
@@ -62,6 +55,86 @@ public class TerrainBuilder {
 		Graph graph = voronoi.getGraph();
 
 		Graphs graphs = generateGraphs(graph);
+		
+		Perlin perlin = new Perlin();
+		perlin.setFrequency(1);
+		perlin.setOctaveCount(16);
+		perlin.setSeed(r.nextInt());
+		Perlin calmPerlin = new Perlin();
+		calmPerlin.setFrequency(.25);
+		calmPerlin.setOctaveCount(16);
+		calmPerlin.setSeed(r.nextInt());
+		Perlin wildPerlin = new Perlin();
+		wildPerlin.setFrequency(4);
+		wildPerlin.setOctaveCount(30);
+		wildPerlin.setSeed(r.nextInt());
+
+		Perlin moisturePerlin = new Perlin();
+		moisturePerlin.setFrequency(.125);
+		moisturePerlin.setOctaveCount(8);
+		moisturePerlin.setSeed(r.nextInt());
+
+		generateValues(graphs, r, perlin, (target, value) -> {
+			target.wildness = value;
+		});
+		generateValues(graphs, r, calmPerlin, (target, value) -> {
+			target.calmValue = value;
+		});
+		generateValues(graphs, r, wildPerlin, (target, value) -> {
+			target.wildValue = value;
+		});
+		forEachLocation(graphs, (target) -> {
+			target.elevation = (1 - target.wildness * target.wildness * target.wildness) * target.calmValue
+					+ target.wildness * target.wildness * target.wildness * target.wildValue;
+		});
+
+		smoothElevations(graphs);
+		smoothElevations(graphs);
+		smoothElevations(graphs);
+
+		setVoronoiCornerElevations(graphs);
+
+		setDualCornerElevations(graphs);
+
+		normalizeElevations(graphs);
+
+		setBaseMoisture(graphs, r, moisturePerlin);
+		//		normalizeBaseMoisture(graphs);
+
+		markWater(graphs, seaLevel);
+
+		eliminateStrandedWaterAndFindLakes(graphs, seaLevel);
+
+		raiseMountains(graphs, numberOfPoints);
+		fillInMountainGaps(graphs);
+
+		fillDepressions(graphs);
+
+		setVoronoiCornerElevations(graphs);
+
+		normalizeElevations(graphs);
+
+		runRivers(graphs, 20);
+
+		calculateFinalMoisture(graphs);
+		growForests(graphs);
+
+		CityScorer cityScorer = new CityScorer(numberOfPoints);
+		for (int i = 0; i < 5; i++) {
+			cityScorer.scoreCitySites(graphs);
+		}
+
+		buildRoads(graphs);
+
+		TownPlanner townPlanner = new TownPlanner(numberOfPoints);
+		for (int i = 0; i < 7; i++) {
+			townPlanner.placeTowns(graphs);
+		}
+
+		buildSecondaryRoads(graphs);
+
+		relaxCoast(graphs);
+		relaxEdges(graphs, 20);
 
 		return graphs;
 
@@ -804,13 +877,13 @@ public class TerrainBuilder {
 			loc.tmpX = loc.x;
 			loc.tmpY = loc.y;
 			int count = (int) graphs.dualGraph.edgesOf(loc).stream().filter((e) -> {
-				return (e.road && loc.road) || (e.secondaryRoad && loc.secondaryRoad) || 
-						(e.river && e.flux > fluxThreshold && loc.river && loc.flux > fluxThreshold);
+				return (e.road && loc.road) || (e.secondaryRoad && loc.secondaryRoad)
+						|| (e.river && e.flux > fluxThreshold && loc.river && loc.flux > fluxThreshold);
 			}).count();
 			if (count > 0) {
 				Location accumulation = graphs.dualGraph.edgesOf(loc).stream().filter((e) -> {
-					return (e.road && loc.road) || (e.secondaryRoad && loc.secondaryRoad) || 
-							(e.river && e.flux > fluxThreshold && loc.river && loc.flux > fluxThreshold);
+					return (e.road && loc.road) || (e.secondaryRoad && loc.secondaryRoad)
+							|| (e.river && e.flux > fluxThreshold && loc.river && loc.flux > fluxThreshold);
 				}).map((e) -> {
 					return e.oppositeLocation(loc);
 				}).reduce(new Location(2 * loc.x, 2 * loc.y), (accumulated, p) -> {

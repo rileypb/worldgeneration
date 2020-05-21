@@ -44,7 +44,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	double xWidth;
 	double yHeight;
 
-	public FantasyLargeScaleDrawLayer(Random r, int sizeFactor, List<List<Location>> pickList, double fluxThreshold,
+	public FantasyLargeScaleDrawLayer(Random r, int sizeFactor, Graphs graphs, double fluxThreshold,
 			MapType mapType, BufferedImage selectionTexture) {
 		this.r = r;
 		this.sizeFactor = sizeFactor;
@@ -52,6 +52,8 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		this.fluxThreshold = fluxThreshold;
 		this.mapType = mapType;
 		this.selectionTexture = selectionTexture;
+
+		pickList = new CellPicker(graphs, 0.008).pick(r, 20);
 	}
 
 	@Override
