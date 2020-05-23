@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Path2D.Double;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Random;

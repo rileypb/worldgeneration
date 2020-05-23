@@ -62,6 +62,10 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		Graphics2D g = (Graphics2D) im.getGraphics();
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
+		g.setColor(Color.LIGHT_GRAY);
+		g.fill(clipBounds);
+		
+
 		x0 = clipBounds.x - 20;
 		y0 = clipBounds.y - 20;
 		xWidth = clipBounds.width * 1.1;

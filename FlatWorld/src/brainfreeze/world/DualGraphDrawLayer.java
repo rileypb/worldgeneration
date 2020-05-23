@@ -32,7 +32,7 @@ public class DualGraphDrawLayer implements DrawLayer {
 		//		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setStroke(new BasicStroke(1));
 
-		g.setColor(Color.red);
+		g.setColor(Color.blue);
 		graphs.dualEdges.forEach((e) -> {
 //			if (graphs.dualToVoronoi.get(e) == null) {
 //				g.setColor(Color.red);

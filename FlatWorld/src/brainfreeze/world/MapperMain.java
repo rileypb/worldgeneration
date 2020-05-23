@@ -27,6 +27,8 @@ import javax.swing.WindowConstants;
 
 import com.flowpowered.noise.module.source.Perlin;
 
+import brainfreeze.framework.World;
+import brainfreeze.framework.WorldGeometry;
 import brainfreeze.world.FantasyLargeScaleDrawLayer.MapType;
 
 public class MapperMain {
@@ -91,22 +93,22 @@ public class MapperMain {
 	public static void main(String[] args) {
 		screenWidth = 800;
 		screenHeight = 800;
-
-		TerrainBuilder builder = new TerrainBuilder(POINTS, SEALEVEL);
+		
 		int seed = new Random().nextInt();
 		//												seed = 13802760;
-		//		seed = 1473019236;
+//				seed = 1473019236;
+//		seed = 156788987;
+//		seed = -25911778;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
-		Graphs buildResult = builder.run(r, 1);
 
-		
-
+		World world = new World(WorldGeometry.PLANAR, 1, 1, POINTS, SEALEVEL, r);
+		world.buildWorld();
+		Graphs buildResult = world.getGraphs();
 
 		System.out.println("drawing...");
 
 		List<DrawLayer> drawLayers = new ArrayList<>();
-		//				drawLayers.add(new SeaLandDrawLayer3(r, (int) Math.sqrt(POINTS), pickList));
 		//		drawLayers.add(new BoundaryCellDrawLayer());
 		//								drawLayers.add(new GraphDrawLayer());
 		//				drawLayers.add(new DualGraphDrawLayer());
@@ -123,18 +125,19 @@ public class MapperMain {
 			layer.draw(img);
 		});
 
-		display(img, builder, g, null, buildResult);
+		display(img, g, null, buildResult);
 
 		BufferedImage img2 = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g2 = img2.createGraphics();
 		selectionTexture = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_3BYTE_BGR);
 		mapLayer = new FantasyLargeScaleDrawLayer(r, (int) Math.sqrt(POINTS), buildResult, 20, MapType.DEFAULT, selectionTexture);
 		mapLayer.draw(img2);
-		//				new GraphDrawLayer().draw(g2, buildResult, img2);
-		display(img2, builder, g2, selectionTexture, buildResult);
+//						new GraphDrawLayer(buildResult).draw(img2);
+//						new DualGraphDrawLayer(buildResult).draw(img2);
+		display(img2, g2, selectionTexture, buildResult);
 	}
 
-	private static void display(BufferedImage img, TerrainBuilder builder, Graphics2D g,
+	private static void display(BufferedImage img, Graphics2D g,
 			BufferedImage selectionTexture, Graphs graphs) {
 		JFrame frame = new JFrame();
 		@SuppressWarnings("serial")

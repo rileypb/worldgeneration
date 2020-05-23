@@ -19,6 +19,8 @@ import org.jgrapht.graph.DefaultUndirectedGraph;
 
 import com.flowpowered.noise.module.source.Perlin;
 
+import brainfreeze.framework.GraphHelper;
+import brainfreeze.framework.HeightMap;
 import de.alsclo.voronoi.Voronoi;
 import de.alsclo.voronoi.graph.Edge;
 import de.alsclo.voronoi.graph.Graph;
@@ -31,10 +33,12 @@ public class TerrainBuilder {
 	private int numberOfLakes;
 	private Lake[] lakes;
 	private double seaLevel;
+	private HeightMap elevationMap;
 
-	public TerrainBuilder(int numberOfPoints, double seaLevel) {
+	public TerrainBuilder(int numberOfPoints, double seaLevel, HeightMap elevationMap) {
 		this.numberOfPoints = numberOfPoints;
 		this.seaLevel = seaLevel;
+		this.elevationMap = elevationMap;
 	}
 
 	public Graphs run(Random r, int relaxations) {
@@ -42,50 +46,38 @@ public class TerrainBuilder {
 
 		// generates "evenly spaced" points
 		//			generateHaltonSequencePoints(initialSites, r, numberOfPoints);
-		
-		generateRandomPoints(initialSites, r, numberOfPoints);
+
+		GraphHelper.generateRandomPoints(initialSites, r, numberOfPoints);
 
 		System.out.println("creating voronoi diagram...");
 		Voronoi voronoi = new Voronoi(initialSites);
 
 		for (int i = 0; i < relaxations; i++) {
-			voronoi = voronoi.relax();
+//			voronoi = GraphHelper.relax(voronoi);
+						voronoi = voronoi.relax();
 		}
 
 		Graph graph = voronoi.getGraph();
 
 		Graphs graphs = generateGraphs(graph);
-		
-		Perlin perlin = new Perlin();
-		perlin.setFrequency(1);
-		perlin.setOctaveCount(16);
-		perlin.setSeed(r.nextInt());
-		Perlin calmPerlin = new Perlin();
-		calmPerlin.setFrequency(.25);
-		calmPerlin.setOctaveCount(16);
-		calmPerlin.setSeed(r.nextInt());
-		Perlin wildPerlin = new Perlin();
-		wildPerlin.setFrequency(4);
-		wildPerlin.setOctaveCount(30);
-		wildPerlin.setSeed(r.nextInt());
+
+		//		System.out.println("clipping graph...");
+		//		List<Location> polygon = new ArrayList<Location>();
+		//		polygon.add(new Location(0,0));
+		//		polygon.add(new Location(0,1));
+		//		polygon.add(new Location(1,1));
+		//		polygon.add(new Location(1,0));
+		//		GraphHelper.clipGraph(polygon, graphs);
+		//		graphs.repair();
+		//		System.out.println("graph clipped.");
 
 		Perlin moisturePerlin = new Perlin();
 		moisturePerlin.setFrequency(.125);
 		moisturePerlin.setOctaveCount(8);
 		moisturePerlin.setSeed(r.nextInt());
 
-		generateValues(graphs, r, perlin, (target, value) -> {
-			target.wildness = value;
-		});
-		generateValues(graphs, r, calmPerlin, (target, value) -> {
-			target.calmValue = value;
-		});
-		generateValues(graphs, r, wildPerlin, (target, value) -> {
-			target.wildValue = value;
-		});
 		forEachLocation(graphs, (target) -> {
-			target.elevation = (1 - target.wildness * target.wildness * target.wildness) * target.calmValue
-					+ target.wildness * target.wildness * target.wildness * target.wildValue;
+			target.elevation = elevationMap.getValue(target.x, target.y);
 		});
 
 		smoothElevations(graphs);
@@ -140,21 +132,6 @@ public class TerrainBuilder {
 
 	}
 
-	private void generateHaltonSequencePoints(List<Point> points, Random r, int numberOfPoints) {
-		HaltonSequenceGenerator hsg = new HaltonSequenceGenerator(2);
-		hsg.skipTo(20 + r.nextInt(100000));
-		for (int i = 0; i < numberOfPoints; i++) {
-			double[] vector = hsg.nextVector();
-			points.add(new Point(vector[0], vector[1]));
-		}
-	}
-
-	private void generateRandomPoints(List<Point> points, Random r, int numberOfPoints) {
-		for (int i = 0; i < numberOfPoints; i++) {
-			points.add(new Point(r.nextDouble(), r.nextDouble()));
-		}
-	}
-
 	private Graphs generateGraphs(Graph graph) {
 		DefaultUndirectedGraph<Location, MapEdge> voronoiGraph = new DefaultUndirectedGraph<>(MapEdge.class);
 		DefaultUndirectedGraph<Location, MapEdge> dualGraph = new DefaultUndirectedGraph<>(MapEdge.class);
@@ -189,6 +166,7 @@ public class TerrainBuilder {
 				if (a != null && b != null) {
 					Point pointa = e.getA().getLocation();
 					Point pointb = e.getB().getLocation();
+
 					Location aLoc = pointsToLocations.get(pointa);
 					if (aLoc == null) {
 						aLoc = new Location(pointa.x, pointa.y);
@@ -350,18 +328,18 @@ public class TerrainBuilder {
 			}
 		});
 
-		this.depressions = new ArrayList<>();
-		graphWithLakes.vertexSet().forEach((v) -> {
-			List<Location> neighbors = graphWithLakes.edgesOf(v).stream().map((edge1) -> {
-				return edge1.oppositeLocation(v);
-			}).collect(Collectors.toList());
-			double min = neighbors.stream().mapToDouble((n) -> {
-				return n.elevation;
-			}).min().orElse(Double.POSITIVE_INFINITY);
-			if (min >= v.elevation) {
-				depressions.add(v);
-			}
-		});
+		//		this.depressions = new ArrayList<>();
+		//		graphWithLakes.vertexSet().forEach((v) -> {
+		//			List<Location> neighbors = graphWithLakes.edgesOf(v).stream().map((edge1) -> {
+		//				return edge1.oppositeLocation(v);
+		//			}).collect(Collectors.toList());
+		//			double min = neighbors.stream().mapToDouble((n) -> {
+		//				return n.elevation;
+		//			}).min().orElse(Double.POSITIVE_INFINITY);
+		//			if (min >= v.elevation) {
+		//				depressions.add(v);
+		//			}
+		//		});
 
 		graphWithLakes.vertexSet().forEach((v) -> {
 			v.pdElevation = (v.water || v.boundaryLocation) ? v.elevation : Double.POSITIVE_INFINITY;
@@ -406,7 +384,7 @@ public class TerrainBuilder {
 			}).mapToDouble((v) -> {
 				return v.elevation;
 			}).min().orElse(Double.POSITIVE_INFINITY);
-			if (min >= l.elevation) {
+			if (min > l.elevation) {
 				throw new IllegalStateException();
 			}
 			//			if (max <= l.elevation) {

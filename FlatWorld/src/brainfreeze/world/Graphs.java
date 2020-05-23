@@ -1,4 +1,5 @@
 package brainfreeze.world;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -38,7 +39,7 @@ public class Graphs {
 		this.voronoiEdges = voronoiEdges;
 		this.dualToVoronoi = dualToVoronoi;
 		this.voronoiToDual = voronoiToDual;
-		
+
 		cities = new HashSet<Location>();
 		towns = new HashSet<Location>();
 	}
@@ -63,7 +64,7 @@ public class Graphs {
 			}
 		}).collect(Collectors.toList());
 	}
-	
+
 	public List<Location> getNeighboringVoronoiVertices(Location corner) {
 		Set<MapEdge> neighboringEdges = voronoiGraph.edgesOf(corner);
 		return neighboringEdges.stream().map((edge) -> {
