@@ -16,7 +16,7 @@ public class RegionParameters {
 	public List<Location> clippingPolygon;
 	
 	public Rectangle2D.Double getBounds() {
-		return new Rectangle2D.Double(xMin, yMin, xMax, yMax);
+		return new Rectangle2D.Double(xMin, yMin, xMax - xMin, yMax - yMin);
 	}
 
 }

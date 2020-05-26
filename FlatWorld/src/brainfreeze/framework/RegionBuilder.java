@@ -55,7 +55,7 @@ public class RegionBuilder {
 
 		System.out.println("creating voronoi diagram...");
 		Voronoi voronoi = new Voronoi(initialSites);
-
+		
 		for (int i = 0; i < tParams.relaxations; i++) {
 			//			voronoi = GraphHelper.relax(voronoi);
 			voronoi = voronoi.relax();
@@ -263,7 +263,7 @@ public class RegionBuilder {
 			Point site2 = e.getSite2();
 			Vertex a = e.getA();
 			Vertex b = e.getB();
-
+			
 			Location intersection = intersectionWithSides(a, b, polygonSegments);
 			int intersectionType = 0;
 			if (intersection != null) {
@@ -281,7 +281,7 @@ public class RegionBuilder {
 			} else if (!insidePolygon(a, polygonSegments)) {
 				a = null;
 				b = null;
-			}
+			} // else contained within the clipping polygon
 
 			if (site1 != null && site2 != null) {// && a != null & b != null) {
 				Location loc1 = pointsToLocations.get(site1);
@@ -343,7 +343,7 @@ public class RegionBuilder {
 		}
 
 		boundaryPoints.sort((loc1, loc2) -> {
-			return (int) (1000 * (loc1.angle - loc2.angle));
+			return (int) (100000 * (loc1.angle - loc2.angle));
 		});
 		Location firstPoint = boundaryPoints.get(0);
 		Location recentPoint = null;

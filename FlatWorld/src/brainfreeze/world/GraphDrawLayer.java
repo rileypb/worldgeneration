@@ -4,18 +4,16 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D.Double;
 import java.awt.image.BufferedImage;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
 
 public class GraphDrawLayer implements DrawLayer {
 	private Graphs graphs;
+	private Double bounds;
 
-	public GraphDrawLayer(Graphs graphs) {
+	public GraphDrawLayer(Graphs graphs, Double bounds) {
 		this.graphs = graphs;
+		this.bounds = bounds;
 	}
 
 	@Override
@@ -23,10 +21,16 @@ public class GraphDrawLayer implements DrawLayer {
 		Graphics2D g = (Graphics2D) im.getGraphics();
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
-		double x0 = clipBounds.x - 20;
-		double y0 = clipBounds.y - 20;
-		double xWidth = clipBounds.width * 1.1;
-		double yHeight = clipBounds.height * 1.1;
+		double x0 = clipBounds.x;
+		double y0 = clipBounds.y;
+		double xWidth = clipBounds.width * 1;
+		double yHeight = clipBounds.height * 1;
+		
+		g.fillRect((int)x0, (int)y0, (int)xWidth, (int)yHeight);
+		
+		g.setColor(Color.blue);
+		g.setStroke(new BasicStroke(1));
+		g.drawRect((int)(x0 + xWidth * bounds.x), (int)(y0 + yHeight * bounds.y), (int)(xWidth * bounds.width), (int) (yHeight * bounds.height));
 
 		//		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setStroke(new BasicStroke(1));

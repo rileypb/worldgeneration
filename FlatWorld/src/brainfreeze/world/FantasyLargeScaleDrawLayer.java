@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.GradientPaint;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -53,7 +54,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		this.fluxThreshold = fluxThreshold;
 		this.mapType = mapType;
 		this.selectionTexture = selectionTexture;
-
+		
 		pickList = new CellPicker(graphs, 0.008).pick(r, 20);
 	}
 
@@ -62,14 +63,18 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		Graphics2D g = (Graphics2D) im.getGraphics();
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
-		g.setColor(Color.LIGHT_GRAY);
+		g.setColor(Color.blue);
 		g.fill(clipBounds);
 		
+		Graphics2D graphics = (Graphics2D) selectionTexture.getGraphics();
+		graphics.setColor(Color.white);
+		graphics.fillRect(0, 0, selectionTexture.getWidth(), selectionTexture.getHeight());
+		
 
-		x0 = clipBounds.x - 20;
-		y0 = clipBounds.y - 20;
-		xWidth = clipBounds.width * 1.1;
-		yHeight = clipBounds.height * 1.1;
+		x0 = clipBounds.x;
+		y0 = clipBounds.y;
+		xWidth = clipBounds.width * 1;
+		yHeight = clipBounds.height * 1;
 
 		g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
 		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);

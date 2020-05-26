@@ -34,7 +34,6 @@ import brainfreeze.framework.Region;
 import brainfreeze.framework.RegionBuilder;
 import brainfreeze.framework.RegionParameters;
 import brainfreeze.framework.TechnicalParameters;
-import brainfreeze.framework.World;
 import brainfreeze.framework.WorldGeometry;
 import brainfreeze.framework.WorldParameters;
 import brainfreeze.world.FantasyLargeScaleDrawLayer.MapType;
@@ -67,20 +66,24 @@ public class MapperMain {
 					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 			g.drawImage(img, 0, 0, null);
 
-			Location loc = cells[selectionIndex];
-			List<MapEdge> edgeList = graphs.dualGraph.edgesOf(loc).stream().map((voronoiEdge) -> {
-				return graphs.dualToVoronoi.get(voronoiEdge);
-			}).collect(Collectors.toList());
+			if (cells.length > selectionIndex) {
 
-			edgeList.forEach((e) -> {
-				if (e != null) {
-					g.setColor(Color.green);
-					((Graphics2D) g).drawLine((int) (mapLayer.x0 + mapLayer.xWidth * e.loc1.x),
-							(int) (mapLayer.y0 + mapLayer.yHeight * FantasyLargeScaleDrawLayer.minmax(0, 1, e.loc1.y)),
-							(int) (mapLayer.x0 + mapLayer.xWidth * e.loc2.x),
-							(int) (mapLayer.y0 + mapLayer.yHeight * FantasyLargeScaleDrawLayer.minmax(0, 1, e.loc2.y)));
-				}
-			});
+				Location loc = cells[selectionIndex];
+				List<MapEdge> edgeList = graphs.dualGraph.edgesOf(loc).stream().map((voronoiEdge) -> {
+					return graphs.dualToVoronoi.get(voronoiEdge);
+				}).collect(Collectors.toList());
+
+				edgeList.forEach((e) -> {
+					if (e != null) {
+						g.setColor(Color.green);
+						((Graphics2D) g).drawLine((int) (mapLayer.x0 + mapLayer.xWidth * e.loc1.x),
+								(int) (mapLayer.y0
+										+ mapLayer.yHeight * FantasyLargeScaleDrawLayer.minmax(0, 1, e.loc1.y)),
+								(int) (mapLayer.x0 + mapLayer.xWidth * e.loc2.x), (int) (mapLayer.y0
+										+ mapLayer.yHeight * FantasyLargeScaleDrawLayer.minmax(0, 1, e.loc2.y)));
+					}
+				});
+			}
 
 		}
 
@@ -94,22 +97,21 @@ public class MapperMain {
 	private static int screenWidth;
 	private static int screenHeight;
 
-	public static final int POINTS = 100;
+	public static final int POINTS = 40;
 	private static BufferedImage selectionTexture;
 	private static FantasyLargeScaleDrawLayer mapLayer;
 
 	public static void main(String[] args) {
 		screenWidth = 800;
 		screenHeight = 800;
-		
+
 		int seed = new Random().nextInt();
 		//												seed = 13802760;
-//				seed = 1473019236;
-//		seed = 156788987;
-//		seed = -25911778;
+		//				seed = 1473019236;
+		//		seed = 156788987;
+		//		seed = -25911778;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
-
 
 		Perlin perlin = new Perlin();
 		perlin.setFrequency(1);
@@ -123,13 +125,13 @@ public class MapperMain {
 		wildPerlin.setFrequency(4);
 		wildPerlin.setOctaveCount(30);
 		wildPerlin.setSeed(r.nextInt());
-		
+
 		HeightMap mixtureMap = new PerlinHeightMap(1, 1, perlin, WorldGeometry.PLANAR);
 		HeightMap calmMap = new PerlinHeightMap(1, 1, calmPerlin, WorldGeometry.PLANAR);
 		HeightMap wildMap = new PerlinHeightMap(1, 1, wildPerlin, WorldGeometry.PLANAR);
-		
+
 		HeightMap elevationMap = new CalmAndWildPerlinHeightMap(mixtureMap, calmMap, wildMap);
-		
+
 		RegionBuilder builder = new RegionBuilder();
 		WorldParameters wParams = new WorldParameters();
 		wParams.elevationMap = elevationMap;
@@ -138,16 +140,19 @@ public class MapperMain {
 		RegionParameters rParams = new RegionParameters();
 		rParams.numberOfPoints = POINTS;
 		List<Location> clippingPolygon = new ArrayList<Location>();
-		clippingPolygon.add(new Location(0.25, 0));
-		clippingPolygon.add(new Location(0.75, 0.4));
-		clippingPolygon.add(new Location(0.6, 0.7));
-		clippingPolygon.add(new Location(0.25, 0.5));
-		rParams.clippingPolygon = clippingPolygon;
-//		rParams.xMin = 0.5;
+		clippingPolygon.add(new Location(0, 0));
+		clippingPolygon.add(new Location(1, 0));
+		clippingPolygon.add(new Location(1, 1));
+		clippingPolygon.add(new Location(0, 1));
+		//		rParams.clippingPolygon = clippingPolygon;
+		rParams.xMin = 0.25;
+		rParams.yMin = 0.25;
+		rParams.xMax = 0.75;
+		rParams.yMax = 0.75;
 		TechnicalParameters tParams = new TechnicalParameters();
 		tParams.relaxations = 0;
 		Region region = builder.buildRegion(wParams, rParams, tParams);
-		
+
 		Graphs buildResult = region.graphs;
 
 		System.out.println("drawing...");
@@ -174,15 +179,15 @@ public class MapperMain {
 		BufferedImage img2 = new BufferedImage((int) screenWidth, (int) screenHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g2 = img2.createGraphics();
 		selectionTexture = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_3BYTE_BGR);
-		mapLayer = new FantasyLargeScaleDrawLayer(r, (int) Math.sqrt(POINTS), buildResult, 20, MapType.DEFAULT, selectionTexture);
-		mapLayer.draw(img2);
-						new GraphDrawLayer(buildResult).draw(img2);
-//						new DualGraphDrawLayer(buildResult).draw(img2);
+		mapLayer = new FantasyLargeScaleDrawLayer(r, (int) Math.sqrt(POINTS), buildResult, 20, MapType.DEFAULT,
+				selectionTexture);
+//		mapLayer.draw(img2);
+		new GraphDrawLayer(buildResult, rParams.getBounds()).draw(img2);
+		//						new DualGraphDrawLayer(buildResult).draw(img2);
 		display(img2, g2, selectionTexture, buildResult);
 	}
 
-	private static void display(BufferedImage img, Graphics2D g,
-			BufferedImage selectionTexture, Graphs graphs) {
+	private static void display(BufferedImage img, Graphics2D g, BufferedImage selectionTexture, Graphs graphs) {
 		JFrame frame = new JFrame();
 		@SuppressWarnings("serial")
 		MapCanvas canvas = new MapCanvas(img, graphs);

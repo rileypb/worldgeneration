@@ -1,7 +1,7 @@
 package brainfreeze.world;
 
 import java.awt.Color;
-import java.util.List;
+import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -61,7 +61,7 @@ public class Location {
 	public boolean secondaryRoad;
 	public String name;
 	public int index;
-	public int angle;
+	public double angle;
 
 	public Location(double x, double y) {
 		this.x = x;
@@ -82,14 +82,24 @@ public class Location {
 		}).collect(Collectors.toSet());
 	}
 
-	public static Location average(List<Location> clippingPolygon) {
-		// TODO Auto-generated method stub
-		return null;
+
+	public static Location average(Collection<Location> locations) {
+		if (locations.size() == 0) {
+			throw new IllegalArgumentException("Tried to take average of empty collection.");
+		}
+		double sumX = 0;
+		double sumY = 0;
+		for (Location loc : locations) {
+			sumX += loc.x;
+			sumY += loc.y;
+		}
+		return new Location(sumX / locations.size(), sumY / locations.size());
 	}
 
 	public void setAngleWithRespectTo(Location center) {
-		// TODO Auto-generated method stub
-		
+		double diffX = x - center.x;
+		double diffY = y - center.y;
+		angle = Math.atan2(diffY, diffX);
 	}
 
 }
