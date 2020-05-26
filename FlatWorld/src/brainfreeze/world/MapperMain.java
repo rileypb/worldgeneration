@@ -74,7 +74,7 @@ public class MapperMain {
 
 			edgeList.forEach((e) -> {
 				if (e != null) {
-					g.setColor(Color.red);
+					g.setColor(Color.green);
 					((Graphics2D) g).drawLine((int) (mapLayer.x0 + mapLayer.xWidth * e.loc1.x),
 							(int) (mapLayer.y0 + mapLayer.yHeight * FantasyLargeScaleDrawLayer.minmax(0, 1, e.loc1.y)),
 							(int) (mapLayer.x0 + mapLayer.xWidth * e.loc2.x),
@@ -94,7 +94,7 @@ public class MapperMain {
 	private static int screenWidth;
 	private static int screenHeight;
 
-	public static final int POINTS = 2500;
+	public static final int POINTS = 100;
 	private static BufferedImage selectionTexture;
 	private static FantasyLargeScaleDrawLayer mapLayer;
 
@@ -137,10 +137,15 @@ public class MapperMain {
 		wParams.seaLevel = SEALEVEL;
 		RegionParameters rParams = new RegionParameters();
 		rParams.numberOfPoints = POINTS;
-		rParams.xMin = 0.5;
-		rParams.yMin = 0.5;
+		List<Location> clippingPolygon = new ArrayList<Location>();
+		clippingPolygon.add(new Location(0.25, 0));
+		clippingPolygon.add(new Location(0.75, 0.4));
+		clippingPolygon.add(new Location(0.6, 0.7));
+		clippingPolygon.add(new Location(0.25, 0.5));
+		rParams.clippingPolygon = clippingPolygon;
+//		rParams.xMin = 0.5;
 		TechnicalParameters tParams = new TechnicalParameters();
-		tParams.relaxations = 3;
+		tParams.relaxations = 0;
 		Region region = builder.buildRegion(wParams, rParams, tParams);
 		
 		Graphs buildResult = region.graphs;
@@ -171,7 +176,7 @@ public class MapperMain {
 		selectionTexture = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_3BYTE_BGR);
 		mapLayer = new FantasyLargeScaleDrawLayer(r, (int) Math.sqrt(POINTS), buildResult, 20, MapType.DEFAULT, selectionTexture);
 		mapLayer.draw(img2);
-//						new GraphDrawLayer(buildResult).draw(img2);
+						new GraphDrawLayer(buildResult).draw(img2);
 //						new DualGraphDrawLayer(buildResult).draw(img2);
 		display(img2, g2, selectionTexture, buildResult);
 	}

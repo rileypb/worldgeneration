@@ -41,8 +41,8 @@ public class SatelliteDrawLayer extends BaseDrawLayer {
 		Graphics2D g = (Graphics2D) im.getGraphics();
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
-		double x0 = clipBounds.x - 10;
-		double y0 = clipBounds.y - 10;
+		double x0 = clipBounds.x - 20;
+		double y0 = clipBounds.y - 20;
 		double xWidth = clipBounds.width * 1.1;
 		double yHeight = clipBounds.height * 1.1;
 

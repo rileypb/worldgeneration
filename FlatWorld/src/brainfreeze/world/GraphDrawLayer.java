@@ -23,10 +23,10 @@ public class GraphDrawLayer implements DrawLayer {
 		Graphics2D g = (Graphics2D) im.getGraphics();
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
-		double x0 = clipBounds.x;
-		double y0 = clipBounds.y;
-		double xWidth = clipBounds.width * 1;
-		double yHeight = clipBounds.height * 1;
+		double x0 = clipBounds.x - 20;
+		double y0 = clipBounds.y - 20;
+		double xWidth = clipBounds.width * 1.1;
+		double yHeight = clipBounds.height * 1.1;
 
 		//		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setStroke(new BasicStroke(1));

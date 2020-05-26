@@ -13,9 +13,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.math3.random.HaltonSequenceGenerator;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultUndirectedGraph;
+import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LineSegment;
 
 import com.flowpowered.noise.module.source.Perlin;
@@ -47,7 +47,7 @@ public class TerrainBuilder {
 		// generates "evenly spaced" points
 		//			generateHaltonSequencePoints(initialSites, r, numberOfPoints);
 
-		GraphHelper.generateRandomPoints(initialSites, r, numberOfPoints, null);
+		GraphHelper.generateRandomPointsClipped(initialSites, r, numberOfPoints, null);
 
 		System.out.println("creating voronoi diagram...");
 		Voronoi voronoi = new Voronoi(initialSites);
@@ -365,19 +365,59 @@ public class TerrainBuilder {
 		return graphs;
 	}
 
-	private boolean onSide(Location thisPoint, List<LineSegment> polygonSegments) {
-		// TODO Auto-generated method stub
+	private boolean onSide(Location loc, List<LineSegment> polygonSegments) {
+		Coordinate p = new Coordinate(loc.x, loc.y);
+		for (LineSegment ls0 : polygonSegments) {
+			if (ls0.orientationIndex(p) == 0) {
+				return true;
+			}
+		}
 		return false;
+	}
+
+	public static boolean insidePolygon(Location loc, List<LineSegment> polygonSegments) {
+		Coordinate p = new Coordinate(loc.x, loc.y);
+		for (LineSegment ls0 : polygonSegments) {
+			if (ls0.orientationIndex(p) < 0) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * 
+	 * @param a
+	 * @param polygonSegments must be in order clockwise
+	 * @return
+	 */
+	private boolean insidePolygon(Vertex a, List<LineSegment> polygonSegments) {
+		Point location = a.getLocation();
+		Coordinate p = new Coordinate(location.x, location.y);
+		for (LineSegment ls0 : polygonSegments) {
+			if (ls0.orientationIndex(p) < 0) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private Location intersectionWithSides(Vertex a, Vertex b, List<LineSegment> polygonSegments) {
-		// TODO Auto-generated method stub
+		if (a == null || b == null) {
+			return null;
+		}
+		LineSegment ls0 = new LineSegment(a.getLocation().x, a.getLocation().y, b.getLocation().x, b.getLocation().y);
+		Coordinate intersection = null;
+		for (LineSegment segment : polygonSegments) {
+			intersection = segment.intersection(ls0);
+			if (intersection != null) {
+				break;
+			}
+		}
+		if (intersection != null) {
+			return new Location(intersection.x, intersection.y);
+		}
 		return null;
-	}
-
-	private boolean insidePolygon(Vertex a, List<LineSegment> polygonSegments) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 
 	public void generateValues(Graphs graphs, Random r, Perlin perlin, Setter setter) {

@@ -2,6 +2,7 @@ package brainfreeze.framework;
 
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Rectangle2D.Double;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +43,31 @@ public class GraphHelper {
 		double dy = bounds.getMaxY() - minY;
 		for (int i = 0; i < numberOfPoints; i++) {
 			points.add(new Point(minX + dx * r.nextDouble(), minY + dy * r.nextDouble()));
+		}
+	}
+	
+	public static void generateRandomPointsClipped(List<Point> points, Random r, int numberOfPoints,
+			List<Location> clippingPolygon) {
+
+		List<LineSegment> polygonSegments = new ArrayList<LineSegment>();
+		for (int i = 0; i < clippingPolygon.size() - 1; i++) {
+			Location l1 = clippingPolygon.get(i);
+			Location l2 = clippingPolygon.get(i + 1);
+			LineSegment e = new LineSegment(l1.x, l1.y, l2.x, l2.y);
+			polygonSegments.add(e);
+		}
+		Location l1 = clippingPolygon.get(clippingPolygon.size() - 1);
+		Location l2 = clippingPolygon.get(0);
+		polygonSegments.add(new LineSegment(l1.x, l1.y, l2.x, l2.y));
+
+		for (int i = 0; i < numberOfPoints; i++) {
+			Point newPoint = new Point(r.nextDouble(), r.nextDouble());
+			if (!RegionBuilder.insidePolygon(new Location(newPoint.x, newPoint.y), polygonSegments)) {
+				i--;
+				continue;
+			}
+
+			points.add(newPoint);
 		}
 	}
 

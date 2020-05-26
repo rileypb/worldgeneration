@@ -33,7 +33,7 @@ public class CellPicker {
 					return Arrays.stream(new Location[] { e.loc1, e.loc2 });
 				}).mapToDouble((v) -> {
 					return Math.sqrt((v.x - loc.x) * (v.x - loc.x) + (v.y - loc.y) * (v.y - loc.y));
-				}).max().getAsDouble();
+				}).max().orElse(Double.NEGATIVE_INFINITY);
 				loc.radius = Math.min(.01, maxRadius / 2);
 				obstacles.add(loc);
 			}

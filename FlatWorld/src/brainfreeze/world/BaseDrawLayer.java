@@ -13,6 +13,9 @@ public abstract class BaseDrawLayer implements DrawLayer {
 			Set<Location> nearbySites = graphs.voronoiGraph.edgesOf(loc).stream().map((e) -> {
 				return graphs.voronoiToDual.get(e);
 			}).flatMap((dualEdge) -> {
+				if (dualEdge == null) {
+					return Arrays.stream(new Location[0]);
+				}
 				return Arrays.stream(new Location[] { dualEdge.loc1, dualEdge.loc2 });
 			}).filter((s) -> {
 				return !s.water;
