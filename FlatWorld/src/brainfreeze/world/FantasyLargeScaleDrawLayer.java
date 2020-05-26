@@ -110,7 +110,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	//		}).collect(Collectors.toList());
 	//
 	//		flatList.sort((l1, l2) -> {
-	//			return (int) (1000 * (l1.y - l2.y));
+	//			return (int) (100000 * (l1.y - l2.y));
 	//		});
 	//
 	//		flatList.forEach((loc) -> {
@@ -227,7 +227,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		}).collect(Collectors.toList());
 
 		flatList.sort((l1, l2) -> {
-			return (int) (1000 * (l1.y - l2.y));
+			return (int) (100000 * (l1.y - l2.y));
 		});
 
 		//				flatList.stream().filter((loc) -> {
@@ -437,7 +437,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		voronoiEdges.sort((e1, e2) -> {
 			double y1 = (e1.loc1.y + e1.loc2.y) / 2;
 			double y2 = (e2.loc1.y + e2.loc2.y) / 2;
-			return (int) (1000 * (y1 - y2));
+			return (int) (100000 * (y1 - y2));
 		});
 
 		double minY = voronoiEdges.stream().mapToDouble((e) -> {
@@ -529,7 +529,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		voronoiEdges.sort((e1, e2) -> {
 			double y1 = (e1.loc1.y + e1.loc2.y) / 2;
 			double y2 = (e2.loc1.y + e2.loc2.y) / 2;
-			return (int) (1000 * (y1 - y2));
+			return (int) (100000 * (y1 - y2));
 		});
 
 		double minY = voronoiEdges.stream().mapToDouble((e) -> {
