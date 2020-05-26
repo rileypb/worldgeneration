@@ -1,5 +1,7 @@
 package brainfreeze.framework;
 
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.Rectangle2D.Double;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,9 +34,14 @@ public class GraphHelper {
 		}
 	}
 
-	public static void generateRandomPoints(List<Point> points, Random r, int numberOfPoints) {
+	public static void generateRandomPoints(List<Point> points, Random r, int numberOfPoints,
+			Rectangle2D.Double bounds) {
+		double minX = bounds.getMinX();
+		double minY = bounds.getMinY();
+		double dx = bounds.getMaxX() - minX;
+		double dy = bounds.getMaxY() - minY;
 		for (int i = 0; i < numberOfPoints; i++) {
-			points.add(new Point(r.nextDouble(), r.nextDouble()));
+			points.add(new Point(minX + dx * r.nextDouble(), minY + dy * r.nextDouble()));
 		}
 	}
 

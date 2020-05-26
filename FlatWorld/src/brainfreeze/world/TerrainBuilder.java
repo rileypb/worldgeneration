@@ -46,7 +46,7 @@ public class TerrainBuilder {
 		// generates "evenly spaced" points
 		//			generateHaltonSequencePoints(initialSites, r, numberOfPoints);
 
-		GraphHelper.generateRandomPoints(initialSites, r, numberOfPoints);
+		GraphHelper.generateRandomPoints(initialSites, r, numberOfPoints, null);
 
 		System.out.println("creating voronoi diagram...");
 		Voronoi voronoi = new Voronoi(initialSites);

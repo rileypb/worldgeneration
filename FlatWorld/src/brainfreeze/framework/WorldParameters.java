@@ -1,5 +1,9 @@
 package brainfreeze.framework;
 
-public class WorldParameters {
+import java.util.Random;
 
+public class WorldParameters {
+	public Random rnd;
+	public HeightMap elevationMap;
+	public double seaLevel;
 }

@@ -27,8 +27,16 @@ import javax.swing.WindowConstants;
 
 import com.flowpowered.noise.module.source.Perlin;
 
+import brainfreeze.framework.CalmAndWildPerlinHeightMap;
+import brainfreeze.framework.HeightMap;
+import brainfreeze.framework.PerlinHeightMap;
+import brainfreeze.framework.Region;
+import brainfreeze.framework.RegionBuilder;
+import brainfreeze.framework.RegionParameters;
+import brainfreeze.framework.TechnicalParameters;
 import brainfreeze.framework.World;
 import brainfreeze.framework.WorldGeometry;
+import brainfreeze.framework.WorldParameters;
 import brainfreeze.world.FantasyLargeScaleDrawLayer.MapType;
 
 public class MapperMain {
@@ -86,7 +94,7 @@ public class MapperMain {
 	private static int screenWidth;
 	private static int screenHeight;
 
-	public static final int POINTS = 1000;
+	public static final int POINTS = 2500;
 	private static BufferedImage selectionTexture;
 	private static FantasyLargeScaleDrawLayer mapLayer;
 
@@ -99,13 +107,43 @@ public class MapperMain {
 //				seed = 1473019236;
 //		seed = 156788987;
 //		seed = -25911778;
-		seed = -989116037;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 
-		World world = new World(WorldGeometry.PLANAR, 1, 1, POINTS, SEALEVEL, r);
-		world.buildWorld();
-		Graphs buildResult = world.getGraphs();
+
+		Perlin perlin = new Perlin();
+		perlin.setFrequency(1);
+		perlin.setOctaveCount(16);
+		perlin.setSeed(r.nextInt());
+		Perlin calmPerlin = new Perlin();
+		calmPerlin.setFrequency(.25);
+		calmPerlin.setOctaveCount(16);
+		calmPerlin.setSeed(r.nextInt());
+		Perlin wildPerlin = new Perlin();
+		wildPerlin.setFrequency(4);
+		wildPerlin.setOctaveCount(30);
+		wildPerlin.setSeed(r.nextInt());
+		
+		HeightMap mixtureMap = new PerlinHeightMap(1, 1, perlin, WorldGeometry.PLANAR);
+		HeightMap calmMap = new PerlinHeightMap(1, 1, calmPerlin, WorldGeometry.PLANAR);
+		HeightMap wildMap = new PerlinHeightMap(1, 1, wildPerlin, WorldGeometry.PLANAR);
+		
+		HeightMap elevationMap = new CalmAndWildPerlinHeightMap(mixtureMap, calmMap, wildMap);
+		
+		RegionBuilder builder = new RegionBuilder();
+		WorldParameters wParams = new WorldParameters();
+		wParams.elevationMap = elevationMap;
+		wParams.rnd = r;
+		wParams.seaLevel = SEALEVEL;
+		RegionParameters rParams = new RegionParameters();
+		rParams.numberOfPoints = POINTS;
+		rParams.xMin = 0.5;
+		rParams.yMin = 0.5;
+		TechnicalParameters tParams = new TechnicalParameters();
+		tParams.relaxations = 3;
+		Region region = builder.buildRegion(wParams, rParams, tParams);
+		
+		Graphs buildResult = region.graphs;
 
 		System.out.println("drawing...");
 
