@@ -8,7 +8,7 @@ import brainfreeze.world.Graphs;
 import brainfreeze.world.Location;
 import brainfreeze.world.TerrainBuilder;
 
-public class World implements Region {
+public class World {
 	private WorldGeometry geometry;
 	private int points;
 	private double seaLevel;
@@ -60,10 +60,6 @@ public class World implements Region {
 		return graphs;
 	}
 
-	@Override
-	public Region getSubRegion(Location id) {
-		return new WorldRegion(this, id, 1);
-	}
 	
 	
 }

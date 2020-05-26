@@ -86,7 +86,7 @@ public class MapperMain {
 	private static int screenWidth;
 	private static int screenHeight;
 
-	public static final int POINTS = 2500;
+	public static final int POINTS = 1000;
 	private static BufferedImage selectionTexture;
 	private static FantasyLargeScaleDrawLayer mapLayer;
 
@@ -99,6 +99,7 @@ public class MapperMain {
 //				seed = 1473019236;
 //		seed = 156788987;
 //		seed = -25911778;
+		seed = -989116037;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 

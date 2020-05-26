@@ -29,7 +29,6 @@ import de.alsclo.voronoi.graph.Vertex;
 
 public class TerrainBuilder {
 	private int numberOfPoints;
-	private ArrayList<Location> depressions;
 	private int numberOfLakes;
 	private Lake[] lakes;
 	private double seaLevel;
