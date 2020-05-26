@@ -53,8 +53,8 @@ public class TerrainBuilder {
 		Voronoi voronoi = new Voronoi(initialSites);
 
 		for (int i = 0; i < relaxations; i++) {
-//			voronoi = GraphHelper.relax(voronoi);
-						voronoi = voronoi.relax();
+			//			voronoi = GraphHelper.relax(voronoi);
+			voronoi = voronoi.relax();
 		}
 
 		Graph graph = voronoi.getGraph();
@@ -347,13 +347,20 @@ public class TerrainBuilder {
 
 		double epsilon = 0.000001;
 		boolean somethingDone = true;
+		List<Location> vertices = new ArrayList<Location>(graphWithLakes.vertexSet());
+		vertices.sort((l1, l2) -> {
+			return (int) (100000 * (l1.elevation - l2.elevation));
+		});
 		while (somethingDone) {
 			somethingDone = false;
-			for (Location c : graphWithLakes.vertexSet()) {
+			for (Location c : vertices) {
 				if (c.pdElevation > c.elevation) {
 					List<Location> neighbors = graphWithLakes.edgesOf(c).stream().map((edge1) -> {
 						return edge1.oppositeLocation(c);
 					}).collect(Collectors.toList());
+					neighbors.sort((l1, l2) -> {
+						return (int) (100000 * (l1.elevation - l2.elevation));
+					});
 
 					for (Location n : neighbors) {
 						if (c.elevation >= n.pdElevation + epsilon) {
@@ -463,11 +470,15 @@ public class TerrainBuilder {
 		// now calculate flux
 		ArrayList<Location> vertices = new ArrayList<Location>(graphs.dualVertices);
 		vertices.sort((v1, v2) -> {
-			return v2.graphHeight - v1.graphHeight;
+			return (int) (10000000 * (v2.graphHeight - v1.graphHeight) + 100000 * (v2.x - v1.x));
 		});
 
 		for (Location v : vertices) {
 			Set<MapEdge> incomingEdges = auxGraph.incomingEdgesOf(v);
+			List<MapEdge> sortedEdges = new ArrayList<MapEdge>(incomingEdges);
+			sortedEdges.sort((e1, e2) -> {
+				return (int) (100000 * (e1.loc1.x - e2.loc1.x));
+			});
 			double flux = Math.max(0, Math.min(2, 1 + v.baseMoisture));
 			int i = 0;
 			for (MapEdge edge : incomingEdges) {
@@ -478,13 +489,9 @@ public class TerrainBuilder {
 				flux += edge.flux;
 
 				if (edge.oppositeLocation(v).isLake) {
-					v.foo = true;
-
 					flux += 2 * edge.oppositeLocation(v).lake.getVertices().size();
 					edge.oppositeLocation(v).riverHead = true;
-					//					edge.oppositeLocation(v).river = true;
 					edge.oppositeLocation(v).flux = 2 * edge.oppositeLocation(v).lake.getVertices().size();
-					edge.oppositeLocation(v).foo = true;
 				}
 			}
 
@@ -492,9 +499,9 @@ public class TerrainBuilder {
 			if (!outgoingEdges.isEmpty()) {
 				MapEdge outgoingEdge = outgoingEdges.iterator().next();
 				outgoingEdge.flux = flux;
-				v.flux = flux;
 			}
 
+			v.flux = flux;
 			v.riverJuncture = i > 1; //auxGraph.incomingEdgesOf(v).size() > 1;
 			v.riverHead = v.riverHead && i == 0; //v.riverHead || auxGraph.incomingEdgesOf(v).size() == 0;
 			//			v.river = true;
@@ -597,7 +604,12 @@ public class TerrainBuilder {
 	}
 
 	private Stream<Location> neighboringDualVertices(Graphs graphs, Location loc) {
-		return graphs.dualGraph.edgesOf(loc).stream().map((edge) -> {
+		Set<MapEdge> edgesOf = graphs.dualGraph.edgesOf(loc);
+		List<MapEdge> sorted = new ArrayList<>(edgesOf);
+		sorted.sort((e1, e2) -> {
+			return (int) (100000 * (e1.loc1.x - e1.loc2.x));
+		});
+		return sorted.stream().map((edge) -> {
 			return edge.oppositeLocation(loc);
 		});
 	}
@@ -654,7 +666,11 @@ public class TerrainBuilder {
 	}
 
 	public void calculateFinalMoisture(Graphs graphs) {
-		graphs.dualVertices.forEach((loc) -> {
+		List<Location> l = new ArrayList<Location>(graphs.dualVertices);
+		l.sort((loc1, loc2) -> {
+			return (int) ((100000) * (loc1.elevation - loc2.elevation));
+		});
+		l.forEach((loc) -> {
 			double sum = neighboringDualVertices(graphs, loc).mapToDouble((v) -> {
 				return v.flux / 100;
 			}).average().getAsDouble();
@@ -748,7 +764,7 @@ public class TerrainBuilder {
 						loc.usedForRoad = false;
 					});
 					PriorityQueue<Road> roads = new PriorityQueue<Road>((l1, l2) -> {
-						return (int) (10000 * (l1.getScore() - l2.getScore()));
+						return (int) (100000 * (l1.getScore() - l2.getScore()));
 					});
 					Road initialRoad = new Road();
 					initialRoad.add(city1);
@@ -786,7 +802,7 @@ public class TerrainBuilder {
 				loc.usedForRoad = false;
 			});
 			PriorityQueue<SecondaryRoad> roads = new PriorityQueue<SecondaryRoad>((l1, l2) -> {
-				return (int) (10000 * (l1.getScore() - l2.getScore()));
+				return (int) (100000 * (l1.getScore() - l2.getScore()));
 			});
 			SecondaryRoad initialRoad = new SecondaryRoad();
 			initialRoad.add(town);
@@ -819,7 +835,7 @@ public class TerrainBuilder {
 					loc.usedForRoad = false;
 				});
 				PriorityQueue<SecondaryRoad> roads = new PriorityQueue<SecondaryRoad>((l1, l2) -> {
-					return (int) (10000 * (l1.getScore() - l2.getScore()));
+					return (int) (100000 * (l1.getScore() - l2.getScore()));
 				});
 				SecondaryRoad initialRoad = new SecondaryRoad();
 				initialRoad.add(town);
