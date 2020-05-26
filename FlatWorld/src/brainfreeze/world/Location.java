@@ -1,6 +1,7 @@
 package brainfreeze.world;
 
 import java.awt.Color;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,6 +61,7 @@ public class Location {
 	public boolean secondaryRoad;
 	public String name;
 	public int index;
+	public int angle;
 
 	public Location(double x, double y) {
 		this.x = x;
@@ -78,6 +80,16 @@ public class Location {
 		return graph.edgesOf(this).stream().map((edge) -> {
 			return edge.oppositeLocation(this);
 		}).collect(Collectors.toSet());
+	}
+
+	public static Location average(List<Location> clippingPolygon) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void setAngleWithRespectTo(Location center) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

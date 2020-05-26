@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import org.apache.commons.math3.random.HaltonSequenceGenerator;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultUndirectedGraph;
+import org.locationtech.jts.geom.LineSegment;
 
 import com.flowpowered.noise.module.source.Perlin;
 
@@ -206,6 +207,177 @@ public class TerrainBuilder {
 				dualToVoronoi, voronoiToDual);
 
 		return graphs;
+	}
+
+	/**
+	 * 
+	 * @param graph
+	 * @param clippingPolygon needs to be convex
+	 * @return
+	 */
+	private Graphs generateGraphs(Graph graph, List<Location> clippingPolygon) {
+		DefaultUndirectedGraph<Location, MapEdge> voronoiGraph = new DefaultUndirectedGraph<>(MapEdge.class);
+		DefaultUndirectedGraph<Location, MapEdge> dualGraph = new DefaultUndirectedGraph<>(MapEdge.class);
+
+		Set<Location> dualVertices = new HashSet<>();
+		Map<Point, Location> pointsToLocations = new HashMap<>();
+		Set<MapEdge> dualEdges = new HashSet<>();
+		Set<Location> voronoiVertices = new HashSet<>();
+		Set<MapEdge> voronoiEdges = new HashSet<>();
+		Map<MapEdge, MapEdge> voronoiToDual = new HashMap<>();
+		Map<MapEdge, MapEdge> dualToVoronoi = new HashMap<>();
+
+		Location center = Location.average(clippingPolygon);
+		List<LineSegment> polygonSegments = new ArrayList<LineSegment>();
+		for (int i = 0; i < clippingPolygon.size() - 1; i++) {
+			Location l1 = clippingPolygon.get(i);
+			Location l2 = clippingPolygon.get(i + 1);
+			polygonSegments.add(new LineSegment(l1.x, l1.y, l2.x, l2.y));
+		}
+		Location l1 = clippingPolygon.get(clippingPolygon.size() - 1);
+		Location l2 = clippingPolygon.get(0);
+		polygonSegments.add(new LineSegment(l1.x, l1.y, l2.x, l2.y));
+
+		List<Location> boundaryPoints = new ArrayList<>();
+
+		for (Point p : graph.getSitePoints()) {
+			Location loc = new Location(p.x, p.y);
+			loc.setAngleWithRespectTo(center);
+			dualGraph.addVertex(loc);
+			dualVertices.add(loc);
+			pointsToLocations.put(p, loc);
+		}
+
+		graph.edgeStream().forEach((Edge e) -> {
+			Point site1 = e.getSite1();
+			Point site2 = e.getSite2();
+			Vertex a = e.getA();
+			Vertex b = e.getB();
+
+			Location intersection = intersectionWithSides(a, b, polygonSegments);
+			int intersectionType = 0;
+			if (intersection != null) {
+				Vertex isxnVertex = new Vertex(new Point(intersection.x, intersection.y));
+				if (insidePolygon(a, polygonSegments)) {
+					b = isxnVertex;
+					intersectionType = 1;
+				} else if (insidePolygon(b, polygonSegments)) {
+					a = isxnVertex;
+					intersectionType = -1;
+				} else {
+					a = null;
+					b = null;
+				}
+			} else if (!insidePolygon(a, polygonSegments)) {
+				a = null;
+				b = null;
+			}
+
+			if (site1 != null && site2 != null) {// && a != null & b != null) {
+				Location loc1 = pointsToLocations.get(site1);
+				Location loc2 = pointsToLocations.get(site2);
+				MapEdge edge = new MapEdge(loc1, loc2);
+				dualGraph.addEdge(loc1, loc2, edge);
+				dualEdges.add(edge);
+
+				if (a != null && b != null) {
+					Point pointa = a.getLocation();
+					Point pointb = b.getLocation();
+					if (pointa.x < 0 || pointb.x < 0) {
+						int aa = 0;
+					}
+
+					Location aLoc = pointsToLocations.get(pointa);
+					if (aLoc == null) {
+						aLoc = new Location(pointa.x, pointa.y);
+						if (intersectionType == -1) {
+							boundaryPoints.add(aLoc);
+						}
+						aLoc.setAngleWithRespectTo(center);
+						pointsToLocations.put(pointa, aLoc);
+					}
+					Location bLoc = pointsToLocations.get(pointb);
+					if (bLoc == null) {
+						bLoc = new Location(pointb.x, pointb.y);
+						if (intersectionType == 1) {
+							boundaryPoints.add(bLoc);
+						}
+						bLoc.setAngleWithRespectTo(center);
+						pointsToLocations.put(pointb, bLoc);
+					}
+					voronoiGraph.addVertex(aLoc);
+					voronoiGraph.addVertex(bLoc);
+					voronoiVertices.add(aLoc);
+					voronoiVertices.add(bLoc);
+
+					if (!voronoiGraph.containsEdge(aLoc, bLoc)) {
+						MapEdge newEdge = new MapEdge(aLoc, bLoc);
+						voronoiGraph.addEdge(aLoc, bLoc, newEdge);
+						voronoiEdges.add(newEdge);
+						dualToVoronoi.put(edge, newEdge);
+						voronoiToDual.put(newEdge, edge);
+					}
+				} else {
+					edge.boundaryEdge = true;
+					edge.loc1.boundaryLocation = true;
+					edge.loc2.boundaryLocation = true;
+				}
+			}
+		});
+
+		for (Location loc : clippingPolygon) {
+			loc.setAngleWithRespectTo(center);
+			boundaryPoints.add(loc);
+			voronoiGraph.addVertex(loc);
+			voronoiVertices.add(loc);
+		}
+
+		boundaryPoints.sort((loc1, loc2) -> {
+			return (int) (1000 * (loc1.angle - loc2.angle));
+		});
+		Location firstPoint = boundaryPoints.get(0);
+		Location recentPoint = null;
+		while (!boundaryPoints.isEmpty()) {
+			Location thisPoint = boundaryPoints.remove(0);
+			if (!onSide(thisPoint, polygonSegments)) {
+				int a = 0;
+			}
+			if (recentPoint != null) {
+				MapEdge newEdge = new MapEdge(recentPoint, thisPoint);
+				voronoiGraph.addEdge(recentPoint, thisPoint, newEdge);
+				voronoiEdges.add(newEdge);
+			}
+			recentPoint = thisPoint;
+		}
+		MapEdge newEdge = new MapEdge(recentPoint, firstPoint);
+		voronoiGraph.addEdge(recentPoint, firstPoint, newEdge);
+		voronoiEdges.add(newEdge);
+
+		voronoiVertices.forEach((loc) -> {
+			if (voronoiGraph.degreeOf(loc) < 3) {
+				loc.boundaryLocation = true;
+			}
+		});
+
+		Graphs graphs = new Graphs(voronoiGraph, dualGraph, dualVertices, voronoiVertices, dualEdges, voronoiEdges,
+				dualToVoronoi, voronoiToDual);
+
+		return graphs;
+	}
+
+	private boolean onSide(Location thisPoint, List<LineSegment> polygonSegments) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	private Location intersectionWithSides(Vertex a, Vertex b, List<LineSegment> polygonSegments) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private boolean insidePolygon(Vertex a, List<LineSegment> polygonSegments) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	public void generateValues(Graphs graphs, Random r, Perlin perlin, Setter setter) {
