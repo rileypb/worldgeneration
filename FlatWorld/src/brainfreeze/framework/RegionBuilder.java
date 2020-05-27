@@ -60,7 +60,6 @@ public class RegionBuilder {
 			GraphHelper.generateRandomPoints(initialSites, wParams.rnd, rParams.numberOfPoints, rParams.getBounds());
 		}
 
-		System.out.println("creating voronoi diagram...");
 		//		VoronoiDiagramBuilder vBuilder = new VoronoiDiagramBuilder();
 		//		vBuilder.setSites(coords);
 		//		QuadEdgeSubdivision subdivision = vBuilder.getSubdivision();
@@ -111,55 +110,75 @@ public class RegionBuilder {
 		moisturePerlin.setOctaveCount(8);
 		moisturePerlin.setSeed(wParams.rnd.nextInt());
 
+		System.out.println("Measuring elevations...");
 		forEachLocation(graphs, (target) -> {
 			target.elevation = wParams.elevationMap.getValue(target.getX(), target.getY());
 		});
 
+		System.out.println("Smoothing...");
 		smoothElevations(graphs);
 		smoothElevations(graphs);
 		smoothElevations(graphs);
 
+		System.out.println("Setting corner elevations...");
 		setVoronoiCornerElevations(graphs);
 
 		setDualCornerElevations(graphs);
 
+		System.out.println("Normalizing elevations...");
 		normalizeElevations(graphs);
 
+		System.out.println("Gauging base moisture...");
 		setBaseMoisture(graphs, wParams.rnd, moisturePerlin);
 		//		normalizeBaseMoisture(graphs);
 
+		System.out.println("Marking water levels...");
 		markWater(graphs, wParams.seaLevel);
 
+		System.out.println("Filling lakes...");
 		eliminateStrandedWaterAndFindLakes(graphs, wParams.seaLevel, region);
 
+		System.out.println("Raising mountains...");
 		raiseMountains(graphs, rParams.numberOfPoints);
 		fillInMountainGaps(graphs);
 
+		System.out.println("Filling depressions...");
 		fillDepressions(graphs, region);
 
+		System.out.println("Setting corner elevations...");
 		setVoronoiCornerElevations(graphs);
 
+		System.out.println("Normalizing elevations...");
 		normalizeElevations(graphs);
 
+		System.out.println("Running rivers...");
 		runRivers(graphs, 20);
 
+		System.out.println("Measuring final moisture...");
 		calculateFinalMoisture(graphs);
+		
+		System.out.println("Growing forests...");
 		growForests(graphs);
 
+		System.out.println("Siting cities...");
 		CityScorer cityScorer = new CityScorer(rParams.numberOfPoints);
 		for (int i = 0; i < 5; i++) {
 			cityScorer.scoreCitySites(graphs);
 		}
 
+		System.out.println("Building primary roads...");
 		buildRoads(graphs, region);
 
+		System.out.println("Planning towns...");
 		TownPlanner townPlanner = new TownPlanner(rParams.numberOfPoints);
 		for (int i = 0; i < 7; i++) {
 			townPlanner.placeTowns(graphs);
 		}
 
+		System.out.println("Building secondary roads...");
 		buildSecondaryRoads(graphs, region);
 
+		System.out.println("Relaxing...");
 		relaxCoast(graphs);
 		relaxEdges(graphs, 20);
 
@@ -179,16 +198,19 @@ public class RegionBuilder {
 		Map<MapEdge, MapEdge> voronoiToDual = new HashMap<>();
 		Map<MapEdge, MapEdge> dualToVoronoi = new HashMap<>();
 
+		System.out.println("Generating initial sites...");
 		Collection<Coordinate> coords = new ArrayList<Coordinate>();
 		for (Point p : initialSites) {
 			Coordinate coordinate = new Coordinate(p.x, p.y);
 			coords.add(coordinate);
 		}
 
+		System.out.println("Building voronoi diagram...");
 		VoronoiDiagramBuilder vBuilder = new VoronoiDiagramBuilder();
 		vBuilder.setSites(coords);
 		QuadEdgeSubdivision subdivision = vBuilder.getSubdivision();
 
+		System.out.println("Generating graph structure...");
 		GeometryFactory geomFact = new GeometryFactory();
 		Geometry voronoiDiagram = subdivision.getVoronoiDiagram(geomFact);
 

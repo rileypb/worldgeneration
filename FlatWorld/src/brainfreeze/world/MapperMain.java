@@ -95,7 +95,7 @@ public class MapperMain {
 	private static int screenWidth;
 	private static int screenHeight;
 
-	public static final int POINTS = 2500;
+	public static final int POINTS = 1000;
 	private static BufferedImage selectionTexture;
 	private static FantasyLargeScaleDrawLayer mapLayer;
 
