@@ -39,9 +39,9 @@ public class BoundaryCellDrawLayer implements DrawLayer {
 				edgeList.forEach((e) -> {
 					if (e != null) {
 						Path2D.Double p = new Path2D.Double();
-						p.moveTo(x0 + xWidth * loc.x, y0 + yHeight * minmax(0, 1, loc.y));
-						p.lineTo(x0 + xWidth * e.loc1.x, y0 + yHeight * minmax(0, 1, e.loc1.y));
-						p.lineTo(x0 + xWidth * e.loc2.x, y0 + yHeight * minmax(0, 1, e.loc2.y));
+						p.moveTo(x0 + xWidth * loc.getX(), y0 + yHeight * minmax(0, 1, loc.getY()));
+						p.lineTo(x0 + xWidth * e.loc1.getX(), y0 + yHeight * minmax(0, 1, e.loc1.getY()));
+						p.lineTo(x0 + xWidth * e.loc2.getX(), y0 + yHeight * minmax(0, 1, e.loc2.getY()));
 						p.closePath();
 						g.setColor(Color.pink);
 						g.fill(p);

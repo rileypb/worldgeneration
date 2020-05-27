@@ -24,10 +24,10 @@ public class DualGraphDrawLayer implements DrawLayer {
 		Graphics2D g = (Graphics2D) im.getGraphics();
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
-		double x0 = clipBounds.x - 20;
-		double y0 = clipBounds.y - 20;
-		double xWidth = clipBounds.width * 1.1;
-		double yHeight = clipBounds.height * 1.1;
+		double x0 = clipBounds.x;
+		double y0 = clipBounds.y;
+		double xWidth = clipBounds.width * 1;
+		double yHeight = clipBounds.height * 1;
 
 		//		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setStroke(new BasicStroke(1));
@@ -39,8 +39,8 @@ public class DualGraphDrawLayer implements DrawLayer {
 //			} else {
 //				g.setColor(Color.lightGray);
 //			}
-			g.drawLine((int) (x0 + xWidth * e.loc1.x), (int) (y0 + yHeight * e.loc1.y), (int) (x0 + xWidth * e.loc2.x),
-					(int) (y0 + yHeight * e.loc2.y));
+			g.drawLine((int) (x0 + xWidth * e.loc1.getX()), (int) (y0 + yHeight * e.loc1.getY()), (int) (x0 + xWidth * e.loc2.getX()),
+					(int) (y0 + yHeight * e.loc2.getY()));
 		});
 
 

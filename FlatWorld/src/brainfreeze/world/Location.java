@@ -6,11 +6,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.jgrapht.Graph;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.triangulate.quadedge.Vertex;
 
 public class Location {
 
-	public double x;
-	public double y;
+	private double x;
+	private double y;
+	private Coordinate delegate;
+	
 	public double elevation;
 	public boolean water;
 	public boolean ocean;
@@ -64,16 +68,20 @@ public class Location {
 	public double angle;
 
 	public Location(double x, double y) {
-		this.x = x;
-		this.y = y;
+		this.setX(x);
+		this.setY(y);
 		tmpX = x;
 		tmpY = y;
 		subdivision = 0;
 	}
 
+	public Location(Coordinate c) {
+		delegate = c;
+	}
+
 	@Override
 	public String toString() {
-		return "[" + x + ", " + y + "]";
+		return "[" + getX() + ", " + getY() + "]";
 	}
 
 	public Set<Location> neighboringVertices(Graph<Location, MapEdge> graph) {
@@ -90,16 +98,40 @@ public class Location {
 		double sumX = 0;
 		double sumY = 0;
 		for (Location loc : locations) {
-			sumX += loc.x;
-			sumY += loc.y;
+			sumX += loc.getX();
+			sumY += loc.getY();
 		}
 		return new Location(sumX / locations.size(), sumY / locations.size());
 	}
 
 	public void setAngleWithRespectTo(Location center) {
-		double diffX = x - center.x;
-		double diffY = y - center.y;
+		double diffX = getX() - center.getX();
+		double diffY = getY() - center.getY();
 		angle = Math.atan2(diffY, diffX);
+	}
+
+	public double getX() {
+		return delegate == null ? x : delegate.getX();
+	}
+
+	public void setX(double x) {
+		if (delegate == null) {
+			this.x = x;
+		} else {
+			delegate.setX(x);
+		}
+	}
+
+	public double getY() {
+		return delegate == null ? y : delegate.getY();
+	}
+
+	public void setY(double y) {
+		if (delegate == null) {
+			this.y = y;
+		} else {
+			delegate.setY(y);
+		}
 	}
 
 }

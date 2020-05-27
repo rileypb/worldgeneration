@@ -23,7 +23,7 @@ public class CellPicker {
 		List<Location> obstacles = new ArrayList<Location>();
 
 		graphs.dualVertices.forEach((loc) -> {
-			if ((loc.x >= 0 && loc.x <= 1 && loc.y >= 0 && loc.y <= 1) && (loc.water || loc.city || loc.road
+			if ((loc.getX() >= 0 && loc.getX() <= 1 && loc.getY() >= 0 && loc.getY() <= 1) && (loc.water || loc.city || loc.road
 					|| loc.secondaryRoad || (loc.river && loc.flux > fluxThreshold))) {
 				double maxRadius = graphs.dualGraph.edgesOf(loc).stream().map((e) -> {
 					return graphs.dualToVoronoi.get(e);
@@ -32,7 +32,7 @@ public class CellPicker {
 				}).flatMap((e) -> {
 					return Arrays.stream(new Location[] { e.loc1, e.loc2 });
 				}).mapToDouble((v) -> {
-					return Math.sqrt((v.x - loc.x) * (v.x - loc.x) + (v.y - loc.y) * (v.y - loc.y));
+					return Math.sqrt((v.getX() - loc.getX()) * (v.getX() - loc.getX()) + (v.getY() - loc.getY()) * (v.getY() - loc.getY()));
 				}).max().orElse(Double.NEGATIVE_INFINITY);
 				loc.radius = Math.min(.01, maxRadius / 2);
 				obstacles.add(loc);
@@ -52,9 +52,9 @@ public class CellPicker {
 		}
 
 		graphs.dualVertices.forEach((loc) -> {
-			if (loc.x >= 0 && loc.x <= 1 && loc.y >= 0 && loc.y <= 1) {
-				int x = (int) (loc.x / bucketWidth);
-				int y = (int) (loc.y / bucketHeight);
+			if (loc.getX() >= 0 && loc.getX() <= 1 && loc.getY() >= 0 && loc.getY() <= 1) {
+				int x = (int) (loc.getX() / bucketWidth);
+				int y = (int) (loc.getY() / bucketHeight);
 				int index = x * widthInBuckets + y;
 				bucketList.get(index).add(loc);
 			}
@@ -142,8 +142,8 @@ public class CellPicker {
 							continue;
 						}
 
-						double newX = candidate.x + 8 * (r.nextDouble()-0.5) * radius;
-						double newY = candidate.y + 8 * (r.nextDouble()-0.5) * radius;
+						double newX = candidate.getX() + 8 * (r.nextDouble()-0.5) * radius;
+						double newY = candidate.getY() + 8 * (r.nextDouble()-0.5) * radius;
 						Location newLocation = new Location(newX, newY);
 						newLocation.mountain = candidate.mountain;
 						newLocation.hill = candidate.hill;
@@ -165,7 +165,7 @@ public class CellPicker {
 	private boolean collides(Location candidate, List<Location> existingPicks, double collisionDistance) {
 		for (Location loc : existingPicks) {
 			double dist = Math.sqrt(
-					(loc.x - candidate.x) * (loc.x - candidate.x) + (loc.y - candidate.y) * (loc.y - candidate.y));
+					(loc.getX() - candidate.getX()) * (loc.getX() - candidate.getX()) + (loc.getY() - candidate.getY()) * (loc.getY() - candidate.getY()));
 			if (dist <= collisionDistance + loc.radius) {
 				return true;
 			}

@@ -2,6 +2,7 @@ package brainfreeze.framework;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,7 +17,14 @@ import java.util.stream.Stream;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultUndirectedGraph;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineSegment;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.triangulate.VoronoiDiagramBuilder;
+import org.locationtech.jts.triangulate.quadedge.QuadEdge;
+import org.locationtech.jts.triangulate.quadedge.QuadEdgeSubdivision;
+import org.locationtech.jts.triangulate.quadedge.Vertex;
 
 import com.flowpowered.noise.module.source.Perlin;
 
@@ -37,7 +45,6 @@ import de.alsclo.voronoi.Voronoi;
 import de.alsclo.voronoi.graph.Edge;
 import de.alsclo.voronoi.graph.Graph;
 import de.alsclo.voronoi.graph.Point;
-import de.alsclo.voronoi.graph.Vertex;
 
 public class RegionBuilder {
 	public Region buildRegion(WorldParameters wParams, RegionParameters rParams, TechnicalParameters tParams) {
@@ -54,21 +61,38 @@ public class RegionBuilder {
 		}
 
 		System.out.println("creating voronoi diagram...");
-		Voronoi voronoi = new Voronoi(initialSites);
-		
-		for (int i = 0; i < tParams.relaxations; i++) {
-			//			voronoi = GraphHelper.relax(voronoi);
-			voronoi = voronoi.relax();
-		}
+		//		VoronoiDiagramBuilder vBuilder = new VoronoiDiagramBuilder();
+		//		vBuilder.setSites(coords);
+		//		QuadEdgeSubdivision subdivision = vBuilder.getSubdivision();
+		//		System.out.println(subdivision);
+		//		
+		//		GeometryFactory geomFact = new GeometryFactory();
+		//		Geometry voronoiDiagram = subdivision.getVoronoiDiagram(geomFact);
+		//		System.out.println(voronoiDiagram.getNumGeometries());
+		//		for (int i = 0; i < voronoiDiagram.getNumGeometries(); i++) {
+		//			Geometry geometryN = voronoiDiagram.getGeometryN(i);
+		//			System.out.println(geometryN);
+		//		}
+		//		
+		//		if (true) {
+		//			System.exit(0);
+		//		}
 
-		Graph graph = voronoi.getGraph();
+		//		System.out.println("creating voronoi diagram...");
+		//		Voronoi voronoi = new Voronoi(initialSites);
+		//		for (int i = 0; i < tParams.relaxations; i++) {
+		//			//			voronoi = GraphHelper.relax(voronoi);
+		//			voronoi = voronoi.relax();
+		//		}
 
-		Graphs graphs;
-		if (rParams.clippingPolygon != null) {
-			graphs = generateGraphs(graph, rParams.clippingPolygon);
-		} else {
-			graphs = generateGraphs(graph);
-		}
+		//		Graph graph = voronoi.getGraph();
+
+		Graphs graphs = generateGraphs(initialSites);
+		//		if (rParams.clippingPolygon != null) {
+		//			graphs = generateGraphs(graph, rParams.clippingPolygon);
+		//		} else {
+		//			graphs = generateGraphs(graph);
+		//		}
 
 		Region region = new Region(graphs);
 
@@ -88,7 +112,7 @@ public class RegionBuilder {
 		moisturePerlin.setSeed(wParams.rnd.nextInt());
 
 		forEachLocation(graphs, (target) -> {
-			target.elevation = wParams.elevationMap.getValue(target.x, target.y);
+			target.elevation = wParams.elevationMap.getValue(target.getX(), target.getY());
 		});
 
 		smoothElevations(graphs);
@@ -142,6 +166,94 @@ public class RegionBuilder {
 		return region;
 	}
 
+	private Graphs generateGraphs(ArrayList<Point> initialSites) {
+
+		DefaultUndirectedGraph<Location, MapEdge> voronoiGraph = new DefaultUndirectedGraph<>(MapEdge.class);
+		DefaultUndirectedGraph<Location, MapEdge> dualGraph = new DefaultUndirectedGraph<>(MapEdge.class);
+
+		Set<Location> dualVertices = new HashSet<>();
+		Map<Coordinate, Location> pointsToLocations = new HashMap<>();
+		Set<MapEdge> dualEdges = new HashSet<>();
+		Set<Location> voronoiVertices = new HashSet<>();
+		Set<MapEdge> voronoiEdges = new HashSet<>();
+		Map<MapEdge, MapEdge> voronoiToDual = new HashMap<>();
+		Map<MapEdge, MapEdge> dualToVoronoi = new HashMap<>();
+
+		Collection<Coordinate> coords = new ArrayList<Coordinate>();
+		for (Point p : initialSites) {
+			Coordinate coordinate = new Coordinate(p.x, p.y);
+			coords.add(coordinate);
+		}
+
+		VoronoiDiagramBuilder vBuilder = new VoronoiDiagramBuilder();
+		vBuilder.setSites(coords);
+		QuadEdgeSubdivision subdivision = vBuilder.getSubdivision();
+
+		GeometryFactory geomFact = new GeometryFactory();
+		Geometry voronoiDiagram = subdivision.getVoronoiDiagram(geomFact);
+
+		Collection<Vertex> vertices = subdivision.getVertices(false);
+
+		for (Vertex v : vertices) {
+			Location loc = new Location(v.getCoordinate());
+			dualGraph.addVertex(loc);
+			dualVertices.add(loc);
+			pointsToLocations.put(v.getCoordinate(), loc);
+		}
+		
+
+		Collection<QuadEdge> edges = subdivision.getEdges();
+		Geometry edges2 = subdivision.getEdges(geomFact);
+		
+
+		
+		for (QuadEdge edge : edges) {
+			Polygon cell1 = subdivision.getVoronoiCellPolygon(edge, geomFact);
+			Polygon cell2 = subdivision.getVoronoiCellPolygon(edge.sym(), geomFact);
+			Location loc1 = pointsToLocations.get(cell1.getUserData());
+			Location loc2 = pointsToLocations.get(cell2.getUserData());
+			if (loc1 != null && loc2 != null) {
+				Geometry intersection = cell1.intersection(cell2);
+				Coordinate[] coordinates = intersection.getCoordinates();
+				
+				Coordinate c0 = coordinates[0];
+				Location v1 = pointsToLocations.get(c0);
+				Coordinate c1 = coordinates[1];
+				Location v2 = pointsToLocations.get(c1);
+				
+				if (v1 == null) {
+					v1 = new Location(c0);
+					pointsToLocations.put(c0, v1);
+					voronoiVertices.add(v1);
+					voronoiGraph.addVertex(v1);
+				}
+				
+				if (v2 == null) {
+					v2 = new Location(c1);
+					pointsToLocations.put(c1, v2);
+					voronoiVertices.add(v2);
+					voronoiGraph.addVertex(v2);
+				}
+
+				MapEdge dualEdge = new MapEdge(loc1, loc2);
+				MapEdge voronoiEdge = new MapEdge(v1, v2);
+				dualGraph.addEdge(loc1, loc2, dualEdge);
+				dualEdges.add(dualEdge);
+				voronoiGraph.addEdge(v1, v2, voronoiEdge);
+				voronoiEdges.add(voronoiEdge);
+				
+				voronoiToDual.put(voronoiEdge, dualEdge);
+				dualToVoronoi.put(dualEdge, voronoiEdge);
+			}
+		}
+
+		
+		Graphs graphs = new Graphs(voronoiGraph, dualGraph, dualVertices, voronoiVertices, dualEdges, voronoiEdges,
+				dualToVoronoi, voronoiToDual);
+
+		return graphs;
+	}
+
 	private Graphs generateGraphs(Graph graph) {
 		DefaultUndirectedGraph<Location, MapEdge> voronoiGraph = new DefaultUndirectedGraph<>(MapEdge.class);
 		DefaultUndirectedGraph<Location, MapEdge> dualGraph = new DefaultUndirectedGraph<>(MapEdge.class);
@@ -164,8 +276,8 @@ public class RegionBuilder {
 		graph.edgeStream().forEach((Edge e) -> {
 			Point site1 = e.getSite1();
 			Point site2 = e.getSite2();
-			Vertex a = e.getA();
-			Vertex b = e.getB();
+			de.alsclo.voronoi.graph.Vertex a = e.getA();
+			de.alsclo.voronoi.graph.Vertex b = e.getB();
 			if (site1 != null && site2 != null) {// && a != null & b != null) {
 				Location loc1 = pointsToLocations.get(site1);
 				Location loc2 = pointsToLocations.get(site2);
@@ -242,11 +354,11 @@ public class RegionBuilder {
 		for (int i = 0; i < clippingPolygon.size() - 1; i++) {
 			Location l1 = clippingPolygon.get(i);
 			Location l2 = clippingPolygon.get(i + 1);
-			polygonSegments.add(new LineSegment(l1.x, l1.y, l2.x, l2.y));
+			polygonSegments.add(new LineSegment(l1.getX(), l1.getY(), l2.getX(), l2.getY()));
 		}
 		Location l1 = clippingPolygon.get(clippingPolygon.size() - 1);
 		Location l2 = clippingPolygon.get(0);
-		polygonSegments.add(new LineSegment(l1.x, l1.y, l2.x, l2.y));
+		polygonSegments.add(new LineSegment(l1.getX(), l1.getY(), l2.getX(), l2.getY()));
 
 		List<Location> boundaryPoints = new ArrayList<>();
 
@@ -261,13 +373,14 @@ public class RegionBuilder {
 		graph.edgeStream().forEach((Edge e) -> {
 			Point site1 = e.getSite1();
 			Point site2 = e.getSite2();
-			Vertex a = e.getA();
-			Vertex b = e.getB();
-			
+			de.alsclo.voronoi.graph.Vertex a = e.getA();
+			de.alsclo.voronoi.graph.Vertex b = e.getB();
+
 			Location intersection = intersectionWithSides(a, b, polygonSegments);
 			int intersectionType = 0;
 			if (intersection != null) {
-				Vertex isxnVertex = new Vertex(new Point(intersection.x, intersection.y));
+				de.alsclo.voronoi.graph.Vertex isxnVertex = new de.alsclo.voronoi.graph.Vertex(
+						new Point(intersection.getX(), intersection.getY()));
 				if (insidePolygon(a, polygonSegments)) {
 					b = isxnVertex;
 					intersectionType = 1;
@@ -376,7 +489,7 @@ public class RegionBuilder {
 	}
 
 	private boolean onSide(Location loc, List<LineSegment> polygonSegments) {
-		Coordinate p = new Coordinate(loc.x, loc.y);
+		Coordinate p = new Coordinate(loc.getX(), loc.getY());
 		for (LineSegment ls0 : polygonSegments) {
 			if (ls0.orientationIndex(p) == 0) {
 				return true;
@@ -386,7 +499,7 @@ public class RegionBuilder {
 	}
 
 	public static boolean insidePolygon(Location loc, List<LineSegment> polygonSegments) {
-		Coordinate p = new Coordinate(loc.x, loc.y);
+		Coordinate p = new Coordinate(loc.getX(), loc.getY());
 		for (LineSegment ls0 : polygonSegments) {
 			if (ls0.orientationIndex(p) < 0) {
 				return false;
@@ -401,7 +514,7 @@ public class RegionBuilder {
 	 * @param polygonSegments must be in order clockwise
 	 * @return
 	 */
-	private boolean insidePolygon(Vertex a, List<LineSegment> polygonSegments) {
+	private boolean insidePolygon(de.alsclo.voronoi.graph.Vertex a, List<LineSegment> polygonSegments) {
 		Point location = a.getLocation();
 		Coordinate p = new Coordinate(location.x, location.y);
 		for (LineSegment ls0 : polygonSegments) {
@@ -412,7 +525,8 @@ public class RegionBuilder {
 		return true;
 	}
 
-	private Location intersectionWithSides(Vertex a, Vertex b, List<LineSegment> polygonSegments) {
+	private Location intersectionWithSides(de.alsclo.voronoi.graph.Vertex a, de.alsclo.voronoi.graph.Vertex b,
+			List<LineSegment> polygonSegments) {
 		if (a == null || b == null) {
 			return null;
 		}
@@ -434,14 +548,14 @@ public class RegionBuilder {
 		double x0 = r.nextDouble();
 		double y0 = r.nextDouble();
 		graphs.dualVertices.forEach((loc) -> {
-			double noise = PerlinHelper.getCylindricalNoise(perlin, x0 + loc.x, 1, y0 + loc.y, 1);
+			double noise = PerlinHelper.getCylindricalNoise(perlin, x0 + loc.getX(), 1, y0 + loc.getY(), 1);
 			setter.set(loc, noise);
 		});
 	}
 
 	public void calculateTemperatures(Graphs graphs) {
 		graphs.voronoiVertices.forEach((loc) -> {
-			double latitude = 0.5 - loc.y;
+			double latitude = 0.5 - loc.getY();
 			double distanceFromEquator = Math.abs(latitude);
 			double angleFromEquator = Math.PI * distanceFromEquator;
 			double baseTemperature = Math.cos(angleFromEquator);
@@ -691,14 +805,14 @@ public class RegionBuilder {
 		// now calculate flux
 		ArrayList<Location> vertices = new ArrayList<Location>(graphs.dualVertices);
 		vertices.sort((v1, v2) -> {
-			return (int) (10000000 * (v2.graphHeight - v1.graphHeight) + 100000 * (v2.x - v1.x));
+			return (int) (10000000 * (v2.graphHeight - v1.graphHeight) + 100000 * (v2.getX() - v1.getX()));
 		});
 
 		for (Location v : vertices) {
 			Set<MapEdge> incomingEdges = auxGraph.incomingEdgesOf(v);
 			List<MapEdge> sortedEdges = new ArrayList<MapEdge>(incomingEdges);
 			sortedEdges.sort((e1, e2) -> {
-				return (int) (100000 * (e1.loc1.x - e2.loc1.x));
+				return (int) (100000 * (e1.loc1.getX() - e2.loc1.getX()));
 			});
 			double flux = Math.max(0, Math.min(2, 1 + v.baseMoisture));
 			int i = 0;
@@ -828,7 +942,7 @@ public class RegionBuilder {
 		Set<MapEdge> edgesOf = graphs.dualGraph.edgesOf(loc);
 		List<MapEdge> sorted = new ArrayList<>(edgesOf);
 		sorted.sort((e1, e2) -> {
-			return (int) (100000 * (e1.loc1.x - e1.loc2.x));
+			return (int) (100000 * (e1.loc1.getX() - e1.loc2.getX()));
 		});
 		return sorted.stream().map((edge) -> {
 			return edge.oppositeLocation(loc);
@@ -925,7 +1039,7 @@ public class RegionBuilder {
 		}).collect(Collectors.toSet());
 
 		Set<Location> frontierVertices = graphs.dualVertices.stream().filter((loc) -> {
-			return loc.water && (loc.x < 0 || loc.y < 0 || loc.x > 1 || loc.y > 1);
+			return loc.water && (loc.getX() < 0 || loc.getY() < 0 || loc.getX() > 1 || loc.getY() > 1);
 		}).collect(Collectors.toSet());
 
 		while (frontierVertices.size() > 0) {
@@ -982,7 +1096,7 @@ public class RegionBuilder {
 
 		for (Location city1 : graphs.cities) {
 			for (Location city2 : graphs.cities) {
-				if (city1.x > city2.x || city1.y > city2.y) {
+				if (city1.getX() > city2.getX() || city1.getY() > city2.getY()) {
 					graphs.dualVertices.forEach((loc) -> {
 						loc.usedForRoad = false;
 					});
@@ -1095,8 +1209,8 @@ public class RegionBuilder {
 	public void relaxEdges(Graphs graphs, double fluxThreshold) {
 
 		graphs.dualVertices.forEach((loc) -> {
-			loc.tmpX = loc.x;
-			loc.tmpY = loc.y;
+			loc.tmpX = loc.getX();
+			loc.tmpY = loc.getY();
 			int count = (int) graphs.dualGraph.edgesOf(loc).stream().filter((e) -> {
 				return (e.road && loc.road) || (e.secondaryRoad && loc.secondaryRoad)
 						|| (e.river && e.flux > fluxThreshold && loc.river && loc.flux > fluxThreshold);
@@ -1107,22 +1221,22 @@ public class RegionBuilder {
 							|| (e.river && e.flux > fluxThreshold && loc.river && loc.flux > fluxThreshold);
 				}).map((e) -> {
 					return e.oppositeLocation(loc);
-				}).reduce(new Location(2 * loc.x, 2 * loc.y), (accumulated, p) -> {
-					return new Location(accumulated.x + p.x, accumulated.y + p.y);
+				}).reduce(new Location(2 * loc.getX(), 2 * loc.getY()), (accumulated, p) -> {
+					return new Location(accumulated.getX() + p.getX(), accumulated.getY() + p.getY());
 				}, (p1, p2) -> {
 					return null;
 				});
 
-				loc.tmpX = accumulation.x / (2 + count);
-				loc.tmpY = accumulation.y / (2 + count);
+				loc.tmpX = accumulation.getX() / (2 + count);
+				loc.tmpY = accumulation.getY() / (2 + count);
 			}
 		});
 
 		graphs.dualVertices.stream().filter((loc) -> {
 			return loc.road || loc.secondaryRoad || (loc.river && loc.flux > fluxThreshold);
 		}).forEach((l) -> {
-			l.x = l.tmpX;
-			l.y = l.tmpY;
+			l.setX(l.tmpX);
+			l.setY(l.tmpY);
 		});
 
 	}
@@ -1153,21 +1267,21 @@ public class RegionBuilder {
 				return e.coast;
 			}).map((e) -> {
 				return e.oppositeLocation(loc);
-			}).reduce(new Location(2 * loc.x, 2 * loc.y), (accumulated, p) -> {
-				return new Location(accumulated.x + p.x, accumulated.y + p.y);
+			}).reduce(new Location(2 * loc.getX(), 2 * loc.getY()), (accumulated, p) -> {
+				return new Location(accumulated.getX() + p.getX(), accumulated.getY() + p.getY());
 			}, (p1, p2) -> {
 				return null;
 			});
 
-			loc.tmpX = accumulation.x / (2 + count);
-			loc.tmpY = accumulation.y / (2 + count);
+			loc.tmpX = accumulation.getX() / (2 + count);
+			loc.tmpY = accumulation.getY() / (2 + count);
 		});
 
 		graphs.voronoiVertices.stream().filter((loc) -> {
 			return loc.coast;
 		}).forEach((l) -> {
-			l.x = l.tmpX;
-			l.y = l.tmpY;
+			l.setX(l.tmpX);
+			l.setY(l.tmpY);
 		});
 	}
 

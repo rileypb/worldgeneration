@@ -28,8 +28,8 @@ public class Path {
 		double[] xInit = new double[points.size()];
 		double[] yInit = new double[points.size()];
 		for (int i = 0; i < points.size(); i++) {
-			xInit[i] = points.get(i).x;
-			yInit[i] = points.get(i).y;
+			xInit[i] = points.get(i).getX();
+			yInit[i] = points.get(i).getY();
 			score[i] = points.get(i).flux;
 			elevation[i] = points.get(i).elevation;
 		}

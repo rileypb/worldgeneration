@@ -31,7 +31,7 @@ public class TownPlanner {
 
 		// are other towns close by?
 		for (Location town : graphs.towns) {
-			double distance = Math.sqrt((town.x - loc.x) * (town.x - loc.x) + (town.y - loc.y) * (town.y - loc.y));
+			double distance = Math.sqrt((town.getX() - loc.getX()) * (town.getX() - loc.getX()) + (town.getY() - loc.getY()) * (town.getY() - loc.getY()));
 			if (distance < 0.015) {
 				siteScore = Double.NEGATIVE_INFINITY;
 			} else if (distance < 0.04) {
@@ -41,7 +41,7 @@ public class TownPlanner {
 
 		// is there a city close by?
 		for (Location city : graphs.cities) {
-			double distance = Math.sqrt((city.x - loc.x) * (city.x - loc.x) + (city.y - loc.y) * (city.y - loc.y));
+			double distance = Math.sqrt((city.getX() - loc.getX()) * (city.getX() - loc.getX()) + (city.getY() - loc.getY()) * (city.getY() - loc.getY()));
 			if (distance < 0.015) {
 				siteScore = Double.NEGATIVE_INFINITY;
 			} else {
@@ -49,7 +49,7 @@ public class TownPlanner {
 			}
 		}
 
-		if (loc.x < 0.1 || loc.x > .9 || loc.y < 0.1 || loc.y > 0.9) {
+		if (loc.getX() < 0.1 || loc.getX() > .9 || loc.getY() < 0.1 || loc.getY() > 0.9) {
 			siteScore = Double.NEGATIVE_INFINITY;
 		}
 

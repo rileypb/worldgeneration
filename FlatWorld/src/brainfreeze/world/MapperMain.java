@@ -67,20 +67,18 @@ public class MapperMain {
 			g.drawImage(img, 0, 0, null);
 
 			if (cells.length > selectionIndex) {
-
 				Location loc = cells[selectionIndex];
 				List<MapEdge> edgeList = graphs.dualGraph.edgesOf(loc).stream().map((voronoiEdge) -> {
 					return graphs.dualToVoronoi.get(voronoiEdge);
 				}).collect(Collectors.toList());
-
 				edgeList.forEach((e) -> {
 					if (e != null) {
 						g.setColor(Color.green);
-						((Graphics2D) g).drawLine((int) (mapLayer.x0 + mapLayer.xWidth * e.loc1.x),
+						((Graphics2D) g).drawLine((int) (mapLayer.x0 + mapLayer.xWidth * e.loc1.getX()),
 								(int) (mapLayer.y0
-										+ mapLayer.yHeight * FantasyLargeScaleDrawLayer.minmax(0, 1, e.loc1.y)),
-								(int) (mapLayer.x0 + mapLayer.xWidth * e.loc2.x), (int) (mapLayer.y0
-										+ mapLayer.yHeight * FantasyLargeScaleDrawLayer.minmax(0, 1, e.loc2.y)));
+										+ mapLayer.yHeight * FantasyLargeScaleDrawLayer.minmax(0, 1, e.loc1.getY())),
+								(int) (mapLayer.x0 + mapLayer.xWidth * e.loc2.getX()), (int) (mapLayer.y0
+										+ mapLayer.yHeight * FantasyLargeScaleDrawLayer.minmax(0, 1, e.loc2.getY())));
 					}
 				});
 			}
@@ -97,7 +95,7 @@ public class MapperMain {
 	private static int screenWidth;
 	private static int screenHeight;
 
-	public static final int POINTS = 40;
+	public static final int POINTS = 2500;
 	private static BufferedImage selectionTexture;
 	private static FantasyLargeScaleDrawLayer mapLayer;
 
@@ -109,7 +107,7 @@ public class MapperMain {
 		//												seed = 13802760;
 		//				seed = 1473019236;
 		//		seed = 156788987;
-		//		seed = -25911778;
+				seed = -25911778;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 
@@ -145,12 +143,12 @@ public class MapperMain {
 		clippingPolygon.add(new Location(1, 1));
 		clippingPolygon.add(new Location(0, 1));
 		//		rParams.clippingPolygon = clippingPolygon;
-		rParams.xMin = 0.25;
-		rParams.yMin = 0.25;
-		rParams.xMax = 0.75;
-		rParams.yMax = 0.75;
+//		rParams.xMin = 0.25;
+//		rParams.yMin = 0.25;
+//		rParams.xMax = 0.75;
+//		rParams.yMax = 0.75;
 		TechnicalParameters tParams = new TechnicalParameters();
-		tParams.relaxations = 0;
+		tParams.relaxations = 3;
 		Region region = builder.buildRegion(wParams, rParams, tParams);
 
 		Graphs buildResult = region.graphs;
@@ -181,9 +179,9 @@ public class MapperMain {
 		selectionTexture = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_3BYTE_BGR);
 		mapLayer = new FantasyLargeScaleDrawLayer(r, (int) Math.sqrt(POINTS), buildResult, 20, MapType.DEFAULT,
 				selectionTexture);
-//		mapLayer.draw(img2);
-		new GraphDrawLayer(buildResult, rParams.getBounds()).draw(img2);
-		//						new DualGraphDrawLayer(buildResult).draw(img2);
+		mapLayer.draw(img2);
+//		new GraphDrawLayer(buildResult, rParams.getBounds()).draw(img2);
+//								new DualGraphDrawLayer(buildResult).draw(img2);
 		display(img2, g2, selectionTexture, buildResult);
 	}
 

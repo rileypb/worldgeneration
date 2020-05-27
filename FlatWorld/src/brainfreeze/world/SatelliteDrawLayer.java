@@ -41,10 +41,10 @@ public class SatelliteDrawLayer extends BaseDrawLayer {
 		Graphics2D g = (Graphics2D) im.getGraphics();
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
 
-		double x0 = clipBounds.x - 20;
-		double y0 = clipBounds.y - 20;
-		double xWidth = clipBounds.width * 1.1;
-		double yHeight = clipBounds.height * 1.1;
+		double x0 = clipBounds.x;
+		double y0 = clipBounds.y;
+		double xWidth = clipBounds.width;
+		double yHeight = clipBounds.height;
 
 		g.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 
@@ -95,8 +95,8 @@ public class SatelliteDrawLayer extends BaseDrawLayer {
 			g.setStroke(new BasicStroke((float) Math.min(6, e.flux / fluxThreshold / 2), BasicStroke.CAP_ROUND,
 					BasicStroke.JOIN_ROUND));
 			if (e.river && e.flux > fluxThreshold) {
-				g.drawLine((int) (x0 + xWidth * e.loc1.x), (int) (y0 + yHeight * e.loc1.y),
-						(int) (x0 + xWidth * e.loc2.x), (int) (y0 + yHeight * e.loc2.y));
+				g.drawLine((int) (x0 + xWidth * e.loc1.getX()), (int) (y0 + yHeight * e.loc1.getY()),
+						(int) (x0 + xWidth * e.loc2.getX()), (int) (y0 + yHeight * e.loc2.getY()));
 			}
 		});
 	}
@@ -110,16 +110,16 @@ public class SatelliteDrawLayer extends BaseDrawLayer {
 			edgeList.forEach((e) -> {
 				if (e != null) {
 					Path2D.Double p = new Path2D.Double();
-					p.moveTo(x0 + xWidth * loc.x, y0 + yHeight * minmax(0, 1, loc.y));
-					p.lineTo(x0 + xWidth * e.loc1.x, y0 + yHeight * minmax(0, 1, e.loc1.y));
-					p.lineTo(x0 + xWidth * e.loc2.x, y0 + yHeight * minmax(0, 1, e.loc2.y));
+					p.moveTo(x0 + xWidth * loc.getX(), y0 + yHeight * minmax(0, 1, loc.getY()));
+					p.lineTo(x0 + xWidth * e.loc1.getX(), y0 + yHeight * minmax(0, 1, e.loc1.getY()));
+					p.lineTo(x0 + xWidth * e.loc2.getX(), y0 + yHeight * minmax(0, 1, e.loc2.getY()));
 					p.closePath();
 					//					g.setColor(loc.color);
-					Point2D.Double pt1 = new Point2D.Double(x0 + xWidth * loc.x, y0 + yHeight * minmax(0, 1, loc.y));
-					Point2D.Double pt2 = new Point2D.Double(x0 + xWidth * e.loc1.x,
-							y0 + yHeight * minmax(0, 1, e.loc1.y));
-					Point2D.Double pt3 = new Point2D.Double(x0 + xWidth * e.loc2.x,
-							y0 + yHeight * minmax(0, 1, e.loc2.y));
+					Point2D.Double pt1 = new Point2D.Double(x0 + xWidth * loc.getX(), y0 + yHeight * minmax(0, 1, loc.getY()));
+					Point2D.Double pt2 = new Point2D.Double(x0 + xWidth * e.loc1.getX(),
+							y0 + yHeight * minmax(0, 1, e.loc1.getY()));
+					Point2D.Double pt3 = new Point2D.Double(x0 + xWidth * e.loc2.getX(),
+							y0 + yHeight * minmax(0, 1, e.loc2.getY()));
 					if (loc.water) {
 						g.setColor(seaBlue);
 					} else {

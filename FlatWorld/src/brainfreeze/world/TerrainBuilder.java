@@ -77,7 +77,7 @@ public class TerrainBuilder {
 		moisturePerlin.setSeed(r.nextInt());
 
 		forEachLocation(graphs, (target) -> {
-			target.elevation = elevationMap.getValue(target.x, target.y);
+			target.elevation = elevationMap.getValue(target.getX(), target.getY());
 		});
 
 		smoothElevations(graphs);
@@ -232,11 +232,11 @@ public class TerrainBuilder {
 		for (int i = 0; i < clippingPolygon.size() - 1; i++) {
 			Location l1 = clippingPolygon.get(i);
 			Location l2 = clippingPolygon.get(i + 1);
-			polygonSegments.add(new LineSegment(l1.x, l1.y, l2.x, l2.y));
+			polygonSegments.add(new LineSegment(l1.getX(), l1.getY(), l2.getX(), l2.getY()));
 		}
 		Location l1 = clippingPolygon.get(clippingPolygon.size() - 1);
 		Location l2 = clippingPolygon.get(0);
-		polygonSegments.add(new LineSegment(l1.x, l1.y, l2.x, l2.y));
+		polygonSegments.add(new LineSegment(l1.getX(), l1.getY(), l2.getX(), l2.getY()));
 
 		List<Location> boundaryPoints = new ArrayList<>();
 
@@ -257,7 +257,7 @@ public class TerrainBuilder {
 			Location intersection = intersectionWithSides(a, b, polygonSegments);
 			int intersectionType = 0;
 			if (intersection != null) {
-				Vertex isxnVertex = new Vertex(new Point(intersection.x, intersection.y));
+				Vertex isxnVertex = new Vertex(new Point(intersection.getX(), intersection.getY()));
 				if (insidePolygon(a, polygonSegments)) {
 					b = isxnVertex;
 					intersectionType = 1;
@@ -366,7 +366,7 @@ public class TerrainBuilder {
 	}
 
 	private boolean onSide(Location loc, List<LineSegment> polygonSegments) {
-		Coordinate p = new Coordinate(loc.x, loc.y);
+		Coordinate p = new Coordinate(loc.getX(), loc.getY());
 		for (LineSegment ls0 : polygonSegments) {
 			if (ls0.orientationIndex(p) == 0) {
 				return true;
@@ -376,7 +376,7 @@ public class TerrainBuilder {
 	}
 
 	public static boolean insidePolygon(Location loc, List<LineSegment> polygonSegments) {
-		Coordinate p = new Coordinate(loc.x, loc.y);
+		Coordinate p = new Coordinate(loc.getX(), loc.getY());
 		for (LineSegment ls0 : polygonSegments) {
 			if (ls0.orientationIndex(p) < 0) {
 				return false;
@@ -424,14 +424,14 @@ public class TerrainBuilder {
 		double x0 = r.nextDouble();
 		double y0 = r.nextDouble();
 		graphs.dualVertices.forEach((loc) -> {
-			double noise = PerlinHelper.getCylindricalNoise(perlin, x0 + loc.x, 1, y0 + loc.y, 1);
+			double noise = PerlinHelper.getCylindricalNoise(perlin, x0 + loc.getX(), 1, y0 + loc.getY(), 1);
 			setter.set(loc, noise);
 		});
 	}
 
 	public void calculateTemperatures(Graphs graphs) {
 		graphs.voronoiVertices.forEach((loc) -> {
-			double latitude = 0.5 - loc.y;
+			double latitude = 0.5 - loc.getY();
 			double distanceFromEquator = Math.abs(latitude);
 			double angleFromEquator = Math.PI * distanceFromEquator;
 			double baseTemperature = Math.cos(angleFromEquator);
@@ -681,14 +681,14 @@ public class TerrainBuilder {
 		// now calculate flux
 		ArrayList<Location> vertices = new ArrayList<Location>(graphs.dualVertices);
 		vertices.sort((v1, v2) -> {
-			return (int) (10000000 * (v2.graphHeight - v1.graphHeight) + 100000 * (v2.x - v1.x));
+			return (int) (10000000 * (v2.graphHeight - v1.graphHeight) + 100000 * (v2.getX() - v1.getX()));
 		});
 
 		for (Location v : vertices) {
 			Set<MapEdge> incomingEdges = auxGraph.incomingEdgesOf(v);
 			List<MapEdge> sortedEdges = new ArrayList<MapEdge>(incomingEdges);
 			sortedEdges.sort((e1, e2) -> {
-				return (int) (100000 * (e1.loc1.x - e2.loc1.x));
+				return (int) (100000 * (e1.loc1.getX() - e2.loc1.getX()));
 			});
 			double flux = Math.max(0, Math.min(2, 1 + v.baseMoisture));
 			int i = 0;
@@ -818,7 +818,7 @@ public class TerrainBuilder {
 		Set<MapEdge> edgesOf = graphs.dualGraph.edgesOf(loc);
 		List<MapEdge> sorted = new ArrayList<>(edgesOf);
 		sorted.sort((e1, e2) -> {
-			return (int) (100000 * (e1.loc1.x - e1.loc2.x));
+			return (int) (100000 * (e1.loc1.getX() - e1.loc2.getX()));
 		});
 		return sorted.stream().map((edge) -> {
 			return edge.oppositeLocation(loc);
@@ -915,7 +915,7 @@ public class TerrainBuilder {
 		}).collect(Collectors.toSet());
 
 		Set<Location> frontierVertices = graphs.dualVertices.stream().filter((loc) -> {
-			return loc.water && (loc.x < 0 || loc.y < 0 || loc.x > 1 || loc.y > 1);
+			return loc.water && (loc.getX() < 0 || loc.getY() < 0 || loc.getX() > 1 || loc.getY() > 1);
 		}).collect(Collectors.toSet());
 
 		while (frontierVertices.size() > 0) {
@@ -970,7 +970,7 @@ public class TerrainBuilder {
 	public void buildRoads(Graphs graphs) {
 		for (Location city1 : graphs.cities) {
 			for (Location city2 : graphs.cities) {
-				if (city1.x > city2.x || city1.y > city2.y) {
+				if (city1.getX() > city2.getX() || city1.getY() > city2.getY()) {
 					graphs.dualVertices.forEach((loc) -> {
 						loc.usedForRoad = false;
 					});
@@ -1079,8 +1079,8 @@ public class TerrainBuilder {
 	public void relaxEdges(Graphs graphs, double fluxThreshold) {
 
 		graphs.dualVertices.forEach((loc) -> {
-			loc.tmpX = loc.x;
-			loc.tmpY = loc.y;
+			loc.tmpX = loc.getX();
+			loc.tmpY = loc.getY();
 			int count = (int) graphs.dualGraph.edgesOf(loc).stream().filter((e) -> {
 				return (e.road && loc.road) || (e.secondaryRoad && loc.secondaryRoad)
 						|| (e.river && e.flux > fluxThreshold && loc.river && loc.flux > fluxThreshold);
@@ -1091,22 +1091,22 @@ public class TerrainBuilder {
 							|| (e.river && e.flux > fluxThreshold && loc.river && loc.flux > fluxThreshold);
 				}).map((e) -> {
 					return e.oppositeLocation(loc);
-				}).reduce(new Location(2 * loc.x, 2 * loc.y), (accumulated, p) -> {
-					return new Location(accumulated.x + p.x, accumulated.y + p.y);
+				}).reduce(new Location(2 * loc.getX(), 2 * loc.getY()), (accumulated, p) -> {
+					return new Location(accumulated.getX() + p.getX(), accumulated.getY() + p.getY());
 				}, (p1, p2) -> {
 					return null;
 				});
 
-				loc.tmpX = accumulation.x / (2 + count);
-				loc.tmpY = accumulation.y / (2 + count);
+				loc.tmpX = accumulation.getX() / (2 + count);
+				loc.tmpY = accumulation.getY() / (2 + count);
 			}
 		});
 
 		graphs.dualVertices.stream().filter((loc) -> {
 			return loc.road || loc.secondaryRoad || (loc.river && loc.flux > fluxThreshold);
 		}).forEach((l) -> {
-			l.x = l.tmpX;
-			l.y = l.tmpY;
+			l.setX(l.tmpX);
+			l.setY(l.tmpY);
 		});
 
 	}
@@ -1137,21 +1137,21 @@ public class TerrainBuilder {
 				return e.coast;
 			}).map((e) -> {
 				return e.oppositeLocation(loc);
-			}).reduce(new Location(2 * loc.x, 2 * loc.y), (accumulated, p) -> {
-				return new Location(accumulated.x + p.x, accumulated.y + p.y);
+			}).reduce(new Location(2 * loc.getX(), 2 * loc.getY()), (accumulated, p) -> {
+				return new Location(accumulated.getX() + p.getX(), accumulated.getY() + p.getY());
 			}, (p1, p2) -> {
 				return null;
 			});
 
-			loc.tmpX = accumulation.x / (2 + count);
-			loc.tmpY = accumulation.y / (2 + count);
+			loc.tmpX = accumulation.getX() / (2 + count);
+			loc.tmpY = accumulation.getY() / (2 + count);
 		});
 
 		graphs.voronoiVertices.stream().filter((loc) -> {
 			return loc.coast;
 		}).forEach((l) -> {
-			l.x = l.tmpX;
-			l.y = l.tmpY;
+			l.setX(l.tmpX);
+			l.setY(l.tmpY);
 		});
 	}
 

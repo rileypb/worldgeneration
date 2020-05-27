@@ -53,12 +53,12 @@ public class GraphHelper {
 		for (int i = 0; i < clippingPolygon.size() - 1; i++) {
 			Location l1 = clippingPolygon.get(i);
 			Location l2 = clippingPolygon.get(i + 1);
-			LineSegment e = new LineSegment(l1.x, l1.y, l2.x, l2.y);
+			LineSegment e = new LineSegment(l1.getX(), l1.getY(), l2.getX(), l2.getY());
 			polygonSegments.add(e);
 		}
 		Location l1 = clippingPolygon.get(clippingPolygon.size() - 1);
 		Location l2 = clippingPolygon.get(0);
-		polygonSegments.add(new LineSegment(l1.x, l1.y, l2.x, l2.y));
+		polygonSegments.add(new LineSegment(l1.getX(), l1.getY(), l2.getX(), l2.getY()));
 
 		for (int i = 0; i < numberOfPoints; i++) {
 			Point newPoint = new Point(r.nextDouble(), r.nextDouble());
@@ -121,15 +121,15 @@ public class GraphHelper {
 	}
 
 	public static void trim(Location l1, Location l2, Graphs graphs) {
-		LineSegment ls0 = new LineSegment(l1.x, l1.y, l2.x, l2.y);
+		LineSegment ls0 = new LineSegment(l1.getX(), l1.getY(), l2.getX(), l2.getY());
 		Set<MapEdge> toRemove = new HashSet<>();
 		Set<MapEdge> toAdd = new HashSet<MapEdge>();
 		graphs.voronoiEdges.forEach((edge) -> {
-			LineSegment ls = new LineSegment(edge.loc1.x, edge.loc1.y, edge.loc2.x, edge.loc2.y);
+			LineSegment ls = new LineSegment(edge.loc1.getX(), edge.loc1.getY(), edge.loc2.getX(), edge.loc2.getY());
 			Coordinate intersection = ls0.intersection(ls);
 			if (intersection != null) {
-				int oi1 = ls0.orientationIndex(new Coordinate(edge.loc1.x, edge.loc1.y));
-				int oi2 = ls0.orientationIndex(new Coordinate(edge.loc2.x, edge.loc2.y));
+				int oi1 = ls0.orientationIndex(new Coordinate(edge.loc1.getX(), edge.loc1.getY()));
+				int oi2 = ls0.orientationIndex(new Coordinate(edge.loc2.getX(), edge.loc2.getY()));
 				Location newLoc = new Location(intersection.x, intersection.y);
 				if (oi1 < oi2) {
 					// snip edge.loc2
