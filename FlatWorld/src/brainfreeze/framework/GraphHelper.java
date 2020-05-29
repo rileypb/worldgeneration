@@ -45,7 +45,7 @@ public class GraphHelper {
 			points.add(new Point(minX + dx * r.nextDouble(), minY + dy * r.nextDouble()));
 		}
 	}
-	
+
 	public static void generateRandomPointsClipped(List<Point> points, Random r, int numberOfPoints,
 			List<Location> clippingPolygon) {
 
@@ -62,12 +62,14 @@ public class GraphHelper {
 
 		for (int i = 0; i < numberOfPoints; i++) {
 			Point newPoint = new Point(r.nextDouble(), r.nextDouble());
-			if (!RegionBuilder.insidePolygon(new Location(newPoint.x, newPoint.y), polygonSegments)) {
-				i--;
-				continue;
-			}
+			//			if (!RegionBuilder.insidePolygon(new Location(newPoint.x, newPoint.y), polygonSegments)) {
+			//				i--;
+			//				continue;
+			//			}
 
-			points.add(newPoint);
+			if (RegionBuilder.insidePolygon(new Location(newPoint.x, newPoint.y), polygonSegments)) {
+				points.add(newPoint);
+			}
 		}
 	}
 

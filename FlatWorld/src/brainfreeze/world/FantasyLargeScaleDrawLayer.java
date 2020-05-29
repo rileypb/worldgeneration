@@ -18,6 +18,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -46,15 +47,15 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	double yHeight;
 	private Graphs graphs;
 
-	public FantasyLargeScaleDrawLayer(Random r, int sizeFactor, Graphs graphs, double fluxThreshold,
-			MapType mapType, BufferedImage selectionTexture) {
+	public FantasyLargeScaleDrawLayer(Random r, int sizeFactor, Graphs graphs, double fluxThreshold, MapType mapType,
+			BufferedImage selectionTexture) {
 		this.r = r;
 		this.sizeFactor = sizeFactor;
 		this.graphs = graphs;
 		this.fluxThreshold = fluxThreshold;
 		this.mapType = mapType;
 		this.selectionTexture = selectionTexture;
-		
+
 		pickList = new CellPicker(graphs, 0.008).pick(r, 20);
 	}
 
@@ -65,11 +66,10 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 
 		g.setColor(Color.blue);
 		g.fill(clipBounds);
-		
+
 		Graphics2D graphics = (Graphics2D) selectionTexture.getGraphics();
 		graphics.setColor(Color.white);
 		graphics.fillRect(0, 0, selectionTexture.getWidth(), selectionTexture.getHeight());
-		
 
 		x0 = clipBounds.x;
 		y0 = clipBounds.y;
@@ -90,9 +90,9 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 
 		drawCells(g, graphs, x0, y0, xWidth, yHeight);
 
-		drawRoads(g, graphs, x0, y0, xWidth, yHeight);
-
-		drawSecondaryRoads(g, graphs, x0, y0, xWidth, yHeight);
+//		drawRoads(g, graphs, x0, y0, xWidth, yHeight);
+//
+//		drawSecondaryRoads(g, graphs, x0, y0, xWidth, yHeight);
 
 		drawRivers(g, graphs, x0, y0, xWidth, yHeight);
 
@@ -169,7 +169,8 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		}).forEach((loc) -> {
 			GlyphVector vector = font.createGlyphVector(new FontRenderContext(new AffineTransform(), false, true),
 					"New York");
-			Shape outline = vector.getOutline((float) (x0 + xWidth * loc.getX() + 10), (float) (y0 + yHeight * loc.getY() + 5));
+			Shape outline = vector.getOutline((float) (x0 + xWidth * loc.getX() + 10),
+					(float) (y0 + yHeight * loc.getY() + 5));
 			Rectangle2D bounds2d = outline.getBounds2D();
 			Rectangle2D bigBounds = new Rectangle2D.Double(bounds2d.getMinX() - 2, bounds2d.getMinY() - 2,
 					bounds2d.getWidth() + 4, bounds2d.getHeight() + 4);
@@ -187,7 +188,8 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		}).forEach((loc) -> {
 			GlyphVector vector = font.createGlyphVector(new FontRenderContext(new AffineTransform(), false, true),
 					"Harrisonburg");
-			Shape outline = vector.getOutline((float) (x0 + xWidth * loc.getX() + 10), (float) (y0 + yHeight * loc.getY() + 5));
+			Shape outline = vector.getOutline((float) (x0 + xWidth * loc.getX() + 10),
+					(float) (y0 + yHeight * loc.getY() + 5));
 			Rectangle2D bounds2d = outline.getBounds2D();
 			Rectangle2D bigBounds = new Rectangle2D.Double(bounds2d.getMinX() - 2, bounds2d.getMinY() - 2,
 					bounds2d.getWidth() + 4, bounds2d.getHeight() + 4);
@@ -385,8 +387,8 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 			return Arrays.stream(new Location[] { e.loc1, e.loc2 });
 		}).forEach((v) -> {
 			g.setColor(Color.DARK_GRAY);
-			g.drawLine((int) (x0 + xWidth * loc.getX()), (int) (y0 + yHeight * loc.getY()), (int) (x0 + xWidth * v.getX()),
-					(int) (y0 + yHeight * v.getY()));
+			g.drawLine((int) (x0 + xWidth * loc.getX()), (int) (y0 + yHeight * loc.getY()),
+					(int) (x0 + xWidth * v.getX()), (int) (y0 + yHeight * v.getY()));
 		});
 	}
 
@@ -403,13 +405,14 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		//			p.lineTo(x0 + (loc.x + loc.radius) * xWidth, y0 + loc.y * yHeight);
 
 		p.curveTo(x0 + (loc.getX() - 2 * loc.radius / 3 + jiggleX) * xWidth,
-				y0 + (loc.getY() - loc.radius / 3 + jiggleY) * yHeight, x0 + (loc.getX() - loc.radius / 3 + jiggleX) * xWidth,
-				y0 + (loc.getY() - 2 * loc.radius / 3) * yHeight, x0 + (loc.getX()) * xWidth,
-				y0 + (loc.getY() - loc.radius) * yHeight);
+				y0 + (loc.getY() - loc.radius / 3 + jiggleY) * yHeight,
+				x0 + (loc.getX() - loc.radius / 3 + jiggleX) * xWidth, y0 + (loc.getY() - 2 * loc.radius / 3) * yHeight,
+				x0 + (loc.getX()) * xWidth, y0 + (loc.getY() - loc.radius) * yHeight);
 		p.curveTo(x0 + (loc.getX() + loc.radius / 3 - jiggleX2) * xWidth,
 				y0 + (loc.getY() - 2 * loc.radius / 3 + jiggleY2) * yHeight,
-				x0 + (loc.getX() + 2 * loc.radius / 3 - jiggleX2) * xWidth, y0 + (loc.getY() - loc.radius / 3) * yHeight,
-				x0 + (loc.getX() + loc.radius) * xWidth, y0 + loc.getY() * yHeight);
+				x0 + (loc.getX() + 2 * loc.radius / 3 - jiggleX2) * xWidth,
+				y0 + (loc.getY() - loc.radius / 3) * yHeight, x0 + (loc.getX() + loc.radius) * xWidth,
+				y0 + loc.getY() * yHeight);
 
 		g.setPaint(new GradientPaint((float) (x0 + (loc.getX() - loc.radius) * xWidth), (float) loc.getY(),
 				new Color(0.9f, 0.9f, 0.9f), (float) (x0 + (loc.getX() + loc.radius) * xWidth), (float) loc.getY(),
@@ -488,13 +491,14 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		//			p.lineTo(x0 + (loc.x + loc.radius) * xWidth, y0 + loc.y * yHeight);
 
 		p.curveTo(x0 + (loc.getX() - 2 * loc.radius / 3 + jiggleX) * xWidth,
-				y0 + (loc.getY() - loc.radius / 3 + jiggleY) * yHeight, x0 + (loc.getX() - loc.radius / 3 + jiggleX) * xWidth,
-				y0 + (loc.getY() - 2 * loc.radius / 3) * yHeight, x0 + (loc.getX()) * xWidth,
-				y0 + (loc.getY() - loc.radius) * yHeight);
+				y0 + (loc.getY() - loc.radius / 3 + jiggleY) * yHeight,
+				x0 + (loc.getX() - loc.radius / 3 + jiggleX) * xWidth, y0 + (loc.getY() - 2 * loc.radius / 3) * yHeight,
+				x0 + (loc.getX()) * xWidth, y0 + (loc.getY() - loc.radius) * yHeight);
 		p.curveTo(x0 + (loc.getX() + loc.radius / 3 - jiggleX2) * xWidth,
 				y0 + (loc.getY() - 2 * loc.radius / 3 + jiggleY2) * yHeight,
-				x0 + (loc.getX() + 2 * loc.radius / 3 - jiggleX2) * xWidth, y0 + (loc.getY() - loc.radius / 3) * yHeight,
-				x0 + (loc.getX() + loc.radius) * xWidth, y0 + loc.getY() * yHeight);
+				x0 + (loc.getX() + 2 * loc.radius / 3 - jiggleX2) * xWidth,
+				y0 + (loc.getY() - loc.radius / 3) * yHeight, x0 + (loc.getX() + loc.radius) * xWidth,
+				y0 + loc.getY() * yHeight);
 
 		g.setStroke(new BasicStroke(1.5f));
 		g.setColor(Color.LIGHT_GRAY);
@@ -517,7 +521,8 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		//			p.lineTo(x0 + loc.x * xWidth, y0 + (loc.y - loc.radius) * yHeight);
 		//			p.lineTo(x0 + (loc.x + loc.radius) * xWidth, y0 + loc.y * yHeight);
 
-		p.curveTo(x0 + (loc.getX() - loc.radius / 3 + jiggleX) * xWidth, y0 + (loc.getY() - loc.radius / 3 + jiggleY) * yHeight,
+		p.curveTo(x0 + (loc.getX() - loc.radius / 3 + jiggleX) * xWidth,
+				y0 + (loc.getY() - loc.radius / 3 + jiggleY) * yHeight,
 				x0 + (loc.getX() - loc.radius / 6 + jiggleX) * xWidth, y0 + (loc.getY() - 2 * loc.radius / 3) * yHeight,
 				x0 + (loc.getX()) * xWidth, y0 + (loc.getY() - loc.radius) * yHeight);
 
@@ -554,7 +559,8 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		for (MapEdge e : voronoiEdges) {
 			Path2D.Double p2 = new Path2D.Double();
 
-			Vector2f v1 = new Vector2f((float) (e.loc1.getX() - e.loc2.getX()), (float) (e.loc1.getY() - e.loc2.getY())).normalise(null);
+			Vector2f v1 = new Vector2f((float) (e.loc1.getX() - e.loc2.getX()), (float) (e.loc1.getY() - e.loc2.getY()))
+					.normalise(null);
 			float dot = Vector2f.dot(light, v1);
 			float c = 0.2f + (1 + dot) * 0.3f;
 			g.setColor(new Color(c, c, c));
@@ -573,14 +579,18 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	private void drawCoast(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
 		graphs.voronoiEdges.forEach((e) -> {
 			g.setStroke(new BasicStroke(1.5f));
-			MapEdge dualEdge = graphs.voronoiToDual.get(e);
-			if (dualEdge != null) {
-				if (dualEdge.loc1.water != dualEdge.loc2.water) {
+			Set<Location> adjacentCells = e.adjacentCells;
+			if (adjacentCells.size() == 2) {
+				Iterator<Location> it = adjacentCells.iterator();
+				Location loc1 = it.next();
+				Location loc2 = it.next();
+				if (loc1.water != loc2.water) {
 					g.setColor(Color.black);
+					g.setStroke(new BasicStroke(1));
 					g.drawLine((int) (x0 + e.loc1.getX() * xWidth), (int) (y0 + e.loc1.getY() * yHeight),
 							(int) (x0 + e.loc2.getX() * xWidth), (int) (y0 + e.loc2.getY() * yHeight));
-				}
-			}
+				} 
+			} 
 		});
 	}
 
@@ -655,19 +665,17 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 
 	private void drawWater(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
 		graphs.dualVertices.forEach((loc) -> {
-			List<MapEdge> edgeList = graphs.dualGraph.edgesOf(loc).stream().map((voronoiEdge) -> {
-				return graphs.dualToVoronoi.get(voronoiEdge);
-			}).collect(Collectors.toList());
+			Set<MapEdge> edges = loc.sides;
 
 			if (loc.water) {
-				edgeList.forEach((e) -> {
+				edges.forEach((e) -> {
 					if (e != null) {
 						Path2D.Double p = new Path2D.Double();
 						p.moveTo(x0 + xWidth * loc.getX(), y0 + yHeight * loc.getY());
 						p.lineTo(x0 + xWidth * e.loc1.getX(), y0 + yHeight * e.loc1.getY());
 						p.lineTo(x0 + xWidth * e.loc2.getX(), y0 + yHeight * e.loc2.getY());
 						p.closePath();
-						g.setColor(Color.lightGray);
+						g.setColor(Color.LIGHT_GRAY);
 						g.fill(p);
 					}
 				});
@@ -710,9 +718,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		int[] i = new int[1];
 		Graphics2D g2 = (Graphics2D) selectionTexture.getGraphics();
 		graphs.dualVertices.forEach((loc) -> {
-			List<MapEdge> edgeList = graphs.dualGraph.edgesOf(loc).stream().map((voronoiEdge) -> {
-				return graphs.dualToVoronoi.get(voronoiEdge);
-			}).collect(Collectors.toList());
+			Set<MapEdge> edgeList = loc.sides;
 			loc.index = i[0];
 
 			edgeList.forEach((e) -> {
@@ -724,17 +730,11 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 					p.closePath();
 
 					Point2D.Double pt1 = new Point2D.Double(x0 + xWidth * loc.getX(), y0 + yHeight * loc.getY());
-					Point2D.Double pt2 = new Point2D.Double(x0 + xWidth * e.loc1.getX(),
-							y0 + yHeight * e.loc1.getY());
-					Point2D.Double pt3 = new Point2D.Double(x0 + xWidth * e.loc2.getX(),
-							y0 + yHeight * e.loc2.getY());
+					Point2D.Double pt2 = new Point2D.Double(x0 + xWidth * e.loc1.getX(), y0 + yHeight * e.loc1.getY());
+					Point2D.Double pt3 = new Point2D.Double(x0 + xWidth * e.loc2.getX(), y0 + yHeight * e.loc2.getY());
 
 					if (loc.water) {
-						if (loc.isLake) {
-							g.setColor(Color.red);
-						} else {
-							g.setColor(loc.color);
-						}
+						g.setColor(loc.color);
 						//					} else if (loc.forest && !loc.mountain && !loc.hill) {
 						//						g.setColor(hillColor.green);
 					} else {
@@ -757,40 +757,36 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 			});
 			i[0]++;
 		});
-		
-//		graphs.dualVertices.forEach((loc) -> {
-//
-//			Color c = new Color((float) Math.random(), (float) Math.random(), (float) Math.random());
-//			List<MapEdge> edgeList = graphs.dualGraph.edgesOf(loc).stream().map((voronoiEdge) -> {
-//				return graphs.dualToVoronoi.get(voronoiEdge);
-//			}).collect(Collectors.toList());
-//			edgeList.forEach((e) -> {
-//				if (e != null) {
-//					Path2D.Double p = new Path2D.Double();
-//					p.moveTo(x0 + xWidth * loc.getX(), y0 + yHeight * minmax(0, 1, loc.getY()));
-//					p.lineTo(x0 + xWidth * e.loc1.getX(), y0 + yHeight * minmax(0, 1, e.loc1.getY()));
-//					p.lineTo(x0 + xWidth * e.loc2.getX(), y0 + yHeight * minmax(0, 1, e.loc2.getY()));
-//					p.closePath();
-//
-//					g.setColor(Color.black);
-//					g.draw(p);
-//					g.setColor(c);
-//					g.fill(p);
-//				}
-//			});
-//		});
-		
+
+		//		graphs.dualVertices.forEach((loc) -> {
+		//
+		//			Color c = new Color((float) Math.random(), (float) Math.random(), (float) Math.random());
+		//			List<MapEdge> edgeList = graphs.dualGraph.edgesOf(loc).stream().map((voronoiEdge) -> {
+		//				return graphs.dualToVoronoi.get(voronoiEdge);
+		//			}).collect(Collectors.toList());
+		//			edgeList.forEach((e) -> {
+		//				if (e != null) {
+		//					Path2D.Double p = new Path2D.Double();
+		//					p.moveTo(x0 + xWidth * loc.getX(), y0 + yHeight * minmax(0, 1, loc.getY()));
+		//					p.lineTo(x0 + xWidth * e.loc1.getX(), y0 + yHeight * minmax(0, 1, e.loc1.getY()));
+		//					p.lineTo(x0 + xWidth * e.loc2.getX(), y0 + yHeight * minmax(0, 1, e.loc2.getY()));
+		//					p.closePath();
+		//
+		//					g.setColor(Color.black);
+		//					g.draw(p);
+		//					g.setColor(c);
+		//					g.fill(p);
+		//				}
+		//			});
+		//		});
+
 	}
 
 	private void averageNeighborColors(Graphs graphs) {
 		graphs.dualVertices.forEach((loc) -> {
-			Set<Color> neighborColors = graphs.dualGraph.edgesOf(loc).stream().map((edge) -> {
-				return edge.oppositeLocation(loc);
-			}).filter((v) -> {
-				return !v.water;
-			}).map((v) -> {
+			List<Color> neighborColors = loc.adjacentCells.stream().map((v) -> {
 				return v.baseColor;
-			}).collect(Collectors.toSet());
+			}).collect(Collectors.toList());
 
 			int numNeighbors = neighborColors.size();
 
@@ -817,6 +813,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	protected void setBaseColors(Graphs graphs) {
 		graphs.dualVertices.forEach((loc) -> {
 			if (loc.water) {
+//				loc.baseColor = Color.cyan;
 				loc.baseColor = Color.lightGray;
 			} else if (loc.hill) {
 				loc.baseColor = hillColor;
@@ -825,6 +822,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 			} else {
 				loc.baseColor = Color.white;
 			}
+			//			loc.baseColor = new Color((float) Math.random(), (float) Math.random(), (float) Math.random());
 		});
 	}
 

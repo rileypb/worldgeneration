@@ -2,6 +2,7 @@ package brainfreeze.world;
 
 import java.awt.Color;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -10,16 +11,18 @@ public abstract class BaseDrawLayer implements DrawLayer {
 
 	protected void setVertexColors(Graphs graphs, Color waterColor) {
 		graphs.voronoiVertices.forEach((loc) -> {
-			Set<Location> nearbySites = graphs.voronoiGraph.edgesOf(loc).stream().map((e) -> {
-				return graphs.voronoiToDual.get(e);
-			}).flatMap((dualEdge) -> {
-				if (dualEdge == null) {
-					return Arrays.stream(new Location[0]);
-				}
-				return Arrays.stream(new Location[] { dualEdge.loc1, dualEdge.loc2 });
-			}).filter((s) -> {
-				return !s.water;
-			}).collect(Collectors.toSet());
+//			Set<Location> nearbySites = graphs.voronoiGraph.edgesOf(loc).stream().map((e) -> {
+//				return graphs.voronoiToDual.get(e);
+//			}).flatMap((dualEdge) -> {
+//				if (dualEdge == null) {
+//					return Arrays.stream(new Location[0]);
+//				}
+//				return Arrays.stream(new Location[] { dualEdge.loc1, dualEdge.loc2 });
+//			}).filter((s) -> {
+//				return !s.water;
+//			}).collect(Collectors.toSet());
+			
+			Set<Location> nearbySites = loc.adjacentCells;
 	
 			int numNeighbors = nearbySites.size();
 	

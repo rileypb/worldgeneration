@@ -3,7 +3,9 @@ package brainfreeze.world;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import de.alsclo.voronoi.graph.Edge;
 
@@ -22,6 +24,7 @@ public class MapEdge {
 	public boolean road;
 	public boolean coast;
 	public boolean secondaryRoad;
+	public Set<Location> adjacentCells = new HashSet<Location>();
 
 	public MapEdge(Location loc1, Location loc2) {
 		this.loc1 = loc1;

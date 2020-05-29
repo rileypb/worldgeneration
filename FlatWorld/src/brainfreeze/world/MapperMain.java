@@ -107,7 +107,10 @@ public class MapperMain {
 		//												seed = 13802760;
 		//				seed = 1473019236;
 		//		seed = 156788987;
-				seed = -25911778;
+		//				seed = -25911778;
+		//		seed = 177265899;
+		//		seed = 1842613904;
+				seed = 1319348854;
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 
@@ -139,14 +142,15 @@ public class MapperMain {
 		rParams.numberOfPoints = POINTS;
 		List<Location> clippingPolygon = new ArrayList<Location>();
 		clippingPolygon.add(new Location(0, 0));
-		clippingPolygon.add(new Location(1, 0));
-		clippingPolygon.add(new Location(1, 1));
+		clippingPolygon.add(new Location(0.2, 0));
+		clippingPolygon.add(new Location(0.6, 0.3));
+		clippingPolygon.add(new Location(0.7, 0.8));
 		clippingPolygon.add(new Location(0, 1));
-		//		rParams.clippingPolygon = clippingPolygon;
-//		rParams.xMin = 0.25;
-//		rParams.yMin = 0.25;
-//		rParams.xMax = 0.75;
-//		rParams.yMax = 0.75;
+		rParams.clippingPolygon = clippingPolygon;
+		//		rParams.xMin = 0.25;
+		//		rParams.yMin = 0.25;
+		//		rParams.xMax = 0.75;
+		//		rParams.yMax = 0.75;
 		TechnicalParameters tParams = new TechnicalParameters();
 		tParams.relaxations = 3;
 		Region region = builder.buildRegion(wParams, rParams, tParams);
@@ -179,9 +183,9 @@ public class MapperMain {
 		selectionTexture = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_3BYTE_BGR);
 		mapLayer = new FantasyLargeScaleDrawLayer(r, (int) Math.sqrt(POINTS), buildResult, 20, MapType.DEFAULT,
 				selectionTexture);
-		mapLayer.draw(img2);
+				mapLayer.draw(img2);
 //		new GraphDrawLayer(buildResult, rParams.getBounds()).draw(img2);
-//								new DualGraphDrawLayer(buildResult).draw(img2);
+//										new DualGraphDrawLayer(buildResult).draw(img2);
 		display(img2, g2, selectionTexture, buildResult);
 	}
 

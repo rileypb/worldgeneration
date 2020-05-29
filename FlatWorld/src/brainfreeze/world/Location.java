@@ -2,6 +2,7 @@ package brainfreeze.world;
 
 import java.awt.Color;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -66,6 +67,8 @@ public class Location {
 	public String name;
 	public int index;
 	public double angle;
+	public Set<MapEdge> sides;
+	public Set<Location> adjacentCells = new HashSet<>();
 
 	public Location(double x, double y) {
 		this.setX(x);
@@ -73,10 +76,15 @@ public class Location {
 		tmpX = x;
 		tmpY = y;
 		subdivision = 0;
+		sides = new HashSet<>();
 	}
 
 	public Location(Coordinate c) {
 		delegate = c;
+		tmpX = x;
+		tmpY = y;
+		subdivision = 0;
+		sides = new HashSet<>();
 	}
 
 	@Override

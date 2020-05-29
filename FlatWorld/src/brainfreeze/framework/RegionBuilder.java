@@ -17,9 +17,11 @@ import java.util.stream.Stream;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultUndirectedGraph;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineSegment;
+import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.triangulate.VoronoiDiagramBuilder;
 import org.locationtech.jts.triangulate.quadedge.QuadEdge;
@@ -60,38 +62,28 @@ public class RegionBuilder {
 			GraphHelper.generateRandomPoints(initialSites, wParams.rnd, rParams.numberOfPoints, rParams.getBounds());
 		}
 
-		//		VoronoiDiagramBuilder vBuilder = new VoronoiDiagramBuilder();
-		//		vBuilder.setSites(coords);
-		//		QuadEdgeSubdivision subdivision = vBuilder.getSubdivision();
-		//		System.out.println(subdivision);
-		//		
-		//		GeometryFactory geomFact = new GeometryFactory();
-		//		Geometry voronoiDiagram = subdivision.getVoronoiDiagram(geomFact);
-		//		System.out.println(voronoiDiagram.getNumGeometries());
-		//		for (int i = 0; i < voronoiDiagram.getNumGeometries(); i++) {
-		//			Geometry geometryN = voronoiDiagram.getGeometryN(i);
-		//			System.out.println(geometryN);
-		//		}
-		//		
-		//		if (true) {
-		//			System.exit(0);
-		//		}
+		Graphs graphs;
 
-		//		System.out.println("creating voronoi diagram...");
-		//		Voronoi voronoi = new Voronoi(initialSites);
-		//		for (int i = 0; i < tParams.relaxations; i++) {
-		//			//			voronoi = GraphHelper.relax(voronoi);
-		//			voronoi = voronoi.relax();
-		//		}
+		//		graphs = GraphBuilder.buildGraph(initialSites, rParams.xMin, rParams.xMax, rParams.yMin, rParams.yMax);
+		graphs = GraphBuilder.buildGraph(initialSites, rParams.clippingPolygon);
 
-		//		Graph graph = voronoi.getGraph();
+		// JTS version
+		//		graphs = generateGraphs(initialSites, rParams.xMin, rParams.xMax, rParams.yMin, rParams.yMax,
+		//				rParams.clippingPolygon);
 
-		Graphs graphs = generateGraphs(initialSites);
-		//		if (rParams.clippingPolygon != null) {
-		//			graphs = generateGraphs(graph, rParams.clippingPolygon);
-		//		} else {
-		//			graphs = generateGraphs(graph);
-		//		}
+		//				System.out.println("creating voronoi diagram...");
+		//				Voronoi voronoi = new Voronoi(initialSites);
+		//				for (int i = 0; i < tParams.relaxations; i++) {
+		//					//			voronoi = GraphHelper.relax(voronoi);
+		//					voronoi = voronoi.relax();
+		//				}
+		//
+		//				Graph graph = voronoi.getGraph();
+		////				if (rParams.clippingPolygon != null) {
+		////					graphs = generateGraphs(graph, rParams.clippingPolygon);
+		////				} else {
+		//					graphs = generateGraphs(graph);
+		////				}
 
 		Region region = new Region(graphs);
 
@@ -123,7 +115,7 @@ public class RegionBuilder {
 		System.out.println("Setting corner elevations...");
 		setVoronoiCornerElevations(graphs);
 
-		setDualCornerElevations(graphs);
+		//		setDualCornerElevations(graphs);
 
 		System.out.println("Normalizing elevations...");
 		normalizeElevations(graphs);
@@ -156,7 +148,7 @@ public class RegionBuilder {
 
 		System.out.println("Measuring final moisture...");
 		calculateFinalMoisture(graphs);
-		
+
 		System.out.println("Growing forests...");
 		growForests(graphs);
 
@@ -185,7 +177,22 @@ public class RegionBuilder {
 		return region;
 	}
 
-	private Graphs generateGraphs(ArrayList<Point> initialSites) {
+	private Graphs generateGraphs(ArrayList<Point> initialSites, double xMin, double xMax, double yMin, double yMax,
+			List<Location> clippingPolygon) {
+
+		List<Location> clip = clippingPolygon;
+		if (clip == null) {
+			clip = new ArrayList<Location>();
+			clip.add(new Location(xMin, yMin));
+			clip.add(new Location(xMax, yMin));
+			clip.add(new Location(xMax, yMax));
+			clip.add(new Location(xMin, yMax));
+		}
+		Location center = Location.average(clip);
+
+		GeometryFactory geomFact = new GeometryFactory();
+		Geometry clipGeometry = buildClipGeometry(clip, geomFact);
+		Geometry convexHull = clipGeometry.convexHull();
 
 		DefaultUndirectedGraph<Location, MapEdge> voronoiGraph = new DefaultUndirectedGraph<>(MapEdge.class);
 		DefaultUndirectedGraph<Location, MapEdge> dualGraph = new DefaultUndirectedGraph<>(MapEdge.class);
@@ -211,69 +218,125 @@ public class RegionBuilder {
 		QuadEdgeSubdivision subdivision = vBuilder.getSubdivision();
 
 		System.out.println("Generating graph structure...");
-		GeometryFactory geomFact = new GeometryFactory();
 		Geometry voronoiDiagram = subdivision.getVoronoiDiagram(geomFact);
 
 		Collection<Vertex> vertices = subdivision.getVertices(false);
 
 		for (Vertex v : vertices) {
 			Location loc = new Location(v.getCoordinate());
+			loc.setAngleWithRespectTo(center);
 			dualGraph.addVertex(loc);
 			dualVertices.add(loc);
 			pointsToLocations.put(v.getCoordinate(), loc);
 		}
-		
 
 		Collection<QuadEdge> edges = subdivision.getEdges();
 		Geometry edges2 = subdivision.getEdges(geomFact);
-		
 
-		
+		Geometry clippedDiagram = voronoiDiagram.intersection(convexHull);
+		for (int i = 0; i < clippedDiagram.getNumGeometries(); i++) {
+			Polygon geometryN = (Polygon) clippedDiagram.getGeometryN(i);
+			LineString exteriorRing = geometryN.getExteriorRing();
+		}
+
 		for (QuadEdge edge : edges) {
 			Polygon cell1 = subdivision.getVoronoiCellPolygon(edge, geomFact);
 			Polygon cell2 = subdivision.getVoronoiCellPolygon(edge.sym(), geomFact);
-			Location loc1 = pointsToLocations.get(cell1.getUserData());
-			Location loc2 = pointsToLocations.get(cell2.getUserData());
+			Object center1 = cell1.getUserData();
+			Object center2 = cell2.getUserData();
+			Polygon clippedCell1 = (Polygon) cell1.intersection(convexHull);
+			Polygon clippedCell2 = (Polygon) cell2.intersection(convexHull);
+			Location loc1 = pointsToLocations.get(center1);
+			Location loc2 = pointsToLocations.get(center2);
+			if (clippedCell1.intersects(clipGeometry)) {
+				System.out.println("--- " + loc1);
+				System.out.println(clippedCell1);
+				System.out.println(">>> " + clippedCell1.intersection(clipGeometry));
+			}
 			if (loc1 != null && loc2 != null) {
-				Geometry intersection = cell1.intersection(cell2);
-				Coordinate[] coordinates = intersection.getCoordinates();
-				
-				Coordinate c0 = coordinates[0];
-				Location v1 = pointsToLocations.get(c0);
-				Coordinate c1 = coordinates[1];
-				Location v2 = pointsToLocations.get(c1);
-				
-				if (v1 == null) {
-					v1 = new Location(c0);
-					pointsToLocations.put(c0, v1);
-					voronoiVertices.add(v1);
-					voronoiGraph.addVertex(v1);
-				}
-				
-				if (v2 == null) {
-					v2 = new Location(c1);
-					pointsToLocations.put(c1, v2);
-					voronoiVertices.add(v2);
-					voronoiGraph.addVertex(v2);
-				}
+				Geometry intersection = clippedCell1.intersection(clippedCell2);
+				if (!intersection.isEmpty()) {
+					Coordinate[] coordinates = intersection.getCoordinates();
 
-				MapEdge dualEdge = new MapEdge(loc1, loc2);
-				MapEdge voronoiEdge = new MapEdge(v1, v2);
-				dualGraph.addEdge(loc1, loc2, dualEdge);
-				dualEdges.add(dualEdge);
-				voronoiGraph.addEdge(v1, v2, voronoiEdge);
-				voronoiEdges.add(voronoiEdge);
-				
-				voronoiToDual.put(voronoiEdge, dualEdge);
-				dualToVoronoi.put(dualEdge, voronoiEdge);
+					Coordinate c0 = coordinates[0];
+					Location v1 = pointsToLocations.get(c0);
+					Coordinate c1 = coordinates[1];
+					Location v2 = pointsToLocations.get(c1);
+
+					org.locationtech.jts.geom.Point vc0 = geomFact.createPoint(c0);
+					org.locationtech.jts.geom.Point vc1 = geomFact.createPoint(c1);
+
+					if (intersection.intersects(clipGeometry)) {
+						loc1.boundaryLocation = true;
+						loc2.boundaryLocation = true;
+						Geometry boundaryIntersection = intersection.intersection(clipGeometry);
+						if (!convexHull.contains(vc0)) {
+							c0.x = boundaryIntersection.getCoordinate().x;
+							c0.y = boundaryIntersection.getCoordinate().y;
+							Location newC0 = new Location(c0);
+							voronoiVertices.add(newC0);
+							voronoiGraph.addVertex(newC0);
+							newC0.setAngleWithRespectTo(center);
+						}
+						if (!convexHull.contains(vc1)) {
+							c1.x = boundaryIntersection.getCoordinate().x;
+							c1.y = boundaryIntersection.getCoordinate().y;
+							Location newC1 = new Location(c1);
+							voronoiVertices.add(newC1);
+							voronoiGraph.addVertex(newC1);
+							newC1.setAngleWithRespectTo(center);
+						}
+					}
+
+					if (v1 == null) {
+						v1 = new Location(c0);
+						pointsToLocations.put(c0, v1);
+						voronoiVertices.add(v1);
+						voronoiGraph.addVertex(v1);
+					}
+
+					if (v2 == null) {
+						v2 = new Location(c1);
+						pointsToLocations.put(c1, v2);
+						voronoiVertices.add(v2);
+						voronoiGraph.addVertex(v2);
+					}
+
+					MapEdge dualEdge = new MapEdge(loc1, loc2);
+					MapEdge voronoiEdge = new MapEdge(v1, v2);
+					dualGraph.addEdge(loc1, loc2, dualEdge);
+					dualEdges.add(dualEdge);
+					voronoiGraph.addEdge(v1, v2, voronoiEdge);
+					voronoiEdges.add(voronoiEdge);
+
+					voronoiToDual.put(voronoiEdge, dualEdge);
+					dualToVoronoi.put(dualEdge, voronoiEdge);
+				}
 			}
 		}
 
-		
+		//		dualVertices.forEach((loc) -> {
+		//			Set<MapEdge> cellEdges = dualGraph.edgesOf(loc).stream().map((e) -> {
+		//				return dualToVoronoi.get(e);
+		//			}).collect(Collectors.toSet());
+		//			List<>
+		//			LineString ls = new LineString(points, factory)
+		//		});
+
 		Graphs graphs = new Graphs(voronoiGraph, dualGraph, dualVertices, voronoiVertices, dualEdges, voronoiEdges,
 				dualToVoronoi, voronoiToDual);
 
 		return graphs;
+	}
+
+	private Geometry buildClipGeometry(List<Location> clip, GeometryFactory geomFact) {
+		Coordinate[] coordinates = new Coordinate[clip.size() + 1];
+		for (int i = 0; i < clip.size(); i++) {
+			coordinates[i] = new Coordinate(clip.get(i).getX(), clip.get(i).getY());
+		}
+		coordinates[clip.size()] = new Coordinate(clip.get(0).getX(), clip.get(0).getY());
+		LineString ls = geomFact.createLineString(coordinates);
+		return ls;
 	}
 
 	private Graphs generateGraphs(Graph graph) {
@@ -699,7 +762,10 @@ public class RegionBuilder {
 		//		});
 
 		graphWithLakes.vertexSet().forEach((v) -> {
-			v.pdElevation = (v.water || v.boundaryLocation) ? v.elevation : Double.POSITIVE_INFINITY;
+			v.pdElevation = v.water ? v.elevation : Double.POSITIVE_INFINITY;
+			if (v.pdElevation == v.elevation) {
+				int a = 0;
+			}
 		});
 
 		double epsilon = 0.000001;
@@ -897,20 +963,10 @@ public class RegionBuilder {
 	}
 
 	public void setVoronoiCornerElevations(Graphs graphs) {
-		graphs.dualEdges.forEach((edge) -> {
-			edge.elevation = (edge.loc1.elevation + edge.loc2.elevation) / 2.0;
-			MapEdge voronoiEdge = graphs.dualToVoronoi.get(edge);
-			if (voronoiEdge != null) {
-				voronoiEdge.elevation = edge.elevation;
-			}
-		});
 		graphs.voronoiVertices.forEach((loc) -> {
-			Set<MapEdge> neighborEdges = graphs.voronoiGraph.edgesOf(loc);
-			double elevationSum = 0;
-			for (MapEdge edge : neighborEdges) {
-				elevationSum += edge.elevation;
-			}
-			loc.elevation = elevationSum / neighborEdges.size();
+			Set<Location> neighbors = loc.adjacentCells;
+			double avg = neighbors.stream().mapToDouble((v) -> { return v.elevation; }).average().getAsDouble();
+			loc.elevation = avg;
 		});
 	}
 
@@ -942,13 +998,14 @@ public class RegionBuilder {
 		graphs.dualVertices.forEach((loc) -> {
 			loc.water = (loc.elevation < average + sealevel);
 			if (loc.water) {
+				int a = 0;
 			}
 		});
 	}
 
 	public void smoothElevations(Graphs graphs) {
 		graphs.dualVertices.forEach((loc) -> {
-			List<Location> neighbors = neighboringDualVertices(graphs, loc).collect(Collectors.toList());
+			Set<Location> neighbors = loc.adjacentCells;
 			double avg = neighbors.stream().mapToDouble((n) -> {
 				return n.elevation;
 			}).average().getAsDouble();
@@ -973,7 +1030,7 @@ public class RegionBuilder {
 
 	public void growForests(Graphs graphs) {
 		graphs.dualVertices.forEach((loc) -> {
-			List<Location> neighbors = neighboringDualVertices(graphs, loc).collect(Collectors.toList());
+			Set<Location> neighbors = loc.adjacentCells;
 			double max = neighbors.stream().mapToDouble((n) -> {
 				return n.baseMoisture;
 			}).max().getAsDouble();
@@ -986,7 +1043,7 @@ public class RegionBuilder {
 
 	public void raiseMountains(Graphs graphs, int numPoints) {
 		graphs.dualVertices.forEach((loc) -> {
-			List<Location> neighbors = neighboringDualVertices(graphs, loc).collect(Collectors.toList());
+			Set<Location> neighbors = loc.adjacentCells;
 			double min = neighbors.stream().mapToDouble((n) -> {
 				return n.elevation;
 			}).min().getAsDouble();
@@ -1028,7 +1085,7 @@ public class RegionBuilder {
 			return (int) ((100000) * (loc1.elevation - loc2.elevation));
 		});
 		l.forEach((loc) -> {
-			double sum = neighboringDualVertices(graphs, loc).mapToDouble((v) -> {
+			double sum = loc.adjacentCells.stream().mapToDouble((v) -> {
 				return v.flux / 100;
 			}).average().getAsDouble();
 			loc.moisture = loc.baseMoisture + loc.flux / 100 + sum;
@@ -1039,7 +1096,7 @@ public class RegionBuilder {
 		graphs.dualVertices.stream().filter((loc) -> {
 			return !loc.mountain;
 		}).forEach((loc) -> {
-			boolean surroundedByMountains = neighboringDualVertices(graphs, loc).allMatch((v) -> {
+			boolean surroundedByMountains = loc.adjacentCells.stream().allMatch((v) -> {
 				return v.mountain;
 			});
 			if (surroundedByMountains) {
@@ -1061,7 +1118,7 @@ public class RegionBuilder {
 		}).collect(Collectors.toSet());
 
 		Set<Location> frontierVertices = graphs.dualVertices.stream().filter((loc) -> {
-			return loc.water && (loc.getX() < 0 || loc.getY() < 0 || loc.getX() > 1 || loc.getY() > 1);
+			return loc.water && loc.boundaryLocation;
 		}).collect(Collectors.toSet());
 
 		while (frontierVertices.size() > 0) {
