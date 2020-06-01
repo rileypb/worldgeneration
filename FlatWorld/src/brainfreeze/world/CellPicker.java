@@ -23,20 +23,21 @@ public class CellPicker {
 		List<Location> obstacles = new ArrayList<Location>();
 
 		graphs.dualVertices.forEach((loc) -> {
-			if ((loc.getX() >= 0 && loc.getX() <= 1 && loc.getY() >= 0 && loc.getY() <= 1) && (loc.water || loc.city || loc.road
-					|| loc.secondaryRoad || (loc.river && loc.flux > fluxThreshold))) {
-				double maxRadius = graphs.dualGraph.edgesOf(loc).stream().map((e) -> {
-					return graphs.dualToVoronoi.get(e);
-				}).filter((e) -> {
-					return e != null;
-				}).flatMap((e) -> {
-					return Arrays.stream(new Location[] { e.loc1, e.loc2 });
-				}).mapToDouble((v) -> {
-					return Math.sqrt((v.getX() - loc.getX()) * (v.getX() - loc.getX()) + (v.getY() - loc.getY()) * (v.getY() - loc.getY()));
-				}).max().orElse(Double.NEGATIVE_INFINITY);
-				loc.radius = Math.min(.01, maxRadius / 2);
+			double maxRadius = loc.sides.stream().filter((e) -> {
+				return e != null;
+			}).flatMap((e) -> {
+				return Arrays.stream(new Location[] { e.loc1, e.loc2 });
+			}).mapToDouble((v) -> {
+				return Math.sqrt((v.getX() - loc.getX()) * (v.getX() - loc.getX())
+						+ (v.getY() - loc.getY()) * (v.getY() - loc.getY()));
+			}).min().orElse(Double.NEGATIVE_INFINITY);
+			loc.radius = maxRadius; //Math.min(.01, maxRadius / 2);
+			
+			if ((loc.getX() >= 0 && loc.getX() <= 1 && loc.getY() >= 0 && loc.getY() <= 1) && (loc.water || loc.city
+					|| loc.road || loc.secondaryRoad || (loc.river && loc.flux > fluxThreshold))) {
 				obstacles.add(loc);
 			}
+
 		});
 
 		List<List<Location>> bucketList = new ArrayList<List<Location>>();
@@ -69,11 +70,11 @@ public class CellPicker {
 						double radius = 0;
 						if (!candidate.water) {
 							if (candidate.hill) {
-								radius = 2 * maxRadius;
+								radius = candidate.radius;
 							} else if (candidate.mountain) {
-								radius = 2 * maxRadius;
+								radius = candidate.radius;
 							} else if (candidate.forest) {
-								radius = maxRadius / 4;
+								radius = candidate.radius / 4;
 							}
 						}
 
@@ -142,14 +143,16 @@ public class CellPicker {
 							continue;
 						}
 
-						double newX = candidate.getX() + 8 * (r.nextDouble()-0.5) * radius;
-						double newY = candidate.getY() + 8 * (r.nextDouble()-0.5) * radius;
+						double newX = candidate.getX() + (r.nextDouble() - 0.5) * radius;
+						double newY = candidate.getY() + (r.nextDouble() - 0.5) * radius;
 						Location newLocation = new Location(newX, newY);
 						newLocation.mountain = candidate.mountain;
 						newLocation.hill = candidate.hill;
 						newLocation.forest = candidate.forest;
 						newLocation.water = candidate.water;
+						newLocation.radius = candidate.radius;
 						candidates.add(newLocation);
+						candidates.remove(candidate);
 
 						// we survived, add to pick list.
 						candidate.radius = radius;
@@ -164,8 +167,8 @@ public class CellPicker {
 
 	private boolean collides(Location candidate, List<Location> existingPicks, double collisionDistance) {
 		for (Location loc : existingPicks) {
-			double dist = Math.sqrt(
-					(loc.getX() - candidate.getX()) * (loc.getX() - candidate.getX()) + (loc.getY() - candidate.getY()) * (loc.getY() - candidate.getY()));
+			double dist = Math.sqrt((loc.getX() - candidate.getX()) * (loc.getX() - candidate.getX())
+					+ (loc.getY() - candidate.getY()) * (loc.getY() - candidate.getY()));
 			if (dist <= collisionDistance + loc.radius) {
 				return true;
 			}

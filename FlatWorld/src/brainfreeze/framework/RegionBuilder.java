@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -65,7 +66,7 @@ public class RegionBuilder {
 		Graphs graphs;
 
 		//		graphs = GraphBuilder.buildGraph(initialSites, rParams.xMin, rParams.xMax, rParams.yMin, rParams.yMax);
-		graphs = GraphBuilder.buildGraph(initialSites, rParams.clippingPolygon);
+		graphs = GraphBuilder.buildGraph(initialSites, rParams.clippingPolygon, tParams.relaxations);
 
 		// JTS version
 		//		graphs = generateGraphs(initialSites, rParams.xMin, rParams.xMax, rParams.yMin, rParams.yMax,
@@ -965,7 +966,9 @@ public class RegionBuilder {
 	public void setVoronoiCornerElevations(Graphs graphs) {
 		graphs.voronoiVertices.forEach((loc) -> {
 			Set<Location> neighbors = loc.adjacentCells;
-			double avg = neighbors.stream().mapToDouble((v) -> { return v.elevation; }).average().getAsDouble();
+			double avg = neighbors.stream().mapToDouble((v) -> {
+				return v.elevation;
+			}).average().getAsDouble();
 			loc.elevation = avg;
 		});
 	}
@@ -1189,7 +1192,7 @@ public class RegionBuilder {
 					while (winner == null && roads.size() > 0) {
 						Road currentRoad = roads.remove();
 						Location head = currentRoad.getHead();
-						Set<Location> neighboringVertices = head.neighboringVertices(graphs.dualGraph);
+						Set<Location> neighboringVertices = head.adjacentCells;
 						for (Location neighbor : neighboringVertices) {
 							if (!neighbor.usedForRoad && !neighbor.water) {
 								head.usedForRoad = true;
@@ -1322,11 +1325,12 @@ public class RegionBuilder {
 
 	public void relaxCoast(Graphs graphs) {
 		graphs.voronoiEdges.forEach((e) -> {
-			MapEdge dualEdge = graphs.voronoiToDual.get(e);
-			if (dualEdge != null) {
-				if (dualEdge.loc1.water != dualEdge.loc2.water) {
-					e.coast = true;
-				}
+			Set<Location> adjacentCells = e.adjacentCells;
+			if (adjacentCells.size() == 2) {
+				Iterator<Location> it = adjacentCells.iterator();
+				Location loc1 = it.next();
+				Location loc2 = it.next();
+				e.coast = (loc1.water != loc2.water);
 			}
 		});
 
@@ -1351,13 +1355,12 @@ public class RegionBuilder {
 			}, (p1, p2) -> {
 				return null;
 			});
-
 			loc.tmpX = accumulation.getX() / (2 + count);
 			loc.tmpY = accumulation.getY() / (2 + count);
 		});
 
 		graphs.voronoiVertices.stream().filter((loc) -> {
-			return loc.coast;
+			return loc.coast && !loc.boundaryLocation;
 		}).forEach((l) -> {
 			l.setX(l.tmpX);
 			l.setY(l.tmpY);

@@ -1,12 +1,14 @@
 package brainfreeze.framework;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jgrapht.graph.DefaultUndirectedGraph;
 import org.locationtech.jts.geom.Coordinate;
@@ -31,10 +33,43 @@ public class GraphBuilder {
 		clip.add(new Location(xMax, yMin));
 		clip.add(new Location(xMax, yMax));
 		clip.add(new Location(xMin, yMax));
-		return buildGraph(initialSites, clip);
+		return buildGraph(initialSites, clip, 0);
 	}
 
-	public static Graphs buildGraph(ArrayList<Point> initialSites, List<Location> clippingPolygon) {
+	public static Graphs buildGraph(ArrayList<Point> initialSites, List<Location> clippingPolygon, int relaxations) {
+		Graphs graphs = buildVoronoi(initialSites, clippingPolygon);
+		for (int i = 0; i < relaxations; i++) {
+			relax(graphs);
+			graphs = buildVoronoi(initialSites, clippingPolygon);
+		}
+
+		return graphs;
+	}
+
+	private static void relax(Graphs graphs) {
+		graphs.dualVertices.forEach((site) -> {
+			Set<Location> vertices = site.sides.stream().flatMap((side) -> {
+				return Arrays.stream(new Location[] { side.loc1, side.loc2 });
+			}).collect(Collectors.toSet());
+			double avgX = vertices.stream().mapToDouble((v) -> {
+				return v.getX();
+			}).average().getAsDouble();
+			double avgY = vertices.stream().mapToDouble((v) -> {
+				return v.getY();
+			}).average().getAsDouble();
+			site.setX(avgX);
+			site.setY(avgY);
+		});
+	}
+
+	private static Graphs buildVoronoi(ArrayList<Point> initialSites, List<Location> clippingPolygon) {
+		if (clippingPolygon == null) {
+			clippingPolygon = new ArrayList<Location>();
+			clippingPolygon.add(new Location(0, 0));
+			clippingPolygon.add(new Location(1, 0));
+			clippingPolygon.add(new Location(1, 1));
+			clippingPolygon.add(new Location(0, 1));
+		}
 		Location center = Location.average(clippingPolygon);
 
 		GeometryFactory geomFact = new GeometryFactory();
@@ -84,11 +119,13 @@ public class GraphBuilder {
 			Location centerLocation = pointsToLocations.get(centerCoords);
 			Geometry clippedCell = cell.intersection(convexHull);
 			if (centerLocation != null) {
+				if (cell.intersects(clipGeometry)) {
+					centerLocation.boundaryLocation = true;
+				}
 				// extract voronoi edges
 				Coordinate[] coordinates = clippedCell.getCoordinates();
 				for (int k = 0; k < coordinates.length; k++) {
 					Coordinate c0 = coordinates[k];
-					System.out.println("coord: " + c0);
 
 					Coordinate c1;
 					if (k == coordinates.length - 1) {
@@ -96,7 +133,6 @@ public class GraphBuilder {
 					} else {
 						c1 = coordinates[k + 1];
 					}
-					System.out.println("coord: " + c1);
 					Location loc0 = pointsToLocations.get(c0);
 					Location loc1 = pointsToLocations.get(c1);
 					if (loc0 == null) {
@@ -104,16 +140,24 @@ public class GraphBuilder {
 						pointsToLocations.put(c0, loc0);
 						voronoiVertices.add(loc0);
 						voronoiGraph.addVertex(loc0);
+
+						org.locationtech.jts.geom.Point p = geomFact.createPoint(c0);
+						if (clipGeometry.intersects(p)) {
+							loc0.boundaryLocation = true;
+						}
 					}
-					System.out.println(loc0 + " has adjacent cell " + centerLocation);
 					loc0.adjacentCells.add(centerLocation);
 					if (loc1 == null) {
 						loc1 = new Location(c1);
 						pointsToLocations.put(c1, loc1);
 						voronoiVertices.add(loc1);
 						voronoiGraph.addVertex(loc1);
+
+						org.locationtech.jts.geom.Point p = geomFact.createPoint(c1);
+						if (clipGeometry.intersects(p)) {
+							loc1.boundaryLocation = true;
+						}
 					}
-					System.out.println(loc1 + " has adjacent cell " + centerLocation);
 					loc1.adjacentCells.add(centerLocation);
 					if (loc0 != null && loc1 != null) {
 						Set<MapEdge> existingEdges = voronoiGraph.getAllEdges(loc0, loc1);
@@ -126,7 +170,7 @@ public class GraphBuilder {
 							voronoiEdges.add(newEdge);
 							voronoiGraph.addEdge(loc0, loc1, newEdge);
 						}
-						
+
 						centerLocation.sides.add(newEdge);
 						newEdge.adjacentCells.add(centerLocation);
 					}
@@ -151,6 +195,12 @@ public class GraphBuilder {
 			// there may be polygons that are formed incidentally 
 			// outside the boundaries of the diagram, and aren't voronoi polygons.
 			if (centerLoc1 != null && centerLoc2 != null) {
+				if (!dualGraph.containsEdge(centerLoc1, centerLoc2)) {
+					MapEdge newEdge = new MapEdge(centerLoc1, centerLoc2);
+					dualGraph.addEdge(centerLoc1, centerLoc2, newEdge);
+					dualEdges.add(newEdge);
+				}
+
 				centerLoc1.adjacentCells.add(centerLoc2);
 				centerLoc2.adjacentCells.add(centerLoc1);
 				Geometry commonEdge = clippedCell1.intersection(clippedCell2);
@@ -160,16 +210,25 @@ public class GraphBuilder {
 					Location c1 = pointsToLocations.get(coordinates[1]);
 					Set<MapEdge> allEdges = voronoiGraph.getAllEdges(c0, c1);
 					for (MapEdge e : allEdges) {
-//						e.adjacentCells.add(c0);
-//						e.adjacentCells.add(c1);
+						//						e.adjacentCells.add(c0);
+						//						e.adjacentCells.add(c1);
 					}
 				}
 			}
 		}
 
+		dualVertices.stream().filter((loc) -> {
+			return loc.boundaryLocation;
+		}).forEach((loc) -> {
+			loc.sides.stream().flatMap((edge) -> {
+				return Arrays.stream(new Location[] { edge.loc1, edge.loc2 });
+			}).forEach((v) -> {
+				v.boundaryLocation = true;
+			});
+		});
+
 		Graphs graphs = new Graphs(voronoiGraph, dualGraph, dualVertices, voronoiVertices, dualEdges, voronoiEdges,
 				dualToVoronoi, voronoiToDual);
-
 		return graphs;
 	}
 

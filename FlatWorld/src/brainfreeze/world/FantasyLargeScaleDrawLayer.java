@@ -16,6 +16,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Path2D.Double;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -46,23 +47,34 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	double xWidth;
 	double yHeight;
 	private Graphs graphs;
+	private List<Location> clippingPolygon;
 
 	public FantasyLargeScaleDrawLayer(Random r, int sizeFactor, Graphs graphs, double fluxThreshold, MapType mapType,
-			BufferedImage selectionTexture) {
+			BufferedImage selectionTexture, List<Location> clippingPolygon) {
 		this.r = r;
 		this.sizeFactor = sizeFactor;
 		this.graphs = graphs;
 		this.fluxThreshold = fluxThreshold;
 		this.mapType = mapType;
 		this.selectionTexture = selectionTexture;
+		this.clippingPolygon = clippingPolygon;
 
-		pickList = new CellPicker(graphs, 0.008).pick(r, 20);
+		pickList = new CellPicker(graphs, 0.01).pick(r, 20);
 	}
 
 	@Override
 	public void draw(BufferedImage im) {
 		Graphics2D g = (Graphics2D) im.getGraphics();
 		Rectangle clipBounds = g.getDeviceConfiguration().getBounds();
+
+		//		Path2D.Double clip = new Path2D.Double();
+		//		clip.moveTo(clippingPolygon.get(0).getX(), clippingPolygon.get(0).getY());
+		//		for (int i = 1; i < clippingPolygon.size(); i++) {
+		//			clip.lineTo(clippingPolygon.get(i).getX(), clippingPolygon.get(i).getY());
+		//		}
+		//		clip.closePath();
+		//		clip.
+		//		g.setClip(clip);	
 
 		g.setColor(Color.blue);
 		g.fill(clipBounds);
@@ -90,9 +102,9 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 
 		drawCells(g, graphs, x0, y0, xWidth, yHeight);
 
-//		drawRoads(g, graphs, x0, y0, xWidth, yHeight);
-//
-//		drawSecondaryRoads(g, graphs, x0, y0, xWidth, yHeight);
+		drawRoads(g, graphs, x0, y0, xWidth, yHeight);
+
+		drawSecondaryRoads(g, graphs, x0, y0, xWidth, yHeight);
 
 		drawRivers(g, graphs, x0, y0, xWidth, yHeight);
 
@@ -255,6 +267,11 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		flatList.stream().filter((loc) -> {
 			return !loc.water;
 		}).forEach((loc) -> {
+			g.setColor(Color.blue);
+			g.drawOval((int) (x0 + (loc.getX() - loc.radius) * xWidth),
+					(int) (y0 + (loc.getY() - loc.radius) * yHeight), (int) (x0 + 2 * loc.radius * xWidth),
+					(int) (y0 + 2 * loc.radius * yHeight));
+
 			if (loc.hill && !loc.mountain && !loc.water) {
 				drawHill(g, x0, y0, xWidth, yHeight, 0.015, loc.getX() - loc.radius / 2, loc.getY(), loc);
 			} else if (loc.mountain && !loc.water) {
@@ -589,8 +606,8 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 					g.setStroke(new BasicStroke(1));
 					g.drawLine((int) (x0 + e.loc1.getX() * xWidth), (int) (y0 + e.loc1.getY() * yHeight),
 							(int) (x0 + e.loc2.getX() * xWidth), (int) (y0 + e.loc2.getY() * yHeight));
-				} 
-			} 
+				}
+			}
 		});
 	}
 
@@ -813,7 +830,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	protected void setBaseColors(Graphs graphs) {
 		graphs.dualVertices.forEach((loc) -> {
 			if (loc.water) {
-//				loc.baseColor = Color.cyan;
+				//				loc.baseColor = Color.cyan;
 				loc.baseColor = Color.lightGray;
 			} else if (loc.hill) {
 				loc.baseColor = hillColor;
