@@ -69,6 +69,7 @@ public class Location {
 	public double angle;
 	public Set<MapEdge> sides;
 	public Set<Location> adjacentCells = new HashSet<>();
+	public boolean extra;
 
 	public Location(double x, double y) {
 		this.setX(x);

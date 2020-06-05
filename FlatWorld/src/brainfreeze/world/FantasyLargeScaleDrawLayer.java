@@ -3,21 +3,22 @@ package brainfreeze.world;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.GradientPaint;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.TexturePaint;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Path2D.Double;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.WritableRaster;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -25,7 +26,15 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.locationtech.jts.awt.PointTransformation;
+import org.locationtech.jts.awt.ShapeWriter;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.lwjgl.util.vector.Vector2f;
+
+import brainfreeze.framework.GraphBuilder;
 
 public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 
@@ -37,8 +46,9 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	private int sizeFactor;
 	private static final int BASE_SIZE_FACTOR = 70;
 	private static final int MOUNTAIN_STYLE = 5;
+	private static int WATER_STYLE = 2;
 	private Color hillColor = new Color(.95f, .95f, .95f);
-	private List<List<Location>> pickList;
+	private List<Location> pickList;
 	private double fluxThreshold;
 	private MapType mapType;
 	private BufferedImage selectionTexture;
@@ -48,6 +58,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	double yHeight;
 	private Graphs graphs;
 	private List<Location> clippingPolygon;
+	private BufferedImage distanceFromLand;
 
 	public FantasyLargeScaleDrawLayer(Random r, int sizeFactor, Graphs graphs, double fluxThreshold, MapType mapType,
 			BufferedImage selectionTexture, List<Location> clippingPolygon) {
@@ -58,6 +69,14 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		this.mapType = mapType;
 		this.selectionTexture = selectionTexture;
 		this.clippingPolygon = clippingPolygon;
+		
+		if (clippingPolygon == null) {
+			this.clippingPolygon = new ArrayList<Location>();
+			this.clippingPolygon.add(new Location(0, 0));
+			this.clippingPolygon.add(new Location(0, 1));
+			this.clippingPolygon.add(new Location(1, 1));
+			this.clippingPolygon.add(new Location(1, 0));
+		}
 
 		pickList = new CellPicker(graphs, 0.01).pick(r, 20);
 	}
@@ -100,7 +119,13 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 
 		setVertexColors(graphs, Color.LIGHT_GRAY);
 
+		distanceFromLand = new BufferedImage(clipBounds.width, clipBounds.height, BufferedImage.TYPE_3BYTE_BGR);
+
+		initializeDistanceFromLand();
+
 		drawCells(g, graphs, x0, y0, xWidth, yHeight);
+
+		fillInDistanceFromLand3();
 
 		drawRoads(g, graphs, x0, y0, xWidth, yHeight);
 
@@ -117,6 +142,323 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		//		drawLabels(g, graphs, x0, y0, xWidth, yHeight);
 
 		//		drawMountains(g, graphs, x0, y0, xWidth, yHeight);
+		clip(g);
+
+	}
+
+	private void initializeDistanceFromLand() {
+		//		Graphics2D g = (Graphics2D) distanceFromLand.getGraphics();
+		//		g.setColor(new Color(10000));
+		//		g.fillRect(0, 0, (int) xWidth, (int) yHeight);
+
+		for (int x = 0; x < xWidth; x++) {
+			for (int y = 0; y < yHeight; y++) {
+				distanceFromLand.getRaster().setPixel(x, y, new int[] { 255, 255, 255 });
+				//				distanceFromLand.setRGB(x, y, 10000);
+			}
+		}
+	}
+	
+	private void fillInDistanceFromLand3() {
+		List<java.awt.Point> points = new ArrayList<java.awt.Point>();
+		WritableRaster raster = distanceFromLand.getRaster();
+		int[] pixel = new int[3];
+
+		for (int x = 0; x < xWidth; x++) {
+			for (int y = 0; y < yHeight; y++) {
+				raster.getPixel(x, y, pixel);
+				int current = (pixel[0] << 16) + (pixel[1] << 8) + pixel[2];
+				if (current == 0) {
+					points.add(new java.awt.Point(x, y));
+				}
+			}
+		}
+		
+		while (points.size() > 0) {
+			java.awt.Point point = points.remove(0);
+			int x = point.x;
+			int y = point.y;
+			raster.getPixel(x, y, pixel);
+			int current = (pixel[0] << 16) + (pixel[1] << 8) + pixel[2];
+			
+			for (int u = -1; u <= 1; u++) {
+				for (int v = -1; v <= 1; v++) {
+					int x1 = x + u;
+					int y1 = y + v;
+					if (x1 >= 0 && x1 < xWidth && y1 >= 0 && y1 < yHeight) {
+						//								getPixel(rasterData, x1, y1, (int) xWidth, pixel);
+						raster.getPixel(x1, y1, pixel);
+						int thisone = (pixel[0] << 16) + (pixel[1] << 8) + pixel[2];
+						if (thisone > current + 1) {
+							int setTo = current + 1;
+							pixel[0] = (setTo >> 16) & 255;
+							pixel[1] = (setTo >> 8) & 255;
+							pixel[2] = setTo & 255;
+							raster.setPixel(x1, y1, pixel);
+							points.add(new java.awt.Point(x1, y1));
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private void fillInDistanceFromLand() {
+		WritableRaster raster = distanceFromLand.getRaster();
+		//		byte[] rasterData = ((DataBufferByte) raster.getDataBuffer()).getData();
+		int[] pixel = new int[3];
+
+		int c = 0;
+		boolean changed = true;
+		while (changed && c < 400) {
+			c++;
+			//			System.out.println(c++);
+			changed = false;
+			for (int x = 0; x < xWidth; x++) {
+				for (int y = 0; y < yHeight; y++) {
+					//					getPixel(rasterData, x, y, (int) xWidth, pixel);
+					raster.getPixel(x, y, pixel);
+					int current = (pixel[0] << 16) + (pixel[1] << 8) + pixel[2];
+					if (current == 0) {
+						continue;
+					}
+					int min = Integer.MAX_VALUE;
+					for (int u = -1; u <= 1; u++) {
+						for (int v = -1; v <= 1; v++) {
+							int x1 = x + u;
+							int y1 = y + v;
+							if (x1 >= 0 && x1 < xWidth && y1 >= 0 && y1 < yHeight) {
+								//								getPixel(rasterData, x1, y1, (int) xWidth, pixel);
+								raster.getPixel(x1, y1, pixel);
+								int thisone = (pixel[0] << 16) + (pixel[1] << 8) + pixel[2];
+								min = Math.min(min, thisone);
+							}
+						}
+
+					}
+					if (min + 1 < current) {
+						if (c > 0) {
+							int a = 0;
+						}
+						min++;
+						changed = true;
+						pixel[0] = (min >> 16) & 255;
+						pixel[1] = (min >> 8) & 255;
+						pixel[2] = min & 255;
+						raster.setPixel(x, y, pixel);
+						//						setPixel(rasterData, x, y, (int) xWidth, pixel);
+						//						System.out.println(Arrays.toString(pixel));
+					}
+				}
+			}
+		}
+
+	}
+
+	private void fillInDistanceFromLand2() {
+		WritableRaster raster = distanceFromLand.getRaster();
+		//		byte[] rasterData = ((DataBufferByte) raster.getDataBuffer()).getData();
+		int[] pixel = new int[3];
+
+		int c = 0;
+		boolean changed = true;
+		while (changed && c < 400) {
+			c++;
+			//			System.out.println(c++);
+			changed = false;
+			for (int x = 0; x < xWidth; x++) {
+				for (int y = 0; y < yHeight; y++) {
+					//					getPixel(rasterData, x, y, (int) xWidth, pixel);
+					raster.getPixel(x, y, pixel);
+					int current = (pixel[0] << 16) + (pixel[1] << 8) + pixel[2];
+					if (current == 0) {
+						continue;
+					}
+					int min = Integer.MAX_VALUE;
+					int u = 0;
+					for (int v = -1; v <= 1; v++) {
+						int x1 = x + u;
+						int y1 = y + v;
+						if (x1 >= 0 && x1 < xWidth && y1 >= 0 && y1 < yHeight) {
+							//								getPixel(rasterData, x1, y1, (int) xWidth, pixel);
+							raster.getPixel(x1, y1, pixel);
+							int thisone = (pixel[0] << 16) + (pixel[1] << 8) + pixel[2];
+							min = Math.min(min, thisone);
+						}
+					}
+
+					
+					if (min + 1 < current) {
+						if (c > 0) {
+							int a = 0;
+						}
+						min++;
+						changed = true;
+						pixel[0] = (min >> 16) & 255;
+						pixel[1] = (min >> 8) & 255;
+						pixel[2] = min & 255;
+						raster.setPixel(x, y, pixel);
+						//						setPixel(rasterData, x, y, (int) xWidth, pixel);
+						//						System.out.println(Arrays.toString(pixel));
+					}
+				}
+				for (int y = (int) (yHeight - 1); y >= 0; y--) {
+					//					getPixel(rasterData, x, y, (int) xWidth, pixel);
+					raster.getPixel(x, y, pixel);
+					int current = (pixel[0] << 16) + (pixel[1] << 8) + pixel[2];
+					if (current == 0) {
+						continue;
+					}
+					int min = Integer.MAX_VALUE;
+					int u = 0;
+					for (int v = -1; v <= 1; v++) {
+						int x1 = x + u;
+						int y1 = y + v;
+						if (x1 >= 0 && x1 < xWidth && y1 >= 0 && y1 < yHeight) {
+							//								getPixel(rasterData, x1, y1, (int) xWidth, pixel);
+							raster.getPixel(x1, y1, pixel);
+							int thisone = (pixel[0] << 16) + (pixel[1] << 8) + pixel[2];
+							min = Math.min(min, thisone);
+						}
+					}
+
+					if (min + 1 < current) {
+						if (c > 0) {
+							int a = 0;
+						}
+						min++;
+						changed = true;
+						pixel[0] = (min >> 16) & 255;
+						pixel[1] = (min >> 8) & 255;
+						pixel[2] = min & 255;
+						raster.setPixel(x, y, pixel);
+						//						setPixel(rasterData, x, y, (int) xWidth, pixel);
+						//						System.out.println(Arrays.toString(pixel));
+					}
+				}
+			}
+
+			for (int y = 0; y < yHeight; y++) {
+				for (int x = 0; x < xWidth; x++) {
+					//					getPixel(rasterData, x, y, (int) xWidth, pixel);
+					raster.getPixel(x, y, pixel);
+					int current = (pixel[0] << 16) + (pixel[1] << 8) + pixel[2];
+					if (current == 0) {
+						continue;
+					}
+					int min = Integer.MAX_VALUE;
+					int v = 0;
+					for (int u = -1; u <= 1; u++) {
+						int x1 = x + u;
+						int y1 = y + v;
+						if (x1 >= 0 && x1 < xWidth && y1 >= 0 && y1 < yHeight) {
+							//								getPixel(rasterData, x1, y1, (int) xWidth, pixel);
+							raster.getPixel(x1, y1, pixel);
+							int thisone = (pixel[0] << 16) + (pixel[1] << 8) + pixel[2];
+							min = Math.min(min, thisone);
+						}
+					}
+
+					
+					if (min + 1 < current) {
+						if (c > 0) {
+							int a = 0;
+						}
+						min++;
+						changed = true;
+						pixel[0] = (min >> 16) & 255;
+						pixel[1] = (min >> 8) & 255;
+						pixel[2] = min & 255;
+						raster.setPixel(x, y, pixel);
+						//						setPixel(rasterData, x, y, (int) xWidth, pixel);
+						//						System.out.println(Arrays.toString(pixel));
+					}
+				}
+				for (int x = (int) (xWidth - 1); x >= 0; x--) {
+					//					getPixel(rasterData, x, y, (int) xWidth, pixel);
+					raster.getPixel(x, y, pixel);
+					int current = (pixel[0] << 16) + (pixel[1] << 8) + pixel[2];
+					if (current == 0) {
+						continue;
+					}
+					int min = Integer.MAX_VALUE;
+					int v = 0;
+					for (int u = -1; u <= 1; u++) {
+						int x1 = x + u;
+						int y1 = y + v;
+						if (x1 >= 0 && x1 < xWidth && y1 >= 0 && y1 < yHeight) {
+							//								getPixel(rasterData, x1, y1, (int) xWidth, pixel);
+							raster.getPixel(x1, y1, pixel);
+							int thisone = (pixel[0] << 16) + (pixel[1] << 8) + pixel[2];
+							min = Math.min(min, thisone);
+						}
+					}
+
+					if (min + 1 < current) {
+						if (c > 0) {
+							int a = 0;
+						}
+						min++;
+						changed = true;
+						pixel[0] = (min >> 16) & 255;
+						pixel[1] = (min >> 8) & 255;
+						pixel[2] = min & 255;
+						raster.setPixel(x, y, pixel);
+						//						setPixel(rasterData, x, y, (int) xWidth, pixel);
+						//						System.out.println(Arrays.toString(pixel));
+					}
+				}
+			}
+		}
+
+	}
+
+	//	private void setPixel(byte[] rasterData, int x, int y, int width, int[] pixel) {
+	//		rasterData[3 * (y * width + x)] = (byte) pixel[0];
+	//		rasterData[3 * (y * width + x) + 1] = (byte) pixel[1];
+	//		rasterData[3 * (y * width + x) + 2] = (byte) pixel[2];
+	//	}
+	//
+	//	private void getPixel(byte[] rasterData, int x, int y, int width, int[] pixel) {
+	//		pixel[0] = rasterData[3 * (y * width + x)];
+	//		pixel[1] = rasterData[3 * (y * width + x) + 1];
+	//		pixel[2] = rasterData[3 * (y * width + x) + 2];
+	//	}
+
+	private void clip(Graphics2D g) {
+
+		Object save = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+
+		GeometryFactory geomFact = new GeometryFactory();
+		Geometry clipGeometry = GraphBuilder.buildClipGeometry(clippingPolygon, geomFact);
+		Geometry clipHull = clipGeometry.convexHull();
+		Coordinate[] rectCoords = new Coordinate[] { new Coordinate(0, 0), new Coordinate(1, 0), new Coordinate(1, 1),
+				new Coordinate(0, 1), new Coordinate(0, 0) };
+		Geometry rect = geomFact.createPolygon(rectCoords);
+		Geometry rectHull = rect.convexHull();
+		Geometry inverseGeometry = rectHull.difference(clipHull);
+
+		PointTransformation txfm = new PointTransformation() {
+
+			@Override
+			public void transform(Coordinate src, Point2D dest) {
+				dest.setLocation(x0 + src.x * xWidth, y0 + src.y * yHeight);
+			}
+		};
+		Shape shape = new ShapeWriter(txfm).toShape(inverseGeometry);
+
+		Point p = geomFact.createPoint(new Coordinate(1, 1));
+		double distance = p.distance(clipGeometry);
+
+		g.setColor(Color.black);
+		g.setStroke(new BasicStroke(4, 2, 2));
+		g.draw(shape);
+
+		g.setPaint(new DistanceGradientPaint(clipGeometry, xWidth));
+		g.fill(shape);
+
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, save);
 	}
 
 	//	private void drawMountains(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
@@ -240,12 +582,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	}
 
 	private void drawPickListCircles(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
-
-		List<Location> flatList = pickList.stream().flatMap((l) -> {
-			return l.stream();
-		}).collect(Collectors.toList());
-
-		flatList.sort((l1, l2) -> {
+		pickList.sort((l1, l2) -> {
 			return (int) (100000 * (l1.getY() - l2.getY()));
 		});
 
@@ -264,13 +601,14 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 		//					}
 		//				});
 
-		flatList.stream().filter((loc) -> {
+		pickList.stream().filter((loc) -> {
 			return !loc.water;
 		}).forEach((loc) -> {
-			g.setColor(Color.blue);
-			g.drawOval((int) (x0 + (loc.getX() - loc.radius) * xWidth),
-					(int) (y0 + (loc.getY() - loc.radius) * yHeight), (int) (x0 + 2 * loc.radius * xWidth),
-					(int) (y0 + 2 * loc.radius * yHeight));
+			//			g.setColor(Color.blue);
+			//			g.setStroke(new BasicStroke(1));
+			//			g.drawOval((int) (x0 + (loc.getX() - loc.radius) * xWidth),
+			//					(int) (y0 + (loc.getY() - loc.radius) * yHeight), (int) (x0 + 2 * loc.radius * xWidth),
+			//					(int) (y0 + 2 * loc.radius * yHeight));
 
 			if (loc.hill && !loc.mountain && !loc.water) {
 				drawHill(g, x0, y0, xWidth, yHeight, 0.015, loc.getX() - loc.radius / 2, loc.getY(), loc);
@@ -552,6 +890,8 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 			Location loc) {
 		List<MapEdge> voronoiEdges = graphs.dualGraph.edgesOf(loc).stream().map((dualEdge) -> {
 			return graphs.dualToVoronoi.get(dualEdge);
+		}).filter((e) -> {
+			return e != null;
 		}).collect(Collectors.toList());
 		voronoiEdges.sort((e1, e2) -> {
 			double y1 = (e1.loc1.getY() + e1.loc2.getY()) / 2;
@@ -681,6 +1021,70 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	//	}
 
 	private void drawWater(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
+		if (WATER_STYLE == 0) {
+			drawWaterStyle0(g, graphs, x0, y0, xWidth, yHeight);
+		} else if (WATER_STYLE == 1) {
+			drawWaterStyle1(g, graphs, x0, y0, xWidth, yHeight);
+		} else if (WATER_STYLE == 2) {
+			drawWaterStyle2(g, graphs, x0, y0, xWidth, yHeight);
+		}
+	}
+
+	private void drawWaterStyle1(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
+		g.setPaint(new TexturePaint(distanceFromLand, new Rectangle2D.Double(0, 0, xWidth, yHeight)));
+		graphs.dualVertices.forEach((loc) -> {
+			Set<MapEdge> edges = loc.sides;
+
+			if (loc.water) {
+				edges.forEach((e) -> {
+					if (e != null) {
+						Path2D.Double p = new Path2D.Double();
+						p.moveTo(x0 + xWidth * loc.getX(), y0 + yHeight * loc.getY());
+						p.lineTo(x0 + xWidth * e.loc1.getX(), y0 + yHeight * e.loc1.getY());
+						p.lineTo(x0 + xWidth * e.loc2.getX(), y0 + yHeight * e.loc2.getY());
+						p.closePath();
+						g.fill(p);
+					}
+				});
+			}
+		});
+		//		g.drawImage(distanceFromLand, 0, 0, null);
+	}
+	
+	private void drawWaterStyle2(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
+		drawWaterStyle0(g, graphs, x0, y0, xWidth, yHeight);
+		WritableRaster raster = distanceFromLand.getRaster();
+		int[] pixel = new int[3];
+		g.setColor(new Color(220, 220, 220));
+		for (int x = 0; x < xWidth; x++) {
+			for (int y = 0; y < yHeight; y++) {
+				raster.getPixel(x, y, pixel);
+				if (pixel[0] == 0 && pixel[1] == 0 && pixel[2] == 8) {
+					g.drawRect(x, y, 1, 1);
+				}
+			}
+		}
+		g.setColor(new Color(210, 210, 210));
+		for (int x = 0; x < xWidth; x++) {
+			for (int y = 0; y < yHeight; y++) {
+				raster.getPixel(x, y, pixel);
+				if (pixel[0] == 0 && pixel[1] == 0 && pixel[2] == 6) {
+					g.drawRect(x, y, 1, 1);
+				}
+			}
+		}
+		g.setColor(new Color(200, 200, 200));
+		for (int x = 0; x < xWidth; x++) {
+			for (int y = 0; y < yHeight; y++) {
+				raster.getPixel(x, y, pixel);
+				if (pixel[0] == 0 && pixel[1] == 0 && pixel[2] == 4) {
+					g.drawRect(x, y, 1, 1);
+				}
+			}
+		}
+	}
+
+	private void drawWaterStyle0(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
 		graphs.dualVertices.forEach((loc) -> {
 			Set<MapEdge> edges = loc.sides;
 
@@ -734,6 +1138,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	private void drawCells(Graphics2D g, Graphs graphs, double x0, double y0, double xWidth, double yHeight) {
 		int[] i = new int[1];
 		Graphics2D g2 = (Graphics2D) selectionTexture.getGraphics();
+		Graphics2D g3 = (Graphics2D) distanceFromLand.getGraphics();
 		graphs.dualVertices.forEach((loc) -> {
 			Set<MapEdge> edgeList = loc.sides;
 			loc.index = i[0];
@@ -770,6 +1175,12 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 					g2.setColor(new Color(i[0]));
 					g2.fill(p);
 					g2.draw(p);
+
+					if (!loc.water) {
+						g3.setColor(new Color(0));
+						g3.fill(p);
+						g3.draw(p);
+					}
 				}
 			});
 			i[0]++;

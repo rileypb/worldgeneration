@@ -27,20 +27,20 @@ import brainfreeze.world.MapEdge;
 import de.alsclo.voronoi.graph.Point;
 
 public class GraphBuilder {
-	public static Graphs buildGraph(ArrayList<Point> initialSites, double xMin, double xMax, double yMin, double yMax) {
-		List<Location> clip = new ArrayList<Location>();
-		clip.add(new Location(xMin, yMin));
-		clip.add(new Location(xMax, yMin));
-		clip.add(new Location(xMax, yMax));
-		clip.add(new Location(xMin, yMax));
-		return buildGraph(initialSites, clip, 0);
-	}
+//	public static Graphs buildGraph(ArrayList<Point> initialSites, double xMin, double xMax, double yMin, double yMax) {
+//		List<Location> clip = new ArrayList<Location>();
+//		clip.add(new Location(xMin, yMin));
+//		clip.add(new Location(xMax, yMin));
+//		clip.add(new Location(xMax, yMax));
+//		clip.add(new Location(xMin, yMax));
+//		return buildGraph(initialSites, clip, 0);
+//	}
 
-	public static Graphs buildGraph(ArrayList<Point> initialSites, List<Location> clippingPolygon, int relaxations) {
-		Graphs graphs = buildVoronoi(initialSites, clippingPolygon);
+	public static Graphs buildGraph(ArrayList<Point> initialSites, RegionParameters rParams, int relaxations) {
+		Graphs graphs = buildVoronoi(initialSites, rParams);
 		for (int i = 0; i < relaxations; i++) {
 			relax(graphs);
-			graphs = buildVoronoi(initialSites, clippingPolygon);
+			graphs = buildVoronoi(initialSites, rParams);
 		}
 
 		return graphs;
@@ -62,13 +62,14 @@ public class GraphBuilder {
 		});
 	}
 
-	private static Graphs buildVoronoi(ArrayList<Point> initialSites, List<Location> clippingPolygon) {
+	private static Graphs buildVoronoi(ArrayList<Point> initialSites, RegionParameters rParams) {
+		List<Location> clippingPolygon = rParams.clippingPolygon;
 		if (clippingPolygon == null) {
 			clippingPolygon = new ArrayList<Location>();
-			clippingPolygon.add(new Location(0, 0));
-			clippingPolygon.add(new Location(1, 0));
-			clippingPolygon.add(new Location(1, 1));
-			clippingPolygon.add(new Location(0, 1));
+			clippingPolygon.add(new Location(rParams.xMin, rParams.yMin));
+			clippingPolygon.add(new Location(rParams.xMax, rParams.yMin));
+			clippingPolygon.add(new Location(rParams.xMax, rParams.yMax));
+			clippingPolygon.add(new Location(rParams.xMin, rParams.yMax));
 		}
 		Location center = Location.average(clippingPolygon);
 
@@ -232,7 +233,7 @@ public class GraphBuilder {
 		return graphs;
 	}
 
-	private static Geometry buildClipGeometry(List<Location> clip, GeometryFactory geomFact) {
+	public static Geometry buildClipGeometry(List<Location> clip, GeometryFactory geomFact) {
 		Coordinate[] coordinates = new Coordinate[clip.size() + 1];
 		for (int i = 0; i < clip.size(); i++) {
 			coordinates[i] = new Coordinate(clip.get(i).getX(), clip.get(i).getY());

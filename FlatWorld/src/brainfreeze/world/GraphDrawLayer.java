@@ -43,7 +43,7 @@ public class GraphDrawLayer implements DrawLayer {
 
 		//		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-		g.setStroke(new BasicStroke(4));
+		g.setStroke(new BasicStroke(1));
 
 		//		graphs.dualVertices.forEach((loc) -> {
 		//

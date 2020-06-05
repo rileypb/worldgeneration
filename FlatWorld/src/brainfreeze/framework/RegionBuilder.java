@@ -66,7 +66,7 @@ public class RegionBuilder {
 		Graphs graphs;
 
 		//		graphs = GraphBuilder.buildGraph(initialSites, rParams.xMin, rParams.xMax, rParams.yMin, rParams.yMax);
-		graphs = GraphBuilder.buildGraph(initialSites, rParams.clippingPolygon, tParams.relaxations);
+		graphs = GraphBuilder.buildGraph(initialSites, rParams, tParams.relaxations);
 
 		// JTS version
 		//		graphs = generateGraphs(initialSites, rParams.xMin, rParams.xMax, rParams.yMin, rParams.yMax,
