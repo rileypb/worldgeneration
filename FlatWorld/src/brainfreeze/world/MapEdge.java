@@ -14,7 +14,7 @@ public class MapEdge {
 	public final Location loc1;
 	public final Location loc2;
 
-	private List<Face> adjacentFaces = new ArrayList<>();
+//	private List<Face> adjacentFaces = new ArrayList<>();
 	public boolean river;
 	public float lighting;
 	public Color riverColor;
@@ -39,15 +39,15 @@ public class MapEdge {
 		return loc1 + " <-> " + loc2;
 	}
 
-	public void addAdjacentFace(Face face) {
-		if (!adjacentFaces.contains(face)) {
-			adjacentFaces.add(face);
-		}
-	}
+//	public void addAdjacentFace(Face face) {
+//		if (!adjacentFaces.contains(face)) {
+//			adjacentFaces.add(face);
+//		}
+//	}
 
-	public List<Face> getAdjacentFaces() {
-		return Collections.unmodifiableList(adjacentFaces);
-	}
+//	public List<Face> getAdjacentFaces() {
+//		return Collections.unmodifiableList(adjacentFaces);
+//	}
 
 	@Override
 	public boolean equals(Object o) {

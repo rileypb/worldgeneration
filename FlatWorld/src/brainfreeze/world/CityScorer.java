@@ -46,7 +46,7 @@ public class CityScorer {
 		if (loc.water) {
 			siteScore = Double.NEGATIVE_INFINITY;
 		} else if (loc.mountain) {
-			siteScore -= 5;
+			siteScore -= 20;
 		} else if (loc.hill) {
 			siteScore -= 3;
 		} else if (loc.forest) {

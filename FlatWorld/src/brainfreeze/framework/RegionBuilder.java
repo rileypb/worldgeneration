@@ -65,8 +65,13 @@ public class RegionBuilder {
 
 		Graphs graphs;
 
+		List<Location> locations = new ArrayList<Location>();
+		initialSites.forEach((site) -> {
+			locations.add(new Location(site.x, site.y));
+		});
+
 		//		graphs = GraphBuilder.buildGraph(initialSites, rParams.xMin, rParams.xMax, rParams.yMin, rParams.yMax);
-		graphs = GraphBuilder.buildGraph(initialSites, rParams, tParams.relaxations);
+		graphs = GraphBuilder.buildGraph(locations, rParams, tParams.relaxations, wParams.geometry);
 
 		// JTS version
 		//		graphs = generateGraphs(initialSites, rParams.xMin, rParams.xMax, rParams.yMin, rParams.yMax,
@@ -1054,9 +1059,9 @@ public class RegionBuilder {
 			double diff = loc.elevation - min;
 			double dNormal = diff * Math.sqrt(numPoints) / 100;
 
-			if (dNormal > 0.08) {
+			if (loc.elevation > 0.7) {
 				loc.mountain = true;
-			} else if (dNormal > 0.05) {
+			} else if (loc.elevation > 0.5) {
 				loc.hill = true;
 			}
 		});
@@ -1085,7 +1090,7 @@ public class RegionBuilder {
 	public void calculateFinalMoisture(Graphs graphs) {
 		List<Location> l = new ArrayList<Location>(graphs.dualVertices);
 		l.sort((loc1, loc2) -> {
-			return (int) ((100000) * (loc1.elevation - loc2.elevation));
+			return (int) ((1000000) * (loc1.elevation - loc2.elevation));
 		});
 		l.forEach((loc) -> {
 			double sum = loc.adjacentCells.stream().mapToDouble((v) -> {

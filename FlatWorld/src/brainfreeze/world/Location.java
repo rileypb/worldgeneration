@@ -14,7 +14,7 @@ public class Location {
 
 	private double x;
 	private double y;
-	private Coordinate delegate;
+	public Coordinate delegate;
 	
 	public double elevation;
 	public boolean water;
@@ -51,7 +51,7 @@ public class Location {
 	public Color baseColor;
 	public Color color;
 	public boolean forest;
-	public double radius = 0;
+	public double drawRadius = 0;
 	public int lakeNumber;
 	public boolean isLake;
 	public Lake lake;
@@ -70,6 +70,14 @@ public class Location {
 	public Set<MapEdge> sides;
 	public Set<Location> adjacentCells = new HashSet<>();
 	public boolean extra;
+	public double packingRadius;
+	public int plateIndex = -1;
+	public Plate plate;
+	public boolean plateEdge;
+	public double tectonicStress;
+	public Location originalSite;
+	public double baseElevation;
+	public double tmpElevation;
 
 	public Location(double x, double y) {
 		this.setX(x);

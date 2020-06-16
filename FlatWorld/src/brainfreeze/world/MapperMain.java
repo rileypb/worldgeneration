@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -68,9 +69,7 @@ public class MapperMain {
 
 			if (cells.length > selectionIndex) {
 				Location loc = cells[selectionIndex];
-				List<MapEdge> edgeList = graphs.dualGraph.edgesOf(loc).stream().map((voronoiEdge) -> {
-					return graphs.dualToVoronoi.get(voronoiEdge);
-				}).collect(Collectors.toList());
+				Set<MapEdge> edgeList = loc.sides;
 				edgeList.forEach((e) -> {
 					if (e != null) {
 						g.setColor(Color.green);
@@ -95,7 +94,7 @@ public class MapperMain {
 	private static int screenWidth;
 	private static int screenHeight;
 
-	public static final int POINTS = 1000;
+	public static final int POINTS = 2500;
 	private static BufferedImage selectionTexture;
 	private static FantasyLargeScaleDrawLayer mapLayer;
 
@@ -110,7 +109,12 @@ public class MapperMain {
 		//				seed = -25911778;
 		//		seed = 177265899;
 		//		seed = 1842613904;
-//				seed = 1876874932;
+		//				seed = 1876874932;
+		//		seed = -1931648976;
+		//		seed = 1929928950; // mountains
+		//		seed = -492614813; // town on a mountain top
+		//		seed = 803011674;
+		//		seed = -342907174; // lots of mountains
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 
@@ -127,9 +131,10 @@ public class MapperMain {
 		wildPerlin.setOctaveCount(30);
 		wildPerlin.setSeed(r.nextInt());
 
-		HeightMap mixtureMap = new PerlinHeightMap(1, 1, perlin, WorldGeometry.PLANAR);
-		HeightMap calmMap = new PerlinHeightMap(1, 1, calmPerlin, WorldGeometry.PLANAR);
-		HeightMap wildMap = new PerlinHeightMap(1, 1, wildPerlin, WorldGeometry.PLANAR);
+		WorldGeometry geometry = WorldGeometry.plane();
+		HeightMap wildMap = new PerlinHeightMap(1, 1, wildPerlin, geometry);
+		HeightMap mixtureMap = new PerlinHeightMap(1, 1, perlin, geometry);
+		HeightMap calmMap = new PerlinHeightMap(1, 1, calmPerlin, geometry);
 
 		HeightMap elevationMap = new CalmAndWildPerlinHeightMap(mixtureMap, calmMap, wildMap);
 
@@ -138,6 +143,7 @@ public class MapperMain {
 		wParams.elevationMap = elevationMap;
 		wParams.rnd = r;
 		wParams.seaLevel = SEALEVEL;
+		wParams.geometry = WorldGeometry.plane();
 		RegionParameters rParams = new RegionParameters();
 		rParams.numberOfPoints = POINTS;
 		List<Location> clippingPolygon = new ArrayList<Location>();
@@ -146,11 +152,11 @@ public class MapperMain {
 		clippingPolygon.add(new Location(0.6, 0.3));
 		clippingPolygon.add(new Location(0.7, 0.8));
 		clippingPolygon.add(new Location(0, 1));
-//		rParams.clippingPolygon = clippingPolygon;
-				rParams.xMin = -0.25;
-				rParams.yMin = -0.25;
-				rParams.xMax = 1.25;
-				rParams.yMax = 1.25;
+		//		rParams.clippingPolygon = clippingPolygon;
+		rParams.xMin = -0.25;
+		rParams.yMin = -0.25;
+		rParams.xMax = 1.25;
+		rParams.yMax = 1.25;
 		TechnicalParameters tParams = new TechnicalParameters();
 		tParams.relaxations = 2;
 		Region region = builder.buildRegion(wParams, rParams, tParams);
@@ -182,10 +188,10 @@ public class MapperMain {
 		Graphics2D g2 = img2.createGraphics();
 		selectionTexture = new BufferedImage(screenWidth, screenHeight, BufferedImage.TYPE_3BYTE_BGR);
 		mapLayer = new FantasyLargeScaleDrawLayer(r, (int) Math.sqrt(POINTS), buildResult, 20, MapType.DEFAULT,
-				selectionTexture, rParams.clippingPolygon);
-				mapLayer.draw(img2);
+				selectionTexture, rParams.clippingPolygon, wParams.geometry);
+						mapLayer.draw(img2);
 //		new GraphDrawLayer(buildResult, rParams.getBounds()).draw(img2);
-//										new DualGraphDrawLayer(buildResult).draw(img2);
+		//										new DualGraphDrawLayer(buildResult).draw(img2);
 		display(img2, g2, selectionTexture, buildResult);
 	}
 

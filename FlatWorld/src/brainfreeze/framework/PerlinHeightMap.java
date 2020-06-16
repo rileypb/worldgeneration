@@ -2,6 +2,7 @@ package brainfreeze.framework;
 
 import com.flowpowered.noise.module.source.Perlin;
 
+import brainfreeze.framework.WorldGeometry.WorldGeometryType;
 import brainfreeze.world.PerlinHelper;
 
 public class PerlinHeightMap implements HeightMap {
@@ -20,7 +21,7 @@ public class PerlinHeightMap implements HeightMap {
 	
 	@Override
 	public double getValue(double x, double y) {
-		switch (geometry) {
+		switch (geometry.type) {
 		case PLANAR:
 			return PerlinHelper.getPlanarNoise(source, x, xWidth, y, yHeight);
 			

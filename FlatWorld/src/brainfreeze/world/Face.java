@@ -18,7 +18,7 @@ public class Face {
 	
 	public static Face getNew(List<MapEdge> edges, Integer elevation) {
 		Face face = new Face(edges, elevation);
-		face.init();
+//		face.init();
 		
 		return face;
 	}
@@ -28,11 +28,11 @@ public class Face {
 		this.elevation = elevation;
 	}
 
-	private void init() {
-		for (MapEdge edge : edges) {
-			edge.addAdjacentFace(this);
-		}
-	}
+//	private void init() {
+//		for (MapEdge edge : edges) {
+//			edge.addAdjacentFace(this);
+//		}
+//	}
 
 	public List<MapEdge> getEdges() {
 		return Collections.unmodifiableList(edges);
