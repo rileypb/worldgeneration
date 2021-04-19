@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,7 +78,7 @@ public class GraphBuilder {
 	}
 
 	private static List<Location> relax(Graphs graphs) {
-		List<Location> relaxedLocations = new ArrayList<Location>();
+		List<Location> relaxedLocations = new LinkedList<Location>();
 		graphs.dualVertices.forEach((site) -> {
 			if (site.sides.size() > 0) {
 				Set<Location> vertices = site.sides.stream().flatMap((side) -> {

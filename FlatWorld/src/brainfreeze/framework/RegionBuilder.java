@@ -169,7 +169,7 @@ public class RegionBuilder {
 
 		System.out.println("Planning towns...");
 		TownPlanner townPlanner = new TownPlanner(rParams.numberOfPoints);
-		for (int i = 0; i < 7; i++) {
+		for (int i = 0; i < 14; i++) {
 			townPlanner.placeTowns(graphs);
 		}
 

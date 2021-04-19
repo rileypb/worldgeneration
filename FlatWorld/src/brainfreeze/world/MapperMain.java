@@ -94,13 +94,13 @@ public class MapperMain {
 	private static int screenWidth;
 	private static int screenHeight;
 
-	public static final int POINTS = 2500;
+	public static final int POINTS = 12000;
 	private static BufferedImage selectionTexture;
 	private static FantasyLargeScaleDrawLayer mapLayer;
 
 	public static void main(String[] args) {
-		screenWidth = 800;
-		screenHeight = 800;
+		screenWidth = (int) (800d*Math.sqrt(POINTS)/Math.sqrt(12000));
+		screenHeight = (int) (800d*Math.sqrt(POINTS)/Math.sqrt(12000));
 
 		int seed = new Random().nextInt();
 		//												seed = 13802760;
@@ -112,15 +112,23 @@ public class MapperMain {
 		//				seed = 1876874932;
 		//		seed = -1931648976;
 		//		seed = 1929928950; // mountains
-		//		seed = -492614813; // town on a mountain top
 		//		seed = 803011674;
 		//		seed = -342907174; // lots of mountains
+		
+//		seed = -1191350163; // isthmus
+		
+//		 seed = 634863326; // disconnected towns
+		
+		// seed = 964928612; // mountain pass
+		
+		seed = 329957084; // all in a row
+		
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
 
 		Perlin perlin = new Perlin();
 		perlin.setFrequency(1);
-		perlin.setOctaveCount(16);
+		perlin.setOctaveCount(1);
 		perlin.setSeed(r.nextInt());
 		Perlin calmPerlin = new Perlin();
 		calmPerlin.setFrequency(.25);
@@ -152,7 +160,7 @@ public class MapperMain {
 		clippingPolygon.add(new Location(0.6, 0.3));
 		clippingPolygon.add(new Location(0.7, 0.8));
 		clippingPolygon.add(new Location(0, 1));
-		//		rParams.clippingPolygon = clippingPolygon;
+//				rParams.clippingPolygon = clippingPolygon;
 		rParams.xMin = -0.25;
 		rParams.yMin = -0.25;
 		rParams.xMax = 1.25;

@@ -64,9 +64,9 @@ public class TownPlanner {
 		}
 
 		if (loc.riverJuncture) {
-			siteScore += loc.flux / (3 * sizeFactor);
+			siteScore += loc.flux / (10 * sizeFactor);
 		} else {
-			siteScore += loc.flux / (4 * sizeFactor);
+			siteScore += loc.flux / (15 * sizeFactor);
 		}
 
 		if (loc.road) {

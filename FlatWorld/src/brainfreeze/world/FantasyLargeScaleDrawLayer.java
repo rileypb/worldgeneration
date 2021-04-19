@@ -20,6 +20,7 @@ import java.awt.image.WritableRaster;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -134,24 +135,24 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 
 		drawCells(g, graphs, x0, y0, xWidth, yHeight);
 
-		//		fillInDistanceFromLand3();
+		fillInDistanceFromLand3();
 
-//		drawRoads(g, graphs, x0, y0, xWidth, yHeight);
-//
-//		drawSecondaryRoads(g, graphs, x0, y0, xWidth, yHeight);
-//
-//		drawRivers(g, graphs, x0, y0, xWidth, yHeight);
-//
-//		drawWater(g, graphs, x0, y0, xWidth, yHeight);
-//
-//		drawCoast(g, graphs, x0, y0, xWidth, yHeight);
-//
-//		drawPickListCircles(g, graphs, x0, y0, xWidth, yHeight);
-//
-//		//		drawLabels(g, graphs, x0, y0, xWidth, yHeight);
-//
-//		//		drawMountains(g, graphs, x0, y0, xWidth, yHeight);
-//		clip(g, geometry);
+		drawRoads(g, graphs, x0, y0, xWidth, yHeight);
+
+		drawSecondaryRoads(g, graphs, x0, y0, xWidth, yHeight);
+
+		drawRivers(g, graphs, x0, y0, xWidth, yHeight);
+
+		drawWater(g, graphs, x0, y0, xWidth, yHeight);
+
+		drawCoast(g, graphs, x0, y0, xWidth, yHeight);
+
+		drawPickListCircles(g, graphs, x0, y0, xWidth, yHeight);
+
+		//		drawLabels(g, graphs, x0, y0, xWidth, yHeight);
+
+		//		drawMountains(g, graphs, x0, y0, xWidth, yHeight);
+		clip(g, geometry);
 
 	}
 
@@ -169,7 +170,7 @@ public class FantasyLargeScaleDrawLayer extends BaseDrawLayer {
 	}
 
 	private void fillInDistanceFromLand3() {
-		List<java.awt.Point> points = new ArrayList<java.awt.Point>();
+		List<java.awt.Point> points = new LinkedList<java.awt.Point>();
 		WritableRaster raster = distanceFromLand.getRaster();
 		int[] pixel = new int[3];
 
