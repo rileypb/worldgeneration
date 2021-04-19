@@ -121,7 +121,7 @@ public class MapperMain {
 		
 		// seed = 964928612; // mountain pass
 		
-		seed = 329957084; // all in a row
+		//seed = 329957084; // all in a row
 		
 		System.out.println("seed: " + seed);
 		Random r = new Random(seed);
