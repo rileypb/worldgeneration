@@ -139,6 +139,7 @@ public class MapperMain {
 		wildPerlin.setOctaveCount(30);
 		wildPerlin.setSeed(r.nextInt());
 
+//		WorldGeometry geometry = WorldGeometry.cylinder(0,30,0,10);
 		WorldGeometry geometry = WorldGeometry.plane();
 		HeightMap wildMap = new PerlinHeightMap(1, 1, wildPerlin, geometry);
 		HeightMap mixtureMap = new PerlinHeightMap(1, 1, perlin, geometry);
